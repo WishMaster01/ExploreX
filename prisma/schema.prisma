@@ -1,0 +1,84 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  clerkUserId  String?  @unique
+  email        String   @unique
+  name         String
+  imageUrl     String?
+  subscription String   @default("free")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  trips Trip[]
+
+  @@map("users")
+}
+
+model Trip {
+  id          String   @id @default(cuid())
+  budget      String?
+  destination String
+  duration    String?
+  groupSize   String?
+  origin      String?
+  plan        Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  hotels Hotel[]
+  itineraryItems ItineraryItem[]
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([userId, destination])
+  @@index([destination])
+  @@map("trips")
+}
+
+model Hotel {
+  id            String   @id @default(cuid())
+  name          String
+  pricePerNight String
+  rating        Float
+  amenities     String[] @default([])
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  tripId String
+  trip   Trip   @relation(fields: [tripId], references: [id], onDelete: Cascade)
+
+  @@index([tripId])
+  @@index([tripId, rating])
+  @@map("hotels")
+}
+
+model ItineraryItem {
+  id         String   @id @default(cuid())
+  day        Int
+  activities String[] @default([])
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Relations
+  tripId String
+  trip   Trip   @relation(fields: [tripId], references: [id], onDelete: Cascade)
+
+  @@index([tripId, day])
+  @@map("itinerary_items")
+}
