@@ -29,7 +29,6 @@ import {
 import { motion } from "motion/react";
 import { useRouter } from "next/navigation";
 import React from "react";
-import UserTrips from "./UserTrips";
 
 export const suggestions = [
   {
@@ -147,7 +146,7 @@ const Hero = () => {
               </Button>
               <Button
                 variant="outline"
-                onClick={() => document.getElementById("ai-features")?.scrollIntoView({ behavior: "smooth" })}
+                onClick={() => router.push("/ai-features")}
                 className="h-12 rounded-xl border-slate-200 bg-white/80 px-7 text-base font-medium text-slate-700 shadow-sm backdrop-blur hover:bg-white hover:text-slate-900"
               >
                 Explore AI Features
@@ -277,11 +276,7 @@ const Hero = () => {
         </div>
       </section>
 
-      <section id="saved-trips" className="px-4 pb-20 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-7xl">
-          <UserTrips />
-        </div>
-      </section>
+      <section className="px-4 pb-20 sm:px-6 lg:px-8"><div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-5 rounded-2xl border border-teal-200 bg-teal-50/70 p-6 text-center sm:flex-row sm:text-left"><div><h2 className="font-heading text-2xl font-bold text-slate-900">Your plans now have a dedicated home.</h2><p className="mt-2 text-sm text-slate-600">Search, sort, favorite, and manage every itinerary from Saved Trips.</p></div><Button onClick={() => router.push("/saved-trips")} className="shrink-0 rounded-xl bg-teal-600 text-white hover:bg-teal-700">Open Saved Trips <ArrowRight className="size-4" /></Button></div></section>
     </div>
   );
 };

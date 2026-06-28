@@ -10,15 +10,13 @@ import {
   Compass,
   DollarSign,
   Globe2,
-  Instagram,
-  Linkedin,
   Map,
+  LoaderCircle,
   MessageCircle,
   Route,
   Send,
   ShieldCheck,
   Sparkles,
-  Twitter,
   Users,
   X,
 } from "lucide-react";
@@ -27,6 +25,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Button } from "@/components/ui/button";
+import { useUser } from "@clerk/nextjs";
 
 export const travelGradient = "travel-page-bg";
 
@@ -195,11 +194,37 @@ export function FloatingElement({
 
 export function AITravelCopilot() {
   const [open, setOpen] = useState(false);
+  const [input, setInput] = useState("");
+  const [answer, setAnswer] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const { user } = useUser();
   const starterTips = [
     "Reduce my travel time tomorrow",
     "Where should I eat near the Louvre?",
     "Make this trip more budget friendly",
   ];
+  const askCopilot = async (suggestion?: string) => {
+    const content = (suggestion ?? input).trim();
+    if (!content || !user || loading) return;
+    setInput("");
+    setLoading(true);
+    setAnswer("");
+    setError("");
+    try {
+      const response = await fetch("/api/ai-features", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ feature: "chat-support", messages: [{ role: "user", content }] }),
+      });
+      const data = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(data?.error?.message || "Chat support is unavailable.");
+      setAnswer(data.answer);
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Chat support is unavailable.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="fixed bottom-5 right-5 z-50">
@@ -240,14 +265,15 @@ export function AITravelCopilot() {
               </div>
               <div className="space-y-3 p-4">
                 <div className="rounded-xl bg-slate-50 p-3.5 text-sm leading-6 text-slate-600">
-                  I can refine itinerary timing, compare budgets, suggest safer
-                  routes, and answer questions about your generated plans.
+                  {loading ? <span className="flex items-center gap-2"><LoaderCircle className="size-4 animate-spin" /> Working on your question…</span> : answer || error || "I can explain ExploreX, refine planning questions, and route you to the right specialist agent."}
                 </div>
                 <div className="space-y-2">
                   {starterTips.map((tip) => (
                     <button
                       type="button"
                       key={tip}
+                      disabled={!user || loading}
+                      onClick={() => void askCopilot(tip)}
                       className="flex w-full items-center justify-between rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-left text-xs font-medium text-slate-600 transition hover:border-teal-300 hover:bg-teal-50/50 hover:text-teal-700"
                     >
                       {tip}
@@ -259,15 +285,22 @@ export function AITravelCopilot() {
                   <input
                     aria-label="Ask the AI travel copilot"
                     placeholder="Ask about your trip..."
+                    value={input}
+                    onChange={(event) => setInput(event.target.value)}
+                    onKeyDown={(event) => { if (event.key === "Enter") { event.preventDefault(); void askCopilot(); } }}
                     className="min-w-0 flex-1 bg-transparent px-2 text-sm text-slate-800 outline-none placeholder:text-slate-400"
                   />
                   <Button
                     size="icon"
+                    disabled={!user || loading || !input.trim()}
+                    onClick={() => void askCopilot()}
                     className="size-9 rounded-lg bg-teal-600 hover:bg-teal-700"
                   >
                     <Send className="size-4" />
                   </Button>
                 </div>
+                {!user && <Link href="/sign-in" className="block text-center text-xs font-bold text-teal-700">Sign in to use chat support</Link>}
+                <Link href="/ai-features" className="block text-center text-xs font-semibold text-slate-500 hover:text-teal-700">Open all specialist agents</Link>
               </div>
             </GlassPanel>
           </motion.div>
@@ -294,15 +327,9 @@ export function AITravelCopilot() {
 export function TravelFooter() {
   const platformLinks = [
     { label: "AI Planner", href: "/create-new-trip" },
-    { label: "Saved Trips", href: "/#saved-trips" },
-    { label: "Explore Cities", href: "/#explore" },
-    { label: "AI Features", href: "/#ai-features" },
-  ];
-
-  const socialLinks = [
-    { icon: <Twitter className="size-4" />, label: "Twitter", href: "#" },
-    { icon: <Instagram className="size-4" />, label: "Instagram", href: "#" },
-    { icon: <Linkedin className="size-4" />, label: "LinkedIn", href: "#" },
+    { label: "Saved Trips", href: "/saved-trips" },
+    { label: "Explore Cities", href: "/explore-cities" },
+    { label: "AI Features", href: "/ai-features" },
   ];
 
   return (
@@ -330,18 +357,6 @@ export function TravelFooter() {
               Plan, optimize, compare, and share richer travel experiences with
               an AI assistant built for modern explorers.
             </p>
-            <div className="mt-5 flex gap-2">
-              {socialLinks.map((social) => (
-                <a
-                  key={social.label}
-                  href={social.href}
-                  aria-label={social.label}
-                  className="flex size-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 transition hover:border-teal-300 hover:bg-teal-50 hover:text-teal-600"
-                >
-                  {social.icon}
-                </a>
-              ))}
-            </div>
           </div>
 
           <div>
@@ -366,10 +381,7 @@ export function TravelFooter() {
               AI Features
             </p>
             <div className="mt-4 grid gap-2.5 text-sm text-slate-600">
-              <span>Route Optimization</span>
-              <span>Smart Budget</span>
-              <span>Destination Intel</span>
-              <span>Packing Assistant</span>
+              {["Route Optimization", "Smart Budget", "Destination Intel", "Packing Assistant", "Chat Support"].map((label) => <Link key={label} href="/ai-features" className="transition hover:text-teal-600">{label}</Link>)}
             </div>
           </div>
 
@@ -379,18 +391,19 @@ export function TravelFooter() {
             </p>
             <div className="mt-4 grid grid-cols-2 gap-2">
               {[
-                { icon: <CloudSun className="size-4" />, label: "Weather" },
-                { icon: <ShieldCheck className="size-4" />, label: "Safety" },
-                { icon: <Route className="size-4" />, label: "Routes" },
-                { icon: <DollarSign className="size-4" />, label: "Budget" },
+                { icon: <CloudSun className="size-4" />, label: "Weather", href: "/travel-signals/weather" },
+                { icon: <ShieldCheck className="size-4" />, label: "Safety", href: "/travel-signals/safety" },
+                { icon: <Route className="size-4" />, label: "Routes", href: "/travel-signals/routes" },
+                { icon: <DollarSign className="size-4" />, label: "Budget", href: "/travel-signals/budget" },
               ].map((item) => (
-                <div
+                <Link
                   key={item.label}
+                  href={item.href}
                   className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50/80 px-3 py-2.5 text-xs font-medium text-slate-600"
                 >
                   <span className="text-teal-600">{item.icon}</span>
                   {item.label}
-                </div>
+                </Link>
               ))}
             </div>
           </div>

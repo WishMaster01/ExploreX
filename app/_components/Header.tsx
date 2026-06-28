@@ -13,20 +13,18 @@ import { motion, AnimatePresence } from "motion/react";
 const Header = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [activeHash, setActiveHash] = useState("");
   const pathname = usePathname();
   const { user } = useUser();
 
   const menuOptions = [
-    { name: "Explore", path: "/#explore" },
-    { name: "AI Features", path: "/#ai-features" },
-    { name: "Saved Trips", path: "/#saved-trips" },
+    { name: "Explore Cities", path: "/explore-cities" },
+    { name: "AI Features", path: "/ai-features" },
+    { name: "Saved Trips", path: "/saved-trips" },
     { name: "Planner", path: "/create-new-trip" },
   ];
 
   const isActive = (path: string) => {
-    if (path === "/create-new-trip") return pathname?.startsWith(path);
-    return pathname === "/" && path.startsWith("/#") && activeHash === path.slice(1);
+    return pathname === path || pathname?.startsWith(`${path}/`);
   };
 
   useEffect(() => {
@@ -34,14 +32,6 @@ const Header = () => {
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
-
-  useEffect(() => {
-    const syncHash = () => setActiveHash(window.location.hash);
-
-    syncHash();
-    window.addEventListener("hashchange", syncHash);
-    return () => window.removeEventListener("hashchange", syncHash);
-  }, [pathname]);
 
   useEffect(() => {
     // Avoid setState cascading: close menu when pathname changes.

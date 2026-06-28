@@ -34,6 +34,7 @@ import {
   Phone,
   Plane,
   Route,
+  Save,
   Search,
   ShieldCheck,
   Sparkles,
@@ -47,6 +48,7 @@ import {
   X,
 } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { motion } from "motion/react";
 import React, { useState } from "react";
 
@@ -89,7 +91,28 @@ function ItineraryDashboard({
 }) {
   const destCity = trip.destination.split(",")[0];
   const [exportOpen, setExportOpen] = useState(false);
+  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const [saveMessage, setSaveMessage] = useState("");
   const openExport = () => setExportOpen(true);
+  const saveTrip = async () => {
+    if (saveState === "saving" || saveState === "saved") return;
+    setSaveState("saving");
+    setSaveMessage("");
+    try {
+      const response = await fetch("/api/trips", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan: sourceTrip }),
+      });
+      const result = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(result?.error?.message || "Trip could not be saved.");
+      setSaveState("saved");
+      setSaveMessage(result?.deduplicated ? "This trip was already saved." : "Trip saved successfully.");
+    } catch (error) {
+      setSaveState("error");
+      setSaveMessage(error instanceof Error ? error.message : "Trip could not be saved.");
+    }
+  };
 
   return (
     <div
@@ -120,6 +143,17 @@ function ItineraryDashboard({
             <SharingPanel onExport={openExport} />
           </div>
         </div>
+
+        <section className="flex flex-col items-center justify-between gap-5 rounded-2xl border border-teal-200 bg-gradient-to-r from-teal-50 to-sky-50 p-6 text-center shadow-sm sm:flex-row sm:text-left">
+          <div><p className="text-xs font-bold uppercase tracking-[0.14em] text-teal-700">Final step</p><h2 className="mt-1 font-heading text-2xl font-bold text-slate-900">Keep this itinerary in Saved Trips.</h2><p className={`mt-2 text-sm ${saveState === "error" ? "text-rose-600" : "text-slate-600"}`}>{saveMessage || "Save only when you are happy with the generated plan."}</p></div>
+          <div className="flex shrink-0 flex-col gap-2 sm:flex-row">
+            <Button type="button" onClick={() => void saveTrip()} disabled={saveState === "saving" || saveState === "saved"} className="rounded-xl bg-teal-600 px-5 text-white hover:bg-teal-700 disabled:opacity-70">
+              {saveState === "saved" ? <CheckCircle2 className="size-4" /> : <Save className="size-4" />}
+              {saveState === "saving" ? "Saving…" : saveState === "saved" ? "Saved" : "Save Trip"}
+            </Button>
+            {saveState === "saved" && <Link href="/saved-trips" className="inline-flex h-10 items-center justify-center rounded-xl border border-teal-300 bg-white px-5 text-sm font-bold text-teal-700">View Saved Trips</Link>}
+          </div>
+        </section>
 
         {exportOpen && (
           <ExportPlanDialog

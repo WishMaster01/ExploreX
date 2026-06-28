@@ -5,6 +5,7 @@ import { Carousel, Card } from "@/components/ui/apple-cards-carousel";
 import { SectionHeading, travelGradient } from "@/components/travel/TravelUI";
 import { Camera, Gem, MapPin, Utensils } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 
 type City = {
   category: string;
@@ -41,6 +42,7 @@ export function PopularCityList() {
           title="Explore iconic cities with AI-ready inspiration."
           description="Each showcase is structured for future highlights, hidden gems, food picks, photo spots, family plans, solo routes, and couple-friendly experiences."
         />
+        <div className="mt-6 text-center"><Link href="/explore-cities" className="inline-flex rounded-xl bg-teal-600 px-5 py-3 text-sm font-bold text-white shadow-md hover:bg-teal-700">Browse all city guides</Link></div>
         <Carousel items={cards} />
       </div>
     </section>

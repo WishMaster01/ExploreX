@@ -162,26 +162,6 @@ const ChatBox = () => {
 
         setTimeout(() => scrollToItinerary(), 400);
 
-        const response = await fetch("/api/trips", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            budget: tripPlanWithImages.budget,
-            destination: tripPlanWithImages.destination,
-            duration: tripPlanWithImages.duration,
-            groupSize: tripPlanWithImages.group_size,
-            origin: tripPlanWithImages.origin,
-            plan: tripPlanWithImages,
-          }),
-        });
-
-        if (response.ok) {
-          const savedTrip = await response.json();
-          console.log("Trip saved successfully:", savedTrip);
-        } else {
-          const error = await response.json().catch(() => null);
-          console.error("Failed to save trip:", error);
-        }
       } else if (isFinal && !tripPlan) {
         setTripLoading(false);
         setMessages((prev) => [

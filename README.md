@@ -24,6 +24,8 @@ ExploreX is a full-stack travel planning application built with Next.js. It uses
 ### Saved trips and operations
 
 - PostgreSQL-backed trip, hotel, and itinerary persistence
+- Dedicated Saved Trips, Explore Cities, AI Features, city guide, and Travel Signals pages
+- Explicit final-step trip saving instead of automatic persistence
 - Duplicate detection using SHA-256 plan hashes
 - Cursor pagination, destination filtering, favorites, numeric budget/duration sorting, and deletion
 - Trip, packing, and booking reminders with a cron-ready due-reminder endpoint
@@ -190,6 +192,11 @@ The `20260628000000_product_intelligence` migration adds:
 | `/sign-in` | Clerk sign-in page. |
 | `/sign-up` | Clerk sign-up page. |
 | `/create-new-trip` | Authenticated trip planning workspace. |
+| `/saved-trips` | Authenticated saved-trip search, sorting, favorites, reminders, and deletion. |
+| `/explore-cities` | City guide catalog using curated demonstration data. |
+| `/explore-cities/[slug]` | Detailed city guide with places, estimated costs, transit, season, food, and preparation notes. |
+| `/ai-features` | Interactive workspaces for five specialized travel AI agents. |
+| `/travel-signals/[signal]` | Weather, route, safety, and budget planning guidance. |
 | `/admin` | Role-protected product analytics dashboard. |
 
 ## API Routes
@@ -197,6 +204,7 @@ The `20260628000000_product_intelligence` migration adds:
 | Method | Endpoint | Description |
 | --- | --- | --- |
 | `POST` | `/api/aimodel` | Sends chat history to OpenRouter and returns structured AI output. |
+| `POST` | `/api/ai-features` | Runs a selected route, budget, destination, packing, or chat-support agent prompt. |
 | `GET` | `/api/users` | Returns the authenticated user. |
 | `POST` | `/api/users` | Creates or updates the authenticated user. |
 | `GET` | `/api/trips` | Returns filtered, sorted, cursor-paginated saved trips. |
@@ -230,8 +238,12 @@ ai_trip_planner/
 ├── app/
 │   ├── (auth)/                 # Clerk sign-in and sign-up
 │   ├── admin/                  # Admin analytics dashboard
+│   ├── ai-features/            # Specialized AI agent workspace
 │   ├── api/                    # AI, trips, search, reminders, and analytics APIs
 │   ├── create-new-trip/        # Planner chat and itinerary workspace
+│   ├── explore-cities/         # City catalog and dynamic city guides
+│   ├── saved-trips/            # Saved-trip dashboard route
+│   ├── travel-signals/         # Weather, route, safety, and budget guidance
 │   └── _components/            # Landing and saved-trip components
 ├── components/                 # Shared UI and travel components
 ├── context/                    # React context providers
@@ -257,7 +269,20 @@ ai_trip_planner/
 4. AI calls run through a bounded concurrency queue with exponential retry.
 5. Zod validates the structured response before route, schedule, hotel-ranking, and budget optimizers run.
 6. The optimized plan is displayed with route savings, scheduled activities, hotel match scores, and budget selections.
-7. `/api/trips` validates the plan again, checks its SHA-256 hash for duplicates, and atomically stores the trip, hotels, itinerary items, and analytics event.
+7. The user reviews the itinerary and chooses **Save Trip** in the final section.
+8. `/api/trips` validates the plan again, checks its SHA-256 hash for duplicates, and atomically stores the trip, hotels, itinerary items, and analytics event for `/saved-trips`.
+
+## Specialized AI Features
+
+`/ai-features` provides separate constrained prompts for:
+
+- Route Optimization Agent
+- Smart Budget Agent
+- Destination Intelligence Agent
+- Packing Assistant Agent
+- Travel Chat Support Agent
+
+Each prompt defines its task boundary, required assumptions, response structure, and uncertainty rules. Agents do not claim live traffic, prices, weather, safety alerts, booking availability, or actions they did not perform.
 
 ## Algorithms and Integration
 
