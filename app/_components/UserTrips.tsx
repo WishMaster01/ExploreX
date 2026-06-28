@@ -19,6 +19,7 @@ import {
   Wallet,
 } from "lucide-react";
 import { motion } from "motion/react";
+import Link from "next/link";
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 
 type SavedTrip = {
@@ -136,18 +137,19 @@ const UserTrips = () => {
               <Archive className="size-6" />
             </div>
             <h2 className="font-heading text-2xl font-bold text-slate-900">
-              Your saved trips dashboard is ready.
+              No saved trips yet.
             </h2>
             <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600">
-              Create a trip to populate favorite trips, recently viewed plans,
-              draft itineraries, saved destinations, collaborator-ready cards,
-              and travel history.
+              Generate an itinerary and select Save Trip in its final section.
+              Your saved plans will then appear here for searching, sorting,
+              favorites, reminders, and future planning.
             </p>
+            <div className="mt-5 flex flex-wrap gap-3"><Link href="/create-new-trip" className="inline-flex items-center gap-2 rounded-xl bg-teal-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-teal-700"><Plane className="size-4" /> Create a trip</Link><Link href="/explore-cities" className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 hover:border-teal-300">Explore cities</Link></div>
           </div>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
             {[
               "Favorite trips",
-              "Draft itineraries",
+              "Recently saved plans",
               "Saved destinations",
               "Travel history",
             ].map((item, i) => (

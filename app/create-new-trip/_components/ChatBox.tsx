@@ -39,6 +39,7 @@ const ChatBox = () => {
   const { tripReady, setTripDetails, setTripLoading, scrollToItinerary } =
     useTripPlan();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const seededDestinationRef = useRef(false);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -188,6 +189,17 @@ const ChatBox = () => {
       scrollToBottom();
     }
   };
+
+  useEffect(() => {
+    if (seededDestinationRef.current) return;
+    const params = new URLSearchParams(window.location.search);
+    const destination = params.get("destination")?.trim();
+    if (params.get("autostart") !== "1" || !destination) return;
+    seededDestinationRef.current = true;
+    queueMicrotask(() => void onSend(`I want to plan a trip to ${destination}.`));
+    // Run once for a city-guide handoff; subsequent conversation state is local.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const RenderGenerativeUI = (ui: string | "") => {
     switch (ui) {
