@@ -7,7 +7,7 @@ import { useTripPlan } from "@/context/TripPlanContext";
 import type { TripInfo } from "@/lib/types/trip";
 import { withGeneratedTripImages } from "@/lib/trip-transform";
 import axios from "axios";
-import { Bot, MapPinned, Send, Sparkles, UserRound } from "lucide-react";
+import { Bot, MapPin, MapPinned, Send, Sparkles, UserRound } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import React, { useEffect, useRef, useState } from "react";
 import BudgetUI from "./BudgetUI";
@@ -22,11 +22,19 @@ type Message = {
   ui?: string;
 };
 
+type DestinationSuggestion = {
+  label: string;
+  city: string;
+  country: string;
+  state?: string;
+};
+
 const ChatBox = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [userInput, setUserInput] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const [isFinal, setIsFinal] = useState<boolean>(false);
+  const [destinationSuggestions, setDestinationSuggestions] = useState<DestinationSuggestion[]>([]);
 
   const { tripReady, setTripDetails, setTripLoading, scrollToItinerary } =
     useTripPlan();
@@ -39,6 +47,34 @@ const ChatBox = () => {
   const lastAssistantWithUiIndex = messages.findLastIndex(
     (message) => message.role === "assistant" && Boolean(message.ui),
   );
+  const lastAssistant = messages.findLast((message) => message.role === "assistant");
+  const expectsDestination = Boolean(
+    lastAssistant && /destination|where (?:do you|would you).*travel|city or country/i.test(lastAssistant.content),
+  );
+  const showDestinationSuggestions = expectsDestination && userInput.trim().length >= 2 && destinationSuggestions.length > 0;
+
+  useEffect(() => {
+    if (!expectsDestination || userInput.trim().length < 2 || loading) {
+      return;
+    }
+
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => {
+      fetch(`/api/destinations?q=${encodeURIComponent(userInput.trim())}&limit=6`, {
+        signal: controller.signal,
+      })
+        .then((response) => response.ok ? response.json() : { suggestions: [] })
+        .then((data) => setDestinationSuggestions(Array.isArray(data.suggestions) ? data.suggestions : []))
+        .catch((error) => {
+          if (error instanceof Error && error.name !== "AbortError") setDestinationSuggestions([]);
+        });
+    }, 250);
+
+    return () => {
+      window.clearTimeout(timeout);
+      controller.abort();
+    };
+  }, [expectsDestination, loading, userInput]);
 
   const shouldRenderGenerativeUI = (message: Message, index: number) => {
     if (!message.ui || index !== lastAssistantWithUiIndex || loading) {
@@ -287,6 +323,30 @@ const ChatBox = () => {
       </section>
 
       <section className="relative border-t border-slate-200/80 bg-white/90 p-3 backdrop-blur-xl sm:p-4">
+        {showDestinationSuggestions && (
+          <div className="absolute bottom-full left-3 right-3 z-20 mb-2 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl sm:left-4 sm:right-16">
+            <p className="border-b border-slate-100 px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-slate-400">
+              Destination matches
+            </p>
+            {destinationSuggestions.map((suggestion) => (
+              <button
+                key={suggestion.label}
+                type="button"
+                onClick={() => {
+                  setDestinationSuggestions([]);
+                  void onSend(suggestion.label);
+                }}
+                className="flex w-full items-center gap-3 border-b border-slate-100 px-3 py-2.5 text-left last:border-0 hover:bg-teal-50"
+              >
+                <MapPin className="size-4 shrink-0 text-teal-600" />
+                <span>
+                  <span className="block text-sm font-semibold text-slate-800">{suggestion.city}</span>
+                  <span className="block text-xs text-slate-500">{[suggestion.state, suggestion.country].filter(Boolean).join(", ")}</span>
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
         <div className="flex items-end gap-3">
           <Textarea
             value={userInput}

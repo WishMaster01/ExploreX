@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useTripPlan } from "@/context/TripPlanContext";
 import type { DisplayTrip, TripInfo } from "@/lib/types/trip";
 import { exportTripAsJson } from "@/lib/trip-transform";
+import { fuzzySearch } from "@/lib/algorithms/search/fuzzy-search";
 import {
   BadgeCheck,
   BookOpen,
@@ -33,6 +34,7 @@ import {
   Phone,
   Plane,
   Route,
+  Search,
   ShieldCheck,
   Sparkles,
   Star,
@@ -307,16 +309,27 @@ function TimelinePanel({ trip }: { trip: DisplayTrip }) {
 }
 
 function StayAndFoodPanel({ trip }: { trip: DisplayTrip }) {
+  const [hotelQuery, setHotelQuery] = useState("");
+  const matchingHotels = hotelQuery.trim()
+    ? fuzzySearch(hotelQuery, trip.hotels.map((hotel) => ({ ...hotel, label: hotel.name, aliases: [hotel.address] })), 10)
+    : trip.hotels;
+
   return (
     <div className="grid gap-6 lg:grid-cols-2">
       <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0}>
         <GlassPanel className="h-full p-5 sm:p-6">
           <PanelTitle icon={<Hotel className="size-5" />} title="Hotel Recommendations" />
           <div className="mt-5 space-y-4">
-            {trip.hotels.length === 0 ? (
+            {trip.hotels.length > 0 && (
+              <label className="relative mb-3 block">
+                <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
+                <input value={hotelQuery} onChange={(event) => setHotelQuery(event.target.value)} placeholder="Search hotels or locations" className="h-10 w-full rounded-xl border border-slate-200 bg-white pl-9 pr-3 text-sm outline-none focus:border-teal-400" />
+              </label>
+            )}
+            {matchingHotels.length === 0 ? (
               <p className="text-sm text-slate-500">No hotels in this plan yet.</p>
             ) : (
-              trip.hotels.map((hotel) => (
+              matchingHotels.map((hotel) => (
                 <div key={hotel.name} className="group overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md">
                   <div className="relative aspect-[16/9] overflow-hidden">
                     <Image src={hotel.image} alt={hotel.name} fill className="object-cover transition duration-500 group-hover:scale-105" sizes="40vw" unoptimized />
@@ -332,7 +345,10 @@ function StayAndFoodPanel({ trip }: { trip: DisplayTrip }) {
                       </span>
                     </div>
                     <p className="mt-3 text-sm leading-6 text-slate-600">{hotel.description}</p>
-                    <p className="mt-3 text-sm font-bold text-teal-700">{hotel.price}/night</p>
+                    <div className="mt-3 flex items-center justify-between gap-2">
+                      <p className="text-sm font-bold text-teal-700">{hotel.price}/night</p>
+                      {hotel.recommendationScore !== undefined && <span className="text-[11px] font-bold text-slate-500">Match {Math.round(hotel.recommendationScore * 100)}%</span>}
+                    </div>
                   </div>
                 </div>
               ))
@@ -393,10 +409,11 @@ function RouteOptimizationPanel({ trip }: { trip: DisplayTrip }) {
             {trip.mapTip}
           </div>
         </div>
-        <div className="mt-4 grid grid-cols-3 gap-2 text-xs">
+        <div className="mt-4 grid grid-cols-2 gap-2 text-xs sm:grid-cols-4">
           <MapMetric icon={<Train className="size-4" />} label="Transit" value={trip.transitMinutes} />
-          <MapMetric icon={<Car className="size-4" />} label="Ride" value="On demand" />
+          <MapMetric icon={<Car className="size-4" />} label="Route" value={trip.routeDistance} />
           <MapMetric icon={<Route className="size-4" />} label="Walk" value={trip.walkDistance} />
+          <MapMetric icon={<Sparkles className="size-4" />} label="Distance saved" value={trip.distanceSaved} />
         </div>
       </GlassPanel>
     </motion.div>
@@ -411,6 +428,9 @@ function BudgetPanel({ trip }: { trip: DisplayTrip }) {
         <div className="mt-5 rounded-xl bg-gradient-to-br from-slate-800 to-slate-900 p-5 text-white shadow-lg">
           <p className="text-sm text-slate-300">Estimated total</p>
           <p className="mt-1 font-heading text-3xl font-bold">{trip.budget}</p>
+          {trip.budgetActivityNames.length > 0 && (
+            <p className="mt-2 text-xs text-slate-300">Knapsack selection: {trip.budgetActivityNames.length} activities{trip.budgetActivityCost > 0 ? ` · estimated ${trip.budgetActivityCost.toLocaleString()}` : ""}</p>
+          )}
           <div className="mt-4 space-y-3">
             {trip.budgetBreakdown.map(({ label, percent }) => (
               <div key={label}>

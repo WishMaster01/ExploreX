@@ -1,6 +1,7 @@
 import OpenAI from "openai";
 import type { ChatCompletionMessageParam } from "openai/resources/chat/completions";
 import { auth } from "@clerk/nextjs/server";
+import { createHash } from "node:crypto";
 import {
   apiError,
   apiOk,
@@ -10,11 +11,19 @@ import {
   serverError,
 } from "@/lib/api";
 import { enforceRateLimit } from "@/lib/rate-limit";
+import { chatResponseSchema, finalResponseSchema } from "@/lib/ai-schemas";
+import { AsyncRequestQueue, withExponentialBackoff } from "@/lib/async-request-queue";
+import { LruTtlCache } from "@/lib/algorithms/cache/lru-ttl-cache";
+import { safeJsonParse } from "@/lib/algorithms/validation/safe-json-parser";
+import { optimizeTripPlan } from "@/lib/trip-optimizer";
+import { prisma } from "@/lib/db";
 
 const OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1";
 const MODEL = "openai/gpt-4.1-mini";
 const MAX_MESSAGES = 40;
 const MAX_MESSAGE_CHARS = 4000;
+const aiQueue = new AsyncRequestQueue(3, 75);
+const responseCache = new LruTtlCache<unknown>(100, 30 * 60_000);
 
 const PROMPT = `You are an AI Trip Planner Agent. Your goal is to help the user plan a trip by asking one relevant trip-related question at a time.
 Only ask questions about the following details in order, and wait for the user's answer before asking the next:
@@ -41,7 +50,7 @@ Once all required information is collected, generate and return a strict JSON re
 
 const FINAL_PROMPT = `Generate a Travel Plan with the given details.
 Provide a Hotels options list with: hotel_name, hotel_address, price_per_night, hotel_image_url, geo coordinates, rating, description.
-Also, suggest an itinerary with: place_name, place_details, place_image_url, geo coordinates, place_address, ticket_pricing, time_travel_each_location, and best_time_to_visit.
+Also, suggest an itinerary with: place_name, place_details, place_image_url, geo coordinates, place_address, ticket_pricing, estimated_cost, time_travel_each_location, best_time_to_visit, opening_time, closing_time, and visit_duration_minutes.
 For hotel_image_url and place_image_url, return an empty string if you do not know a real direct image URL. Do not invent placeholder URLs, example.com URLs, or web page URLs.
 Return the result strictly in JSON format matching the schema below:
 
@@ -82,8 +91,12 @@ Return the result strictly in JSON format matching the schema below:
             },
             "place_address": "string",
             "ticket_pricing": "string",
+            "estimated_cost": "number",
             "time_travel_each_location": "string",
-            "best_time_to_visit": "string"
+            "best_time_to_visit": "string",
+            "opening_time": "HH:MM",
+            "closing_time": "HH:MM",
+            "visit_duration_minutes": "number"
           }
         ]
       }
@@ -110,7 +123,11 @@ function normalizeMessages(value: unknown): ChatCompletionMessageParam[] | null 
 
     return {
       role,
-      content: message.content.trim().slice(0, MAX_MESSAGE_CHARS),
+      content: message.content
+        .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, " ")
+        .replace(/\s{3,}/g, "  ")
+        .trim()
+        .slice(0, MAX_MESSAGE_CHARS),
     } satisfies ChatCompletionMessageParam;
   });
 
@@ -121,7 +138,21 @@ function normalizeMessages(value: unknown): ChatCompletionMessageParam[] | null 
   return messages as ChatCompletionMessageParam[];
 }
 
+function retryableProviderError(error: unknown) {
+  const status = typeof error === "object" && error && "status" in error
+    ? Number((error as { status?: unknown }).status)
+    : 0;
+  return status === 0 || status === 408 || status === 409 || status === 429 || status >= 500;
+}
+
+function cacheKey(userId: string, messages: ChatCompletionMessageParam[]) {
+  return createHash("sha256")
+    .update(`${userId}:${JSON.stringify(messages)}`)
+    .digest("hex");
+}
+
 export async function POST(req: Request) {
+  let finalRequest = false;
   try {
     const { userId } = await auth();
 
@@ -159,37 +190,66 @@ export async function POST(req: Request) {
       return rateLimitResponse;
     }
 
+    const isFinal = body.isFinal === true;
+    finalRequest = isFinal;
+    const key = isFinal ? cacheKey(userId, messages) : "";
+    const cached = isFinal ? await responseCache.get(key) : undefined;
+    if (cached) {
+      return apiOk(cached);
+    }
+
     const openai = new OpenAI({
       apiKey,
       baseURL: OPENROUTER_BASE_URL,
     });
 
-    const completion = await openai.chat.completions.create({
-      max_tokens: 4000,
-      messages: [
-        {
-          role: "system",
-          content: body?.isFinal === true ? FINAL_PROMPT : PROMPT,
-        },
-        ...messages,
-      ],
-      model: MODEL,
-      response_format: { type: "json_object" },
-    });
+    const parsed = await aiQueue.run(() =>
+      withExponentialBackoff(async () => {
+        const completion = await openai.chat.completions.create({
+          max_tokens: isFinal ? 6000 : 1000,
+          messages: [
+            { role: "system", content: isFinal ? FINAL_PROMPT : PROMPT },
+            ...messages,
+          ],
+          model: MODEL,
+          response_format: { type: "json_object" },
+        });
+        const rawMessage = completion.choices?.[0]?.message?.content?.trim();
+        if (!rawMessage) throw new Error("AI returned an empty response");
+        if (isFinal) {
+          const result = safeJsonParse(rawMessage, finalResponseSchema);
+          if (!result.data) throw new Error(`AI response validation failed: ${result.error}`);
+          return { kind: "final" as const, data: result.data };
+        }
+        const result = safeJsonParse(rawMessage, chatResponseSchema);
+        if (!result.data) throw new Error(`AI response validation failed: ${result.error}`);
+        return { kind: "chat" as const, data: result.data };
+      }, { retries: 2, shouldRetry: retryableProviderError }),
+    );
 
-    const rawMessage = completion.choices?.[0]?.message?.content?.trim();
-
-    if (!rawMessage) {
-      return apiError("AI returned an empty response", 502, "SERVICE_UNAVAILABLE");
+    const response = parsed.kind === "final"
+      ? { trip_plan: optimizeTripPlan(parsed.data.trip_plan) }
+      : parsed.data;
+    if (isFinal) await responseCache.set(key, response);
+    if (isFinal) {
+      void prisma.analyticsEvent.create({
+        data: { type: "ai_generation", success: true, destination: response && "trip_plan" in response ? response.trip_plan.destination : null },
+      }).catch((analyticsError) => console.error("Unable to record AI analytics", analyticsError));
     }
-
-    try {
-      return apiOk(JSON.parse(rawMessage));
-    } catch {
-      console.error("AI returned invalid JSON");
-      return apiError("AI returned invalid JSON", 502, "SERVICE_UNAVAILABLE");
-    }
+    return apiOk(response);
   } catch (error) {
+    if (error instanceof Error && error.message === "AI request queue is full") {
+      return apiError("AI service is busy; try again shortly", 503, "SERVICE_UNAVAILABLE");
+    }
+    void prisma.analyticsEvent.create({
+      data: { type: "ai_generation", success: false },
+    }).catch((analyticsError) => console.error("Unable to record failed AI analytics", analyticsError));
+    if (!finalRequest) {
+      return apiOk({
+        resp: "I could not process that answer reliably. Please rephrase the last trip detail.",
+        ui: "default",
+      });
+    }
     return serverError(error, "Error generating AI response");
   }
 }

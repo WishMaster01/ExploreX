@@ -10,6 +10,13 @@ export type TripActivity = {
   ticket_pricing: string;
   time_travel_each_location: string;
   best_time_to_visit: string;
+  estimated_cost?: number;
+  opening_time?: string;
+  closing_time?: string;
+  visit_duration_minutes?: number;
+  scheduled_start?: string;
+  scheduled_end?: string;
+  distance_from_previous_km?: number;
 };
 
 export type TripHotel = {
@@ -23,6 +30,7 @@ export type TripHotel = {
   };
   rating: number;
   description: string;
+  recommendation_score?: number;
 };
 
 export type TripDay = {
@@ -40,6 +48,12 @@ export type TripInfo = {
   origin: string;
   hotels: TripHotel[];
   itinerary: TripDay[];
+  optimization?: {
+    route_distance_km: number;
+    distance_saved_km: number;
+    budget_activity_cost: number;
+    budget_activity_names: string[];
+  };
 };
 
 export type TimelineSegment = {
@@ -50,6 +64,7 @@ export type TimelineSegment = {
   cost: string;
   duration: string;
   address: string;
+  distanceKm?: number;
 };
 
 export type DisplayDay = {
@@ -67,6 +82,7 @@ export type DisplayHotel = {
   image: string;
   rating: number;
   description: string;
+  recommendationScore?: number;
 };
 
 export type DisplayRestaurant = {
@@ -115,4 +131,8 @@ export type DisplayTrip = {
   mapTip: string;
   transitMinutes: string;
   walkDistance: string;
+  routeDistance: string;
+  distanceSaved: string;
+  budgetActivityNames: string[];
+  budgetActivityCost: number;
 };

@@ -222,13 +222,16 @@ export function transformTripToDisplay(trip: TripInfo): DisplayTrip {
   const days: DisplayDay[] = (tripWithImages.itinerary ?? []).map((day) => {
     const activities = day.activities ?? [];
     const segments = activities.map((act, idx) => ({
-      period: inferPeriod(act.best_time_to_visit, idx, activities.length),
+      period: act.scheduled_start && act.scheduled_end
+        ? `${act.scheduled_start}–${act.scheduled_end}`
+        : inferPeriod(act.best_time_to_visit, idx, activities.length),
       title: act.place_name,
       image: safeImage(act.place_image_url, `${act.place_name} ${tripWithImages.destination}`, "city"),
       detail: act.place_details || "Explore at your own pace.",
       cost: act.ticket_pricing || "Free",
       duration: act.time_travel_each_location || "2 hours",
       address: act.place_address || tripWithImages.destination,
+      distanceKm: act.distance_from_previous_km,
     }));
 
     const transitMins = activities.reduce((sum, a) => {
@@ -240,7 +243,7 @@ export function transformTripToDisplay(trip: TripInfo): DisplayTrip {
       day: day.day,
       title: day.day_plan || `Day ${day.day} in ${tripWithImages.destination.split(",")[0]}`,
       best: day.best_time_to_visit_day || "Full day exploration",
-      route: `${activities.length} stops · ~${transitMins || 30} min transit`,
+      route: `${activities.length} stops · ${activities.reduce((sum, activity) => sum + (activity.distance_from_previous_km ?? 0), 0).toFixed(1)} km · ~${transitMins || 30} min`,
       segments,
     };
   });
@@ -290,6 +293,7 @@ export function transformTripToDisplay(trip: TripInfo): DisplayTrip {
       image: safeImage(h.hotel_image_url, `${h.hotel_name} ${h.hotel_address} ${tripWithImages.destination}`, "hotel"),
       rating: h.rating ?? 4.5,
       description: h.description || `Well-rated stay in ${destCity}.`,
+      recommendationScore: h.recommendation_score,
     })),
     restaurants: deriveRestaurants(allActivities, tripWithImages.destination),
     days,
@@ -374,6 +378,10 @@ export function transformTripToDisplay(trip: TripInfo): DisplayTrip {
     mapTip: `Cluster ${destCity} activities by neighborhood to reduce transit time between stops.`,
     transitMinutes: `${sumTransitMinutes(tripWithImages.itinerary)} min`,
     walkDistance: `~${(allActivities.length * 1.2).toFixed(1)} km`,
+    routeDistance: `${tripWithImages.optimization?.route_distance_km ?? 0} km`,
+    distanceSaved: `${tripWithImages.optimization?.distance_saved_km ?? 0} km`,
+    budgetActivityNames: tripWithImages.optimization?.budget_activity_names ?? allActivities.map((activity) => activity.place_name),
+    budgetActivityCost: tripWithImages.optimization?.budget_activity_cost ?? 0,
   };
 }
 

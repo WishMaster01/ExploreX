@@ -18,11 +18,14 @@ model User {
   name         String
   imageUrl     String?
   subscription String   @default("free")
+  role         String   @default("user")
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
   // Relations
-  trips Trip[]
+  trips           Trip[]
+  reminders       Reminder[]
+  analyticsEvents AnalyticsEvent[]
 
   @@map("users")
 }
@@ -35,6 +38,11 @@ model Trip {
   groupSize   String?
   origin      String?
   plan        Json?
+  planHash    String?
+  budgetAmount Int?
+  durationDays Int?
+  isFavorite Boolean  @default(false)
+  lastViewedAt DateTime @default(now())
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -43,11 +51,52 @@ model Trip {
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   hotels Hotel[]
   itineraryItems ItineraryItem[]
+  reminders Reminder[]
 
   @@index([userId, createdAt(sort: Desc)])
+  @@index([userId, isFavorite, createdAt(sort: Desc)])
+  @@index([userId, budgetAmount])
+  @@index([userId, durationDays])
   @@index([userId, destination])
   @@index([destination])
+  @@unique([userId, planHash])
   @@map("trips")
+}
+
+model Reminder {
+  id        String   @id @default(cuid())
+  type      String
+  message   String
+  remindAt  DateTime
+  status    String   @default("scheduled")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId String
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tripId String?
+  trip   Trip? @relation(fields: [tripId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status, remindAt])
+  @@index([tripId])
+  @@map("reminders")
+}
+
+model AnalyticsEvent {
+  id          String   @id @default(cuid())
+  type        String
+  destination String?
+  success     Boolean  @default(true)
+  metadata    Json?
+  createdAt   DateTime @default(now())
+
+  userId String?
+  user   User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([type, createdAt])
+  @@index([destination, createdAt])
+  @@index([userId, createdAt])
+  @@map("analytics_events")
 }
 
 model Hotel {

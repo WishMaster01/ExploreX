@@ -1,5 +1,8 @@
 import arcjet, { tokenBucket } from "@arcjet/next";
 import { apiError } from "@/lib/api";
+import { SlidingWindowRateLimiter } from "@/lib/algorithms/rate-limit/sliding-window";
+
+const localLimiter = new SlidingWindowRateLimiter();
 
 type RateLimitOptions = {
   capacity: number;
@@ -28,7 +31,12 @@ export async function enforceRateLimit(
       );
     }
 
-    console.warn("ARCJET_KEY is not configured; skipping rate limit in development");
+    const forwardedFor = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
+    const key = `${userId}:${forwardedFor || "local"}`;
+    const result = localLimiter.check(key, capacity, interval * 1000, requested);
+    if (!result.allowed) {
+      return apiError("Too many requests", 429, "RATE_LIMITED");
+    }
     return null;
   }
 
