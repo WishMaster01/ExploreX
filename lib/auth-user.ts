@@ -2,6 +2,7 @@ import { auth, currentUser } from "@clerk/nextjs/server";
 import { Prisma } from "@prisma/client";
 import { boundedString, readJsonObject, safeString } from "./api";
 import { prisma } from "./db";
+import "server-only";
 
 type UserProfile = {
   clerkUserId: string;
@@ -41,8 +42,9 @@ export async function getOrCreateCurrentUser(request?: Request) {
   const clerkUser = await currentUser();
   const body = request ? await readJsonObject(request) : null;
   const primaryEmail =
-    clerkUser?.emailAddresses.find((email) => email.id === clerkUser.primaryEmailAddressId)
-      ?.emailAddress ??
+    clerkUser?.emailAddresses.find(
+      (email) => email.id === clerkUser.primaryEmailAddressId,
+    )?.emailAddress ??
     clerkUser?.emailAddresses[0]?.emailAddress ??
     safeString(body?.email);
 
@@ -58,7 +60,7 @@ export async function getOrCreateCurrentUser(request?: Request) {
       boundedString(clerkUser?.fullName, 120) ||
       boundedString(
         [clerkUser?.firstName, clerkUser?.lastName].filter(Boolean).join(" "),
-        120
+        120,
       ) ||
       boundedString(body?.name, 120, "New User"),
   };

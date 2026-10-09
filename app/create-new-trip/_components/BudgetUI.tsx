@@ -1,6 +1,9 @@
 import { BadgeDollarSign, Crown, Wallet } from "lucide-react";
 import React, { useState } from "react";
 
+type BudgetOption = (typeof SelectBudgetOptions)[number];
+type BudgetUIProps = { onSelectOption: (value: string) => void };
+
 export const SelectBudgetOptions = [
   {
     id: 1,
@@ -25,10 +28,10 @@ export const SelectBudgetOptions = [
   },
 ];
 
-const BudgetUI = ({ onSelectOption }: any) => {
+const BudgetUI = ({ onSelectOption }: BudgetUIProps) => {
   const [selected, setSelected] = useState<number | null>(null);
 
-  const handleClick = (item: any) => {
+  const handleClick = (item: BudgetOption) => {
     setSelected(item.id);
     onSelectOption(`${item.title}: ${item.desc}`);
   };
@@ -52,10 +55,16 @@ const BudgetUI = ({ onSelectOption }: any) => {
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-                <h2 className="text-sm font-bold text-slate-900">{item.title}</h2>
-                <p className="text-xs font-semibold text-teal-600">{item.range}</p>
+                <h2 className="text-sm font-bold text-slate-900">
+                  {item.title}
+                </h2>
+                <p className="text-xs font-semibold text-teal-600">
+                  {item.range}
+                </p>
               </div>
-              <p className="mt-1 text-xs leading-5 text-slate-500">{item.desc}</p>
+              <p className="mt-1 text-xs leading-5 text-slate-500">
+                {item.desc}
+              </p>
             </div>
           </div>
         </button>

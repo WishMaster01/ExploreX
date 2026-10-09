@@ -2,7 +2,14 @@
 
 import type { DisplayTrip, TripInfo } from "@/lib/types/trip";
 import { transformTripToDisplay } from "@/lib/trip-transform";
-import React, { createContext, useCallback, useContext, useMemo, useRef, useState } from "react";
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 type TripPlanContextValue = {
   tripDetails: TripInfo | null;
@@ -24,7 +31,7 @@ export function TripPlanProvider({ children }: { children: React.ReactNode }) {
 
   const displayTrip = useMemo(
     () => (tripDetails ? transformTripToDisplay(tripDetails) : null),
-    [tripDetails]
+    [tripDetails],
   );
 
   const registerItineraryRef = useCallback((el: HTMLElement | null) => {
@@ -32,7 +39,10 @@ export function TripPlanProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const scrollToItinerary = useCallback(() => {
-    itineraryRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    itineraryRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
   }, []);
 
   return (

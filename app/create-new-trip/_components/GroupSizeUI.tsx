@@ -3,6 +3,9 @@
 import { Heart, Plane, User, Users, UsersRound } from "lucide-react";
 import React, { useState } from "react";
 
+type GroupSizeOption = (typeof SelectTravelsList)[number];
+type GroupSizeUIProps = { onSelectOption: (value: string) => void };
+
 export const SelectTravelsList = [
   {
     id: 1,
@@ -41,10 +44,10 @@ export const SelectTravelsList = [
   },
 ];
 
-const GroupSizeUI = ({ onSelectOption }: any) => {
+const GroupSizeUI = ({ onSelectOption }: GroupSizeUIProps) => {
   const [selected, setSelected] = useState<number | null>(null);
 
-  const handleClick = (item: any) => {
+  const handleClick = (item: GroupSizeOption) => {
     setSelected(item.id);
     onSelectOption(`${item.title}: ${item.people}`);
   };
@@ -68,12 +71,16 @@ const GroupSizeUI = ({ onSelectOption }: any) => {
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-                <h2 className="text-sm font-bold text-slate-900">{item.title}</h2>
+                <h2 className="text-sm font-bold text-slate-900">
+                  {item.title}
+                </h2>
                 <p className="text-xs font-semibold text-teal-600">
                   {item.people} traveler{item.people === "1" ? "" : "s"}
                 </p>
               </div>
-              <p className="mt-1 text-xs leading-5 text-slate-500">{item.desc}</p>
+              <p className="mt-1 text-xs leading-5 text-slate-500">
+                {item.desc}
+              </p>
             </div>
           </div>
         </button>

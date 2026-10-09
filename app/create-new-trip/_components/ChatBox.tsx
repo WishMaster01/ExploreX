@@ -7,7 +7,15 @@ import { useTripPlan } from "@/context/TripPlanContext";
 import type { TripInfo } from "@/lib/types/trip";
 import { withGeneratedTripImages } from "@/lib/trip-transform";
 import axios from "axios";
-import { Bot, MapPin, MapPinned, Send, Sparkles, UserRound } from "lucide-react";
+import { logger } from "@/lib/observability/logger";
+import {
+  Bot,
+  MapPin,
+  MapPinned,
+  Send,
+  Sparkles,
+  UserRound,
+} from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import React, { useEffect, useRef, useState } from "react";
 import BudgetUI from "./BudgetUI";
@@ -34,7 +42,9 @@ const ChatBox = () => {
   const [userInput, setUserInput] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const [isFinal, setIsFinal] = useState<boolean>(false);
-  const [destinationSuggestions, setDestinationSuggestions] = useState<DestinationSuggestion[]>([]);
+  const [destinationSuggestions, setDestinationSuggestions] = useState<
+    DestinationSuggestion[]
+  >([]);
 
   const { tripReady, setTripDetails, setTripLoading, scrollToItinerary } =
     useTripPlan();
@@ -48,11 +58,19 @@ const ChatBox = () => {
   const lastAssistantWithUiIndex = messages.findLastIndex(
     (message) => message.role === "assistant" && Boolean(message.ui),
   );
-  const lastAssistant = messages.findLast((message) => message.role === "assistant");
-  const expectsDestination = Boolean(
-    lastAssistant && /destination|where (?:do you|would you).*travel|city or country/i.test(lastAssistant.content),
+  const lastAssistant = messages.findLast(
+    (message) => message.role === "assistant",
   );
-  const showDestinationSuggestions = expectsDestination && userInput.trim().length >= 2 && destinationSuggestions.length > 0;
+  const expectsDestination = Boolean(
+    lastAssistant &&
+    /destination|where (?:do you|would you).*travel|city or country/i.test(
+      lastAssistant.content,
+    ),
+  );
+  const showDestinationSuggestions =
+    expectsDestination &&
+    userInput.trim().length >= 2 &&
+    destinationSuggestions.length > 0;
 
   useEffect(() => {
     if (!expectsDestination || userInput.trim().length < 2 || loading) {
@@ -61,13 +79,23 @@ const ChatBox = () => {
 
     const controller = new AbortController();
     const timeout = window.setTimeout(() => {
-      fetch(`/api/destinations?q=${encodeURIComponent(userInput.trim())}&limit=6`, {
-        signal: controller.signal,
-      })
-        .then((response) => response.ok ? response.json() : { suggestions: [] })
-        .then((data) => setDestinationSuggestions(Array.isArray(data.suggestions) ? data.suggestions : []))
+      fetch(
+        `/api/destinations?q=${encodeURIComponent(userInput.trim())}&limit=6`,
+        {
+          signal: controller.signal,
+        },
+      )
+        .then((response) =>
+          response.ok ? response.json() : { suggestions: [] },
+        )
+        .then((data) =>
+          setDestinationSuggestions(
+            Array.isArray(data.suggestions) ? data.suggestions : [],
+          ),
+        )
         .catch((error) => {
-          if (error instanceof Error && error.name !== "AbortError") setDestinationSuggestions([]);
+          if (error instanceof Error && error.name !== "AbortError")
+            setDestinationSuggestions([]);
         });
     }, 250);
 
@@ -162,7 +190,6 @@ const ChatBox = () => {
         ]);
 
         setTimeout(() => scrollToItinerary(), 400);
-
       } else if (isFinal && !tripPlan) {
         setTripLoading(false);
         setMessages((prev) => [
@@ -174,8 +201,8 @@ const ChatBox = () => {
           },
         ]);
       }
-    } catch (error) {
-      console.error("Error sending message:", error);
+    } catch {
+      logger.warn("trip_chat.request_failed");
       setTripLoading(false);
       setMessages((prev) => [
         ...prev,
@@ -196,7 +223,9 @@ const ChatBox = () => {
     const destination = params.get("destination")?.trim();
     if (params.get("autostart") !== "1" || !destination) return;
     seededDestinationRef.current = true;
-    queueMicrotask(() => void onSend(`I want to plan a trip to ${destination}.`));
+    queueMicrotask(
+      () => void onSend(`I want to plan a trip to ${destination}.`),
+    );
     // Run once for a city-guide handoff; subsequent conversation state is local.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -295,7 +324,9 @@ const ChatBox = () => {
                 >
                   {msg.content}
                   {shouldRenderGenerativeUI(msg, idx) && (
-                    <div className="mt-4">{RenderGenerativeUI(msg.ui ?? "")}</div>
+                    <div className="mt-4">
+                      {RenderGenerativeUI(msg.ui ?? "")}
+                    </div>
                   )}
                 </div>
                 {msg.role === "user" && (
@@ -332,8 +363,14 @@ const ChatBox = () => {
               >
                 <MapPin className="size-4 shrink-0 text-teal-600" />
                 <span>
-                  <span className="block text-sm font-semibold text-slate-800">{suggestion.city}</span>
-                  <span className="block text-xs text-slate-500">{[suggestion.state, suggestion.country].filter(Boolean).join(", ")}</span>
+                  <span className="block text-sm font-semibold text-slate-800">
+                    {suggestion.city}
+                  </span>
+                  <span className="block text-xs text-slate-500">
+                    {[suggestion.state, suggestion.country]
+                      .filter(Boolean)
+                      .join(", ")}
+                  </span>
                 </span>
               </button>
             ))}

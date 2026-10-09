@@ -10,6 +10,8 @@ import { fuzzySearch } from "./search/fuzzy-search";
 import { levenshteinDistance } from "./search/levenshtein";
 import { Trie } from "./search/trie";
 import { safeJsonParse } from "./validation/safe-json-parser";
+import { isValidCoordinates } from "./graph/haversine";
+import { tripPreferenceSchema } from "../domain/schemas";
 
 describe("destination search", () => {
   it("supports prefix lookup and typo-tolerant matching", () => {
@@ -127,5 +129,28 @@ describe("safe AI JSON parsing", () => {
   it("rejects malformed response shapes", () => {
     const result = safeJsonParse('{"ok":"yes"}', z.object({ ok: z.boolean() }));
     expect(result.error).toBeTruthy();
+  });
+});
+
+describe("shared domain validation", () => {
+  it("accepts valid trip preferences and rejects out-of-range fields", () => {
+    const valid = {
+      origin: "Delhi",
+      destination: "Tokyo",
+      group_size: "Couple",
+      budget: "Standard",
+      duration: "5 days",
+      interests: ["food", "culture"],
+    };
+    expect(tripPreferenceSchema.safeParse(valid).success).toBe(true);
+    expect(
+      tripPreferenceSchema.safeParse({ ...valid, destination: "" }).success,
+    ).toBe(false);
+  });
+
+  it("narrows coordinate input without accepting invalid values", () => {
+    expect(isValidCoordinates({ latitude: 35.6, longitude: 139.7 })).toBe(true);
+    expect(isValidCoordinates({ latitude: 95, longitude: 139.7 })).toBe(false);
+    expect(isValidCoordinates(null)).toBe(false);
   });
 });

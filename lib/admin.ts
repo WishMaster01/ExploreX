@@ -1,12 +1,12 @@
+import "server-only";
+
 type AdminCandidate = {
   clerkUserId: string | null;
   email: string;
   role: string;
 };
 
-export function isAdmin(
-  user: AdminCandidate,
-): boolean {
+export function isAdmin(user: AdminCandidate): boolean {
   if (user.role === "admin") return true;
   const allowed = (process.env.ADMIN_USERS ?? "")
     .split(",")

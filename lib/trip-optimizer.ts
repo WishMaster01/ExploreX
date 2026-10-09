@@ -1,9 +1,15 @@
 import { selectWithinBudget } from "./algorithms/budget/knapsack";
-import { haversineDistanceKm, isValidCoordinates } from "./algorithms/graph/haversine";
+import {
+  haversineDistanceKm,
+  isValidCoordinates,
+} from "./algorithms/graph/haversine";
 import { optimizeRoute } from "./algorithms/graph/route-optimizer";
-import { parseMoney, rankHotels } from "./algorithms/recommendation/weighted-scoring";
+import {
+  parseMoney,
+  rankHotels,
+} from "./algorithms/recommendation/weighted-scoring";
 import { scheduleActivities } from "./algorithms/scheduling/itinerary-scheduler";
-import type { ValidTripInfo } from "./ai-schemas";
+import type { ValidTripInfo } from "./domain/schemas";
 
 function durationDays(value: string): number {
   return Math.max(1, Number(value.match(/\d+/)?.[0] ?? 1));
@@ -14,7 +20,9 @@ export function optimizeTripPlan(trip: ValidTripInfo): ValidTripInfo {
   const totalBudget = parseMoney(trip.budget);
   const nightlyBudget = totalBudget > 0 ? (totalBudget * 0.4) / days : 0;
   const allActivities = trip.itinerary.flatMap((day) => day.activities);
-  const center = allActivities.find((activity) => isValidCoordinates(activity.geo_coordinates))?.geo_coordinates;
+  const center = allActivities.find((activity) =>
+    isValidCoordinates(activity.geo_coordinates),
+  )?.geo_coordinates;
   const hotels = rankHotels(trip.hotels, nightlyBudget, center);
   const hotelStart = hotels[0]?.geo_coordinates;
   let routeDistance = 0;
@@ -26,11 +34,15 @@ export function optimizeTripPlan(trip: ValidTripInfo): ValidTripInfo {
     savedDistance += route.savedDistanceKm;
     let previous = hotelStart;
     const withDistances = route.items.map((activity) => {
-      const distance = previous && isValidCoordinates(previous)
-        ? haversineDistanceKm(previous, activity.geo_coordinates)
-        : 0;
+      const distance =
+        previous && isValidCoordinates(previous)
+          ? haversineDistanceKm(previous, activity.geo_coordinates)
+          : 0;
       previous = activity.geo_coordinates;
-      return { ...activity, distance_from_previous_km: Math.round(distance * 10) / 10 };
+      return {
+        ...activity,
+        distance_from_previous_km: Math.round(distance * 10) / 10,
+      };
     });
     return {
       ...day,
@@ -46,9 +58,14 @@ export function optimizeTripPlan(trip: ValidTripInfo): ValidTripInfo {
     })),
   );
   const activityBudget = totalBudget > 0 ? totalBudget * 0.25 : 0;
-  const budgetSelection = activityBudget > 0
-    ? selectWithinBudget(budgetItems, activityBudget, Math.max(1, Math.round(activityBudget / 500)))
-    : { selected: budgetItems.map((entry) => entry.item), cost: 0, value: 0 };
+  const budgetSelection =
+    activityBudget > 0
+      ? selectWithinBudget(
+          budgetItems,
+          activityBudget,
+          Math.max(1, Math.round(activityBudget / 500)),
+        )
+      : { selected: budgetItems.map((entry) => entry.item), cost: 0, value: 0 };
 
   return {
     ...trip,

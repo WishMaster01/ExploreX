@@ -1,60 +1,13 @@
-export type TripActivity = {
-  place_name: string;
-  place_details: string;
-  place_image_url: string;
-  geo_coordinates: {
-    latitude: number;
-    longitude: number;
-  };
-  place_address: string;
-  ticket_pricing: string;
-  time_travel_each_location: string;
-  best_time_to_visit: string;
-  estimated_cost?: number;
-  opening_time?: string;
-  closing_time?: string;
-  visit_duration_minutes?: number;
-  scheduled_start?: string;
-  scheduled_end?: string;
-  distance_from_previous_km?: number;
-};
+import type {
+  TripActivity,
+  TripDay,
+  TripInfo,
+  Hotel,
+} from "@/lib/domain/types";
+import type { Restaurant } from "@/lib/domain/types";
 
-export type TripHotel = {
-  hotel_name: string;
-  hotel_address: string;
-  price_per_night: string;
-  hotel_image_url: string;
-  geo_coordinates: {
-    latitude: number;
-    longitude: number;
-  };
-  rating: number;
-  description: string;
-  recommendation_score?: number;
-};
-
-export type TripDay = {
-  day: number;
-  day_plan: string;
-  best_time_to_visit_day: string;
-  activities: TripActivity[];
-};
-
-export type TripInfo = {
-  budget: string;
-  destination: string;
-  duration: string;
-  group_size: string;
-  origin: string;
-  hotels: TripHotel[];
-  itinerary: TripDay[];
-  optimization?: {
-    route_distance_km: number;
-    distance_saved_km: number;
-    budget_activity_cost: number;
-    budget_activity_names: string[];
-  };
-};
+export type { TripActivity, TripDay, TripInfo };
+export type TripHotel = Hotel;
 
 export type TimelineSegment = {
   period: string;
@@ -85,12 +38,7 @@ export type DisplayHotel = {
   recommendationScore?: number;
 };
 
-export type DisplayRestaurant = {
-  name: string;
-  type: string;
-  price: string;
-  note: string;
-};
+export type DisplayRestaurant = Restaurant;
 
 export type MapMarker = {
   label: string;

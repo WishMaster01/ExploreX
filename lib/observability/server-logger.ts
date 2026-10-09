@@ -1,0 +1,16 @@
+import "server-only";
+
+type LogContext = Record<string, string | number | boolean | null | undefined>;
+
+function write(level: "info" | "warn" | "error", event: string, context?: LogContext) {
+  const entry = JSON.stringify({ level, event, timestamp: new Date().toISOString(), ...context });
+  if (level === "error") console.error(entry);
+  else if (level === "warn") console.warn(entry);
+  else if (process.env.NODE_ENV !== "production") console.info(entry);
+}
+
+export const serverLogger = {
+  info: (event: string, context?: LogContext) => write("info", event, context),
+  warn: (event: string, context?: LogContext) => write("warn", event, context),
+  error: (event: string, context?: LogContext) => write("error", event, context),
+};

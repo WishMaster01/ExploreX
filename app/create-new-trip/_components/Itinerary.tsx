@@ -1,7 +1,11 @@
 "use client";
 
 import { ItineraryEmptyState } from "@/components/travel/ItineraryEmptyState";
-import { GlassPanel, MetricCard, SectionHeading } from "@/components/travel/TravelUI";
+import {
+  GlassPanel,
+  MetricCard,
+  SectionHeading,
+} from "@/components/travel/TravelUI";
 import { Button } from "@/components/ui/button";
 import { useTripPlan } from "@/context/TripPlanContext";
 import type { DisplayTrip, TripInfo } from "@/lib/types/trip";
@@ -62,7 +66,8 @@ const fadeUp = {
 };
 
 const Itinerary = () => {
-  const { displayTrip, tripDetails, tripLoading, registerItineraryRef } = useTripPlan();
+  const { displayTrip, tripDetails, tripLoading, registerItineraryRef } =
+    useTripPlan();
 
   if (!displayTrip || !tripDetails) {
     return <ItineraryEmptyState />;
@@ -91,7 +96,9 @@ function ItineraryDashboard({
 }) {
   const destCity = trip.destination.split(",")[0];
   const [exportOpen, setExportOpen] = useState(false);
-  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const [saveState, setSaveState] = useState<
+    "idle" | "saving" | "saved" | "error"
+  >("idle");
   const [saveMessage, setSaveMessage] = useState("");
   const openExport = () => setExportOpen(true);
   const saveTrip = async () => {
@@ -105,12 +112,19 @@ function ItineraryDashboard({
         body: JSON.stringify({ plan: sourceTrip }),
       });
       const result = await response.json().catch(() => null);
-      if (!response.ok) throw new Error(result?.error?.message || "Trip could not be saved.");
+      if (!response.ok)
+        throw new Error(result?.error?.message || "Trip could not be saved.");
       setSaveState("saved");
-      setSaveMessage(result?.deduplicated ? "This trip was already saved." : "Trip saved successfully.");
+      setSaveMessage(
+        result?.deduplicated
+          ? "This trip was already saved."
+          : "Trip saved successfully.",
+      );
     } catch (error) {
       setSaveState("error");
-      setSaveMessage(error instanceof Error ? error.message : "Trip could not be saved.");
+      setSaveMessage(
+        error instanceof Error ? error.message : "Trip could not be saved.",
+      );
     }
   };
 
@@ -145,13 +159,46 @@ function ItineraryDashboard({
         </div>
 
         <section className="flex flex-col items-center justify-between gap-5 rounded-2xl border border-teal-200 bg-gradient-to-r from-teal-50 to-sky-50 p-6 text-center shadow-sm sm:flex-row sm:text-left">
-          <div><p className="text-xs font-bold uppercase tracking-[0.14em] text-teal-700">Final step</p><h2 className="mt-1 font-heading text-2xl font-bold text-slate-900">Keep this itinerary in Saved Trips.</h2><p className={`mt-2 text-sm ${saveState === "error" ? "text-rose-600" : "text-slate-600"}`}>{saveMessage || "Save only when you are happy with the generated plan."}</p></div>
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.14em] text-teal-700">
+              Final step
+            </p>
+            <h2 className="mt-1 font-heading text-2xl font-bold text-slate-900">
+              Keep this itinerary in Saved Trips.
+            </h2>
+            <p
+              className={`mt-2 text-sm ${saveState === "error" ? "text-rose-600" : "text-slate-600"}`}
+            >
+              {saveMessage ||
+                "Save only when you are happy with the generated plan."}
+            </p>
+          </div>
           <div className="flex shrink-0 flex-col gap-2 sm:flex-row">
-            <Button type="button" onClick={() => void saveTrip()} disabled={saveState === "saving" || saveState === "saved"} className="rounded-xl bg-teal-600 px-5 text-white hover:bg-teal-700 disabled:opacity-70">
-              {saveState === "saved" ? <CheckCircle2 className="size-4" /> : <Save className="size-4" />}
-              {saveState === "saving" ? "Saving…" : saveState === "saved" ? "Saved" : "Save Trip"}
+            <Button
+              type="button"
+              onClick={() => void saveTrip()}
+              disabled={saveState === "saving" || saveState === "saved"}
+              className="rounded-xl bg-teal-600 px-5 text-white hover:bg-teal-700 disabled:opacity-70"
+            >
+              {saveState === "saved" ? (
+                <CheckCircle2 className="size-4" />
+              ) : (
+                <Save className="size-4" />
+              )}
+              {saveState === "saving"
+                ? "Saving…"
+                : saveState === "saved"
+                  ? "Saved"
+                  : "Save Trip"}
             </Button>
-            {saveState === "saved" && <Link href="/saved-trips" className="inline-flex h-10 items-center justify-center rounded-xl border border-teal-300 bg-white px-5 text-sm font-bold text-teal-700">View Saved Trips</Link>}
+            {saveState === "saved" && (
+              <Link
+                href="/saved-trips"
+                className="inline-flex h-10 items-center justify-center rounded-xl border border-teal-300 bg-white px-5 text-sm font-bold text-teal-700"
+              >
+                View Saved Trips
+              </Link>
+            )}
           </div>
         </section>
 
@@ -196,7 +243,11 @@ function HeroPanel({
   };
 
   return (
-    <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+    <motion.div
+      initial={{ opacity: 0, y: 24 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+    >
       <GlassPanel className="overflow-hidden shadow-[var(--shadow-elevated)]">
         <div className="grid gap-0 lg:grid-cols-[1fr_0.8fr]">
           <div className="p-6 sm:p-8">
@@ -205,10 +256,12 @@ function HeroPanel({
               AI itinerary dashboard
             </div>
             <h1 className="font-display text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl lg:text-5xl">
-              Your {destCity} adventure — optimized for time, budget, and local context.
+              Your {destCity} adventure — optimized for time, budget, and local
+              context.
             </h1>
             <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-600 sm:text-base">
-              {trip.origin} → {trip.destination} · {trip.group_size} · {trip.totalActivities} planned stops
+              {trip.origin} → {trip.destination} · {trip.group_size} ·{" "}
+              {trip.totalActivities} planned stops
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
               <Button
@@ -240,7 +293,10 @@ function HeroPanel({
             <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-slate-900/10 to-transparent" />
             <div className="absolute bottom-5 left-5 right-5 grid grid-cols-2 gap-3 text-white">
               <MiniStat label="Stops" value={String(trip.totalActivities)} />
-              <MiniStat label="Days" value={trip.duration.replace(/[^0-9]/g, "") || "—"} />
+              <MiniStat
+                label="Days"
+                value={trip.duration.replace(/[^0-9]/g, "") || "—"}
+              />
             </div>
           </div>
         </div>
@@ -251,16 +307,43 @@ function HeroPanel({
 
 function DashboardMetrics({ trip }: { trip: DisplayTrip }) {
   const cards = [
-    { icon: <Plane className="size-5" />, label: "Route", value: `${trip.origin} → ${trip.destination.split(",")[0]}`, detail: "AI-optimized route" },
-    { icon: <CalendarDays className="size-5" />, label: "Duration", value: trip.duration, detail: trip.group_size },
-    { icon: <Wallet2 className="size-5" />, label: "Budget", value: trip.budget, detail: "Estimated total" },
-    { icon: <Route className="size-5" />, label: "Transit", value: trip.transitMinutes, detail: trip.walkDistance + " walking" },
+    {
+      icon: <Plane className="size-5" />,
+      label: "Route",
+      value: `${trip.origin} → ${trip.destination.split(",")[0]}`,
+      detail: "AI-optimized route",
+    },
+    {
+      icon: <CalendarDays className="size-5" />,
+      label: "Duration",
+      value: trip.duration,
+      detail: trip.group_size,
+    },
+    {
+      icon: <Wallet2 className="size-5" />,
+      label: "Budget",
+      value: trip.budget,
+      detail: "Estimated total",
+    },
+    {
+      icon: <Route className="size-5" />,
+      label: "Transit",
+      value: trip.transitMinutes,
+      detail: trip.walkDistance + " walking",
+    },
   ];
 
   return (
     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
       {cards.map((card, i) => (
-        <motion.div key={card.label} custom={i} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}>
+        <motion.div
+          key={card.label}
+          custom={i}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          variants={fadeUp}
+        >
           <MetricCard {...card} />
         </motion.div>
       ))}
@@ -272,7 +355,13 @@ function TimelinePanel({ trip }: { trip: DisplayTrip }) {
   if (trip.days.length === 0) return null;
 
   return (
-    <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-40px" }} variants={fadeUp} custom={0}>
+    <motion.div
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, margin: "-40px" }}
+      variants={fadeUp}
+      custom={0}
+    >
       <GlassPanel className="p-5 sm:p-6">
         <SectionHeading
           eyebrow="AI travel timeline"
@@ -292,12 +381,20 @@ function TimelinePanel({ trip }: { trip: DisplayTrip }) {
             >
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-[0.14em] text-teal-600">Day {day.day}</p>
-                  <h3 className="mt-1 font-heading text-xl font-bold text-slate-900">{day.title}</h3>
+                  <p className="text-xs font-bold uppercase tracking-[0.14em] text-teal-600">
+                    Day {day.day}
+                  </p>
+                  <h3 className="mt-1 font-heading text-xl font-bold text-slate-900">
+                    {day.title}
+                  </h3>
                 </div>
                 <div className="flex flex-wrap gap-2 text-xs font-medium">
-                  <span className="rounded-full border border-teal-200 bg-teal-50 px-3 py-1 text-teal-700">{day.best}</span>
-                  <span className="rounded-full border border-sky-200 bg-sky-50 px-3 py-1 text-sky-700">{day.route}</span>
+                  <span className="rounded-full border border-teal-200 bg-teal-50 px-3 py-1 text-teal-700">
+                    {day.best}
+                  </span>
+                  <span className="rounded-full border border-sky-200 bg-sky-50 px-3 py-1 text-sky-700">
+                    {day.route}
+                  </span>
                 </div>
               </div>
               <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -320,15 +417,25 @@ function TimelinePanel({ trip }: { trip: DisplayTrip }) {
                       </div>
                     </div>
                     <div className="p-4">
-                      <h4 className="font-heading font-bold text-slate-900">{segment.title}</h4>
-                      <p className="mt-2 text-sm leading-6 text-slate-600 line-clamp-3">{segment.detail}</p>
+                      <h4 className="font-heading font-bold text-slate-900">
+                        {segment.title}
+                      </h4>
+                      <p className="mt-2 text-sm leading-6 text-slate-600 line-clamp-3">
+                        {segment.detail}
+                      </p>
                       <p className="mt-2 flex items-center gap-1 text-xs text-slate-400">
                         <MapPin className="size-3" />
                         <span className="truncate">{segment.address}</span>
                       </p>
                       <div className="mt-3 flex items-center justify-between text-xs font-medium text-slate-500">
-                        <span className="flex items-center gap-1.5"><Timer className="size-3.5 text-teal-600" />{segment.duration}</span>
-                        <span className="flex items-center gap-1.5"><DollarSign className="size-3.5 text-teal-600" />{segment.cost}</span>
+                        <span className="flex items-center gap-1.5">
+                          <Timer className="size-3.5 text-teal-600" />
+                          {segment.duration}
+                        </span>
+                        <span className="flex items-center gap-1.5">
+                          <DollarSign className="size-3.5 text-teal-600" />
+                          {segment.cost}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -345,43 +452,90 @@ function TimelinePanel({ trip }: { trip: DisplayTrip }) {
 function StayAndFoodPanel({ trip }: { trip: DisplayTrip }) {
   const [hotelQuery, setHotelQuery] = useState("");
   const matchingHotels = hotelQuery.trim()
-    ? fuzzySearch(hotelQuery, trip.hotels.map((hotel) => ({ ...hotel, label: hotel.name, aliases: [hotel.address] })), 10)
+    ? fuzzySearch(
+        hotelQuery,
+        trip.hotels.map((hotel) => ({
+          ...hotel,
+          label: hotel.name,
+          aliases: [hotel.address],
+        })),
+        10,
+      )
     : trip.hotels;
 
   return (
     <div className="grid gap-6 lg:grid-cols-2">
-      <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0}>
+      <motion.div
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true }}
+        variants={fadeUp}
+        custom={0}
+      >
         <GlassPanel className="h-full p-5 sm:p-6">
-          <PanelTitle icon={<Hotel className="size-5" />} title="Hotel Recommendations" />
+          <PanelTitle
+            icon={<Hotel className="size-5" />}
+            title="Hotel Recommendations"
+          />
           <div className="mt-5 space-y-4">
             {trip.hotels.length > 0 && (
               <label className="relative mb-3 block">
                 <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
-                <input value={hotelQuery} onChange={(event) => setHotelQuery(event.target.value)} placeholder="Search hotels or locations" className="h-10 w-full rounded-xl border border-slate-200 bg-white pl-9 pr-3 text-sm outline-none focus:border-teal-400" />
+                <input
+                  value={hotelQuery}
+                  onChange={(event) => setHotelQuery(event.target.value)}
+                  placeholder="Search hotels or locations"
+                  className="h-10 w-full rounded-xl border border-slate-200 bg-white pl-9 pr-3 text-sm outline-none focus:border-teal-400"
+                />
               </label>
             )}
             {matchingHotels.length === 0 ? (
-              <p className="text-sm text-slate-500">No hotels in this plan yet.</p>
+              <p className="text-sm text-slate-500">
+                No hotels in this plan yet.
+              </p>
             ) : (
               matchingHotels.map((hotel) => (
-                <div key={hotel.name} className="group overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md">
+                <div
+                  key={hotel.name}
+                  className="group overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md"
+                >
                   <div className="relative aspect-[16/9] overflow-hidden">
-                    <Image src={hotel.image} alt={hotel.name} fill className="object-cover transition duration-500 group-hover:scale-105" sizes="40vw" unoptimized />
+                    <Image
+                      src={hotel.image}
+                      alt={hotel.name}
+                      fill
+                      className="object-cover transition duration-500 group-hover:scale-105"
+                      sizes="40vw"
+                      unoptimized
+                    />
                   </div>
                   <div className="p-4">
                     <div className="flex items-start justify-between gap-3">
                       <div>
-                        <h3 className="font-heading font-bold text-slate-900">{hotel.name}</h3>
-                        <p className="mt-1 text-xs text-slate-500">{hotel.address}</p>
+                        <h3 className="font-heading font-bold text-slate-900">
+                          {hotel.name}
+                        </h3>
+                        <p className="mt-1 text-xs text-slate-500">
+                          {hotel.address}
+                        </p>
                       </div>
                       <span className="flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-bold text-amber-700">
-                        <Star className="size-3.5 fill-current" /> {hotel.rating}
+                        <Star className="size-3.5 fill-current" />{" "}
+                        {hotel.rating}
                       </span>
                     </div>
-                    <p className="mt-3 text-sm leading-6 text-slate-600">{hotel.description}</p>
+                    <p className="mt-3 text-sm leading-6 text-slate-600">
+                      {hotel.description}
+                    </p>
                     <div className="mt-3 flex items-center justify-between gap-2">
-                      <p className="text-sm font-bold text-teal-700">{hotel.price}/night</p>
-                      {hotel.recommendationScore !== undefined && <span className="text-[11px] font-bold text-slate-500">Match {Math.round(hotel.recommendationScore * 100)}%</span>}
+                      <p className="text-sm font-bold text-teal-700">
+                        {hotel.price}/night
+                      </p>
+                      {hotel.recommendationScore !== undefined && (
+                        <span className="text-[11px] font-bold text-slate-500">
+                          Match {Math.round(hotel.recommendationScore * 100)}%
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -391,20 +545,38 @@ function StayAndFoodPanel({ trip }: { trip: DisplayTrip }) {
         </GlassPanel>
       </motion.div>
 
-      <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={1}>
+      <motion.div
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true }}
+        variants={fadeUp}
+        custom={1}
+      >
         <GlassPanel className="h-full p-5 sm:p-6">
-          <PanelTitle icon={<Utensils className="size-5" />} title="Dining & Food Spots" />
+          <PanelTitle
+            icon={<Utensils className="size-5" />}
+            title="Dining & Food Spots"
+          />
           <div className="mt-5 space-y-3">
             {trip.restaurants.map((r) => (
-              <div key={r.name} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:shadow-md">
+              <div
+                key={r.name}
+                className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:shadow-md"
+              >
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <h3 className="font-heading font-bold text-slate-900">{r.name}</h3>
+                    <h3 className="font-heading font-bold text-slate-900">
+                      {r.name}
+                    </h3>
                     <p className="mt-1 text-sm text-slate-500">{r.type}</p>
                   </div>
-                  <span className="rounded-full border border-teal-200 bg-teal-50 px-3 py-1 text-xs font-bold text-teal-700">{r.price}</span>
+                  <span className="rounded-full border border-teal-200 bg-teal-50 px-3 py-1 text-xs font-bold text-teal-700">
+                    {r.price}
+                  </span>
                 </div>
-                <p className="mt-3 text-sm leading-6 text-slate-600">{r.note}</p>
+                <p className="mt-3 text-sm leading-6 text-slate-600">
+                  {r.note}
+                </p>
               </div>
             ))}
           </div>
@@ -422,7 +594,13 @@ function RouteOptimizationPanel({ trip }: { trip: DisplayTrip }) {
   };
 
   return (
-    <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0}>
+    <motion.div
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true }}
+      variants={fadeUp}
+      custom={0}
+    >
       <GlassPanel className="p-5">
         <PanelTitle icon={<Map className="size-5" />} title="Interactive Map" />
         <div className="relative mt-5 aspect-[4/3] overflow-hidden rounded-xl border border-slate-200 bg-gradient-to-br from-teal-50 via-sky-50 to-white">
@@ -430,7 +608,11 @@ function RouteOptimizationPanel({ trip }: { trip: DisplayTrip }) {
             <div className="absolute left-[20%] top-[30%] h-0.5 w-[50%] rotate-[15deg] bg-teal-500/50" />
           )}
           {trip.mapMarkers.map((marker) => (
-            <div key={marker.label} className="absolute" style={{ left: marker.left, top: marker.top }}>
+            <div
+              key={marker.label}
+              className="absolute"
+              style={{ left: marker.left, top: marker.top }}
+            >
               <div className="flex size-10 animate-pulse-route items-center justify-center rounded-full bg-gradient-to-br from-teal-600 to-teal-500 text-white shadow-lg">
                 {iconFor(marker.type)}
               </div>
@@ -444,10 +626,26 @@ function RouteOptimizationPanel({ trip }: { trip: DisplayTrip }) {
           </div>
         </div>
         <div className="mt-4 grid grid-cols-2 gap-2 text-xs sm:grid-cols-4">
-          <MapMetric icon={<Train className="size-4" />} label="Transit" value={trip.transitMinutes} />
-          <MapMetric icon={<Car className="size-4" />} label="Route" value={trip.routeDistance} />
-          <MapMetric icon={<Route className="size-4" />} label="Walk" value={trip.walkDistance} />
-          <MapMetric icon={<Sparkles className="size-4" />} label="Distance saved" value={trip.distanceSaved} />
+          <MapMetric
+            icon={<Train className="size-4" />}
+            label="Transit"
+            value={trip.transitMinutes}
+          />
+          <MapMetric
+            icon={<Car className="size-4" />}
+            label="Route"
+            value={trip.routeDistance}
+          />
+          <MapMetric
+            icon={<Route className="size-4" />}
+            label="Walk"
+            value={trip.walkDistance}
+          />
+          <MapMetric
+            icon={<Sparkles className="size-4" />}
+            label="Distance saved"
+            value={trip.distanceSaved}
+          />
         </div>
       </GlassPanel>
     </motion.div>
@@ -456,14 +654,28 @@ function RouteOptimizationPanel({ trip }: { trip: DisplayTrip }) {
 
 function BudgetPanel({ trip }: { trip: DisplayTrip }) {
   return (
-    <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={1}>
+    <motion.div
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true }}
+      variants={fadeUp}
+      custom={1}
+    >
       <GlassPanel className="p-5">
-        <PanelTitle icon={<Wallet2 className="size-5" />} title="Smart Budget Planner" />
+        <PanelTitle
+          icon={<Wallet2 className="size-5" />}
+          title="Smart Budget Planner"
+        />
         <div className="mt-5 rounded-xl bg-gradient-to-br from-slate-800 to-slate-900 p-5 text-white shadow-lg">
           <p className="text-sm text-slate-300">Estimated total</p>
           <p className="mt-1 font-heading text-3xl font-bold">{trip.budget}</p>
           {trip.budgetActivityNames.length > 0 && (
-            <p className="mt-2 text-xs text-slate-300">Knapsack selection: {trip.budgetActivityNames.length} activities{trip.budgetActivityCost > 0 ? ` · estimated ${trip.budgetActivityCost.toLocaleString()}` : ""}</p>
+            <p className="mt-2 text-xs text-slate-300">
+              Knapsack selection: {trip.budgetActivityNames.length} activities
+              {trip.budgetActivityCost > 0
+                ? ` · estimated ${trip.budgetActivityCost.toLocaleString()}`
+                : ""}
+            </p>
           )}
           <div className="mt-4 space-y-3">
             {trip.budgetBreakdown.map(({ label, percent }) => (
@@ -473,7 +685,10 @@ function BudgetPanel({ trip }: { trip: DisplayTrip }) {
                   <span>{percent}%</span>
                 </div>
                 <div className="h-2 overflow-hidden rounded-full bg-white/10">
-                  <div className="h-full rounded-full bg-gradient-to-r from-teal-400 to-teal-500" style={{ width: `${percent}%` }} />
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-teal-400 to-teal-500"
+                    style={{ width: `${percent}%` }}
+                  />
                 </div>
               </div>
             ))}
@@ -484,11 +699,15 @@ function BudgetPanel({ trip }: { trip: DisplayTrip }) {
             <div
               key={tier.label}
               className={`rounded-xl border p-3.5 shadow-sm transition hover:shadow-md ${
-                tier.recommended ? "border-teal-300 bg-teal-50/50 ring-2 ring-teal-500/20" : "border-slate-200 bg-white"
+                tier.recommended
+                  ? "border-teal-300 bg-teal-50/50 ring-2 ring-teal-500/20"
+                  : "border-slate-200 bg-white"
               }`}
             >
               <div className="flex items-center justify-between">
-                <p className="font-heading font-bold text-slate-900">{tier.label}</p>
+                <p className="font-heading font-bold text-slate-900">
+                  {tier.label}
+                </p>
                 <p className="font-bold text-teal-600">{tier.value}</p>
               </div>
               <p className="mt-1 text-xs text-slate-500">{tier.detail}</p>
@@ -503,20 +722,36 @@ function BudgetPanel({ trip }: { trip: DisplayTrip }) {
 function InsightsPanel({ trip }: { trip: DisplayTrip }) {
   const icons = [Sun, Users, ShieldCheck, HeartHandshake, CloudSun, Globe2];
   return (
-    <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={2}>
+    <motion.div
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true }}
+      variants={fadeUp}
+      custom={2}
+    >
       <GlassPanel className="p-5">
-        <PanelTitle icon={<CloudSun className="size-5" />} title="AI Travel Insights" />
+        <PanelTitle
+          icon={<CloudSun className="size-5" />}
+          title="AI Travel Insights"
+        />
         <div className="mt-5 grid gap-3">
           {trip.insights.map((item, i) => {
             const Icon = icons[i % icons.length];
             return (
-              <div key={item.label} className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
+              <div
+                key={item.label}
+                className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-3 shadow-sm"
+              >
                 <div className="flex size-9 items-center justify-center rounded-lg bg-teal-50 text-teal-600">
                   <Icon className="size-4" />
                 </div>
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-[0.12em] text-slate-500">{item.label}</p>
-                  <p className="text-sm font-medium text-slate-800">{item.value}</p>
+                  <p className="text-xs font-bold uppercase tracking-[0.12em] text-slate-500">
+                    {item.label}
+                  </p>
+                  <p className="text-sm font-medium text-slate-800">
+                    {item.value}
+                  </p>
                 </div>
               </div>
             );
@@ -527,18 +762,64 @@ function InsightsPanel({ trip }: { trip: DisplayTrip }) {
   );
 }
 
-function DestinationIntelPanel({ trip, destCity }: { trip: DisplayTrip; destCity: string }) {
+function DestinationIntelPanel({
+  trip,
+  destCity,
+}: {
+  trip: DisplayTrip;
+  destCity: string;
+}) {
   const groups = [
-    { icon: <BadgeCheck className="size-5" />, title: "Top attractions", items: trip.topAttractions },
-    { icon: <Gem className="size-5" />, title: "From your plan", items: trip.days.flatMap((d) => d.segments.map((s) => s.title)).slice(3, 6) },
-    { icon: <Camera className="size-5" />, title: "Photo spots", items: trip.days.flatMap((d) => d.segments.filter((s) => s.period === "Morning").map((s) => s.title)).slice(0, 3) },
-    { icon: <Utensils className="size-5" />, title: "Food & dining", items: trip.restaurants.map((r) => r.name) },
-    { icon: <Users className="size-5" />, title: "Group fit", items: [`Optimized for ${trip.group_size}`, `${trip.duration} pacing`, `${trip.totalActivities} activities`] },
-    { icon: <Compass className="size-5" />, title: `${destCity} highlights`, items: trip.days.map((d) => d.title).slice(0, 3) },
+    {
+      icon: <BadgeCheck className="size-5" />,
+      title: "Top attractions",
+      items: trip.topAttractions,
+    },
+    {
+      icon: <Gem className="size-5" />,
+      title: "From your plan",
+      items: trip.days
+        .flatMap((d) => d.segments.map((s) => s.title))
+        .slice(3, 6),
+    },
+    {
+      icon: <Camera className="size-5" />,
+      title: "Photo spots",
+      items: trip.days
+        .flatMap((d) =>
+          d.segments.filter((s) => s.period === "Morning").map((s) => s.title),
+        )
+        .slice(0, 3),
+    },
+    {
+      icon: <Utensils className="size-5" />,
+      title: "Food & dining",
+      items: trip.restaurants.map((r) => r.name),
+    },
+    {
+      icon: <Users className="size-5" />,
+      title: "Group fit",
+      items: [
+        `Optimized for ${trip.group_size}`,
+        `${trip.duration} pacing`,
+        `${trip.totalActivities} activities`,
+      ],
+    },
+    {
+      icon: <Compass className="size-5" />,
+      title: `${destCity} highlights`,
+      items: trip.days.map((d) => d.title).slice(0, 3),
+    },
   ];
 
   return (
-    <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0}>
+    <motion.div
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true }}
+      variants={fadeUp}
+      custom={0}
+    >
       <GlassPanel className="p-5 sm:p-6">
         <SectionHeading
           eyebrow="Destination intelligence"
@@ -547,16 +828,24 @@ function DestinationIntelPanel({ trip, destCity }: { trip: DisplayTrip; destCity
         />
         <div className="mt-6 grid gap-4 md:grid-cols-3">
           {groups.map((group) => (
-            <div key={group.title} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:shadow-md">
+            <div
+              key={group.title}
+              className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:shadow-md"
+            >
               <div className="mb-4 flex items-center gap-3">
                 <div className="flex size-10 items-center justify-center rounded-lg bg-gradient-to-br from-teal-600 to-teal-500 text-white shadow-sm">
                   {group.icon}
                 </div>
-                <h3 className="font-heading font-bold text-slate-900">{group.title}</h3>
+                <h3 className="font-heading font-bold text-slate-900">
+                  {group.title}
+                </h3>
               </div>
               <div className="space-y-2">
                 {group.items.filter(Boolean).map((item) => (
-                  <p key={item} className="flex items-center gap-2 text-sm text-slate-600">
+                  <p
+                    key={item}
+                    className="flex items-center gap-2 text-sm text-slate-600"
+                  >
                     <CheckCircle2 className="size-3.5 shrink-0 text-teal-500" />
                     {item}
                   </p>
@@ -573,14 +862,24 @@ function DestinationIntelPanel({ trip, destCity }: { trip: DisplayTrip; destCity
 function PackingPanel({ trip }: { trip: DisplayTrip }) {
   const [checked, setChecked] = useState<Record<number, boolean>>({});
 
-  const toggle = (i: number) => setChecked((prev) => ({ ...prev, [i]: !prev[i] }));
+  const toggle = (i: number) =>
+    setChecked((prev) => ({ ...prev, [i]: !prev[i] }));
   const done = Object.values(checked).filter(Boolean).length;
   const progress = Math.round((done / trip.packingItems.length) * 100) || 0;
 
   return (
-    <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={3}>
+    <motion.div
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true }}
+      variants={fadeUp}
+      custom={3}
+    >
       <GlassPanel className="p-5">
-        <PanelTitle icon={<Luggage className="size-5" />} title="Smart Packing" />
+        <PanelTitle
+          icon={<Luggage className="size-5" />}
+          title="Smart Packing"
+        />
         <div className="mt-5 space-y-2.5">
           {trip.packingItems.map((item, index) => (
             <label
@@ -598,9 +897,14 @@ function PackingPanel({ trip }: { trip: DisplayTrip }) {
           ))}
         </div>
         <div className="mt-4 h-2.5 overflow-hidden rounded-full bg-slate-100">
-          <div className="h-full rounded-full bg-gradient-to-r from-teal-500 to-teal-400 transition-all" style={{ width: `${progress}%` }} />
+          <div
+            className="h-full rounded-full bg-gradient-to-r from-teal-500 to-teal-400 transition-all"
+            style={{ width: `${progress}%` }}
+          />
         </div>
-        <p className="mt-2 text-xs text-slate-500">{progress}% packed for {trip.destination.split(",")[0]}.</p>
+        <p className="mt-2 text-xs text-slate-500">
+          {progress}% packed for {trip.destination.split(",")[0]}.
+        </p>
       </GlassPanel>
     </motion.div>
   );
@@ -608,18 +912,34 @@ function PackingPanel({ trip }: { trip: DisplayTrip }) {
 
 function TravelDocumentsPanel({ trip }: { trip: DisplayTrip }) {
   return (
-    <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0}>
+    <motion.div
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true }}
+      variants={fadeUp}
+      custom={0}
+    >
       <GlassPanel className="p-5 sm:p-6">
-        <PanelTitle icon={<FileText className="size-5" />} title="Travel Documents" />
-        <p className="mt-2 text-xs text-slate-500">Essential paperwork for {trip.destination}</p>
+        <PanelTitle
+          icon={<FileText className="size-5" />}
+          title="Travel Documents"
+        />
+        <p className="mt-2 text-xs text-slate-500">
+          Essential paperwork for {trip.destination}
+        </p>
         <div className="mt-4 space-y-2.5">
           {trip.travelDocuments.map((doc) => (
-            <div key={doc.item} className="flex items-start gap-3 rounded-xl border border-slate-200 bg-white p-3.5 shadow-sm">
+            <div
+              key={doc.item}
+              className="flex items-start gap-3 rounded-xl border border-slate-200 bg-white p-3.5 shadow-sm"
+            >
               <div className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg bg-sky-50 text-sky-600">
                 <BookOpen className="size-4" />
               </div>
               <div>
-                <p className="text-sm font-semibold text-slate-900">{doc.item}</p>
+                <p className="text-sm font-semibold text-slate-900">
+                  {doc.item}
+                </p>
                 <p className="mt-0.5 text-xs text-slate-500">{doc.tip}</p>
               </div>
             </div>
@@ -634,10 +954,21 @@ function BookingChecklistPanel({ trip }: { trip: DisplayTrip }) {
   const [booked, setBooked] = useState<Record<number, boolean>>({});
 
   return (
-    <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={1}>
+    <motion.div
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true }}
+      variants={fadeUp}
+      custom={1}
+    >
       <GlassPanel className="p-5 sm:p-6">
-        <PanelTitle icon={<ClipboardList className="size-5" />} title="Booking Checklist" />
-        <p className="mt-2 text-xs text-slate-500">Track reservations before you depart</p>
+        <PanelTitle
+          icon={<ClipboardList className="size-5" />}
+          title="Booking Checklist"
+        />
+        <p className="mt-2 text-xs text-slate-500">
+          Track reservations before you depart
+        </p>
         <div className="mt-4 space-y-2">
           {trip.bookingChecklist.map((item, i) => (
             <label
@@ -648,13 +979,17 @@ function BookingChecklistPanel({ trip }: { trip: DisplayTrip }) {
                 <input
                   type="checkbox"
                   checked={booked[i] ?? item.booked}
-                  onChange={() => setBooked((prev) => ({ ...prev, [i]: !prev[i] }))}
+                  onChange={() =>
+                    setBooked((prev) => ({ ...prev, [i]: !prev[i] }))
+                  }
                   className="size-4 accent-teal-600"
                 />
                 {item.item}
               </span>
               {(booked[i] ?? item.booked) && (
-                <span className="text-xs font-semibold text-teal-600">Done</span>
+                <span className="text-xs font-semibold text-teal-600">
+                  Done
+                </span>
               )}
             </label>
           ))}
@@ -667,20 +1002,31 @@ function BookingChecklistPanel({ trip }: { trip: DisplayTrip }) {
 function TransportationPanel({ trip }: { trip: DisplayTrip }) {
   const icons = [Plane, Bus, Route, Car];
   return (
-    <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={2}>
+    <motion.div
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true }}
+      variants={fadeUp}
+      custom={2}
+    >
       <GlassPanel className="p-5">
         <PanelTitle icon={<Bus className="size-5" />} title="Transportation" />
         <div className="mt-4 space-y-2.5">
           {trip.transportation.map((t, i) => {
             const Icon = icons[i % icons.length];
             return (
-              <div key={t.mode} className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
+              <div
+                key={t.mode}
+                className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-3 shadow-sm"
+              >
                 <div className="flex size-9 items-center justify-center rounded-lg bg-sky-50 text-sky-600">
                   <Icon className="size-4" />
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center justify-between">
-                    <p className="text-sm font-semibold text-slate-900">{t.mode}</p>
+                    <p className="text-sm font-semibold text-slate-900">
+                      {t.mode}
+                    </p>
                     <p className="text-sm font-bold text-teal-600">{t.value}</p>
                   </div>
                   <p className="text-xs text-slate-500">{t.note}</p>
@@ -697,20 +1043,36 @@ function TransportationPanel({ trip }: { trip: DisplayTrip }) {
 function LocalEssentialsPanel({ trip }: { trip: DisplayTrip }) {
   const icons = [Phone, DollarSign, Languages, HeartHandshake, Globe2];
   return (
-    <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={3}>
+    <motion.div
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true }}
+      variants={fadeUp}
+      custom={3}
+    >
       <GlassPanel className="p-5">
-        <PanelTitle icon={<Globe2 className="size-5" />} title="Local Essentials" />
+        <PanelTitle
+          icon={<Globe2 className="size-5" />}
+          title="Local Essentials"
+        />
         <div className="mt-4 space-y-2.5">
           {trip.localEssentials.map((item, i) => {
             const Icon = icons[i % icons.length];
             return (
-              <div key={item.label} className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
+              <div
+                key={item.label}
+                className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-3 shadow-sm"
+              >
                 <div className="flex size-9 items-center justify-center rounded-lg bg-amber-50 text-amber-600">
                   <Icon className="size-4" />
                 </div>
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-[0.12em] text-slate-500">{item.label}</p>
-                  <p className="text-sm font-medium text-slate-800">{item.value}</p>
+                  <p className="text-xs font-bold uppercase tracking-[0.12em] text-slate-500">
+                    {item.label}
+                  </p>
+                  <p className="text-sm font-medium text-slate-800">
+                    {item.value}
+                  </p>
                 </div>
               </div>
             );
@@ -723,24 +1085,39 @@ function LocalEssentialsPanel({ trip }: { trip: DisplayTrip }) {
 
 function TripComparisonPanel({ trip }: { trip: DisplayTrip }) {
   return (
-    <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0}>
+    <motion.div
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true }}
+      variants={fadeUp}
+      custom={0}
+    >
       <GlassPanel className="p-5 sm:p-6">
-        <PanelTitle icon={<Compass className="size-5" />} title="Trip Style Comparison" />
+        <PanelTitle
+          icon={<Compass className="size-5" />}
+          title="Trip Style Comparison"
+        />
         <div className="mt-5 grid gap-4 md:grid-cols-3">
           {trip.tripComparison.map((plan) => (
             <div
               key={plan.label}
               className={`rounded-xl border p-4 shadow-sm transition hover:shadow-md ${
-                plan.recommended ? "border-teal-300 bg-teal-50/50 ring-2 ring-teal-500/20" : "border-slate-200 bg-white"
+                plan.recommended
+                  ? "border-teal-300 bg-teal-50/50 ring-2 ring-teal-500/20"
+                  : "border-slate-200 bg-white"
               }`}
             >
-              <h3 className="font-heading font-bold text-slate-900">{plan.label}</h3>
+              <h3 className="font-heading font-bold text-slate-900">
+                {plan.label}
+              </h3>
               {plan.recommended && (
                 <span className="mt-1 inline-block rounded-full bg-teal-600 px-2 py-0.5 text-[10px] font-bold uppercase text-white">
                   Your plan
                 </span>
               )}
-              <p className="mt-3 text-lg font-bold text-teal-600">{plan.value}</p>
+              <p className="mt-3 text-lg font-bold text-teal-600">
+                {plan.value}
+              </p>
               <p className="mt-1 text-sm text-slate-600">{plan.detail}</p>
             </div>
           ))}
@@ -751,27 +1128,44 @@ function TripComparisonPanel({ trip }: { trip: DisplayTrip }) {
 }
 
 function SharingPanel({ onExport }: { onExport: () => void }) {
-  const [toggles, setToggles] = useState([true, true, false, false]);
-
   return (
-    <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={4}>
+    <motion.div
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true }}
+      variants={fadeUp}
+      custom={4}
+    >
       <GlassPanel className="p-5">
-        <PanelTitle icon={<MessageSquareShare className="size-5" />} title="Trip Sharing" />
+        <PanelTitle
+          icon={<MessageSquareShare className="size-5" />}
+          title="Trip Sharing"
+        />
         <div className="mt-5 space-y-2.5">
-          {["Private trip", "Invite collaborators", "Public showcase card", "Export plan"].map((item, index) => (
-            <div key={item} className="flex items-center justify-between rounded-xl border border-slate-200 bg-white p-3.5 text-sm font-medium text-slate-700 shadow-sm">
+          {[
+            "Private trip",
+            "Collaboration is not available",
+            "Public sharing is not available",
+            "Export plan",
+          ].map((item, index) => (
+            <div
+              key={item}
+              className="flex items-center justify-between rounded-xl border border-slate-200 bg-white p-3.5 text-sm font-medium text-slate-700 shadow-sm"
+            >
               <span>{item}</span>
-              <button
-                type="button"
-                aria-label={`Toggle ${item}`}
-                onClick={() => {
-                  if (index === 3) onExport();
-                  else setToggles((prev) => prev.map((v, i) => (i === index ? !v : v)));
-                }}
-                className={`relative h-6 w-11 rounded-full transition ${toggles[index] ? "bg-teal-500" : "bg-slate-200"}`}
-              >
-                <span className={`absolute top-0.5 block size-5 rounded-full bg-white shadow-sm transition ${toggles[index] ? "left-[22px]" : "left-0.5"}`} />
-              </button>
+              {index === 3 ? (
+                <button
+                  type="button"
+                  onClick={onExport}
+                  className="rounded-lg bg-teal-600 px-3 py-1.5 text-xs font-bold text-white"
+                >
+                  Export
+                </button>
+              ) : (
+                <span className="text-xs text-slate-500">
+                  {index === 0 ? "Only you" : "Coming later"}
+                </span>
+              )}
             </div>
           ))}
         </div>
@@ -795,7 +1189,7 @@ function drawWrappedText(
   x: number,
   y: number,
   maxWidth: number,
-  lineHeight: number
+  lineHeight: number,
 ) {
   const words = text.split(/\s+/).filter(Boolean);
   let line = "";
@@ -827,7 +1221,7 @@ function drawRoundedRect(
   y: number,
   width: number,
   height: number,
-  radius: number
+  radius: number,
 ) {
   ctx.beginPath();
   ctx.moveTo(x + radius, y);
@@ -845,7 +1239,7 @@ function drawRoundedRect(
 function estimateImageHeight(trip: DisplayTrip) {
   const dayLines = trip.days.reduce(
     (sum, day) => sum + 96 + day.segments.length * 42,
-    0
+    0,
   );
   const hotelLines = Math.min(trip.hotels.length, 5) * 42;
 
@@ -889,7 +1283,7 @@ function downloadTripAsImage(trip: DisplayTrip) {
     72,
     y + 18,
     1100,
-    38
+    38,
   );
 
   const stats = [
@@ -958,7 +1352,11 @@ function downloadTripAsImage(trip: DisplayTrip) {
     ctx.font = "500 22px Arial";
     for (const hotel of trip.hotels.slice(0, 5)) {
       ctx.fillStyle = "#334155";
-      ctx.fillText(`${hotel.name} | ${hotel.price}/night | Rating ${hotel.rating}`, 96, y);
+      ctx.fillText(
+        `${hotel.name} | ${hotel.price}/night | Rating ${hotel.rating}`,
+        96,
+        y,
+      );
       y += 42;
     }
   }
@@ -966,7 +1364,14 @@ function downloadTripAsImage(trip: DisplayTrip) {
   y += 20;
   ctx.fillStyle = "#64748b";
   ctx.font = "500 20px Arial";
-  drawWrappedText(ctx, `Top attractions: ${trip.topAttractions.join(", ")}`, 72, y, 1220, 30);
+  drawWrappedText(
+    ctx,
+    `Top attractions: ${trip.topAttractions.join(", ")}`,
+    72,
+    y,
+    1220,
+    30,
+  );
 
   canvas.toBlob((blob) => {
     if (!blob) {
@@ -1006,11 +1411,11 @@ function printableTripHtml(trip: DisplayTrip) {
                   <p>${escapeHtml(segment.detail)}</p>
                   <p class="muted">${escapeHtml(segment.address)} | ${escapeHtml(segment.duration)} | ${escapeHtml(segment.cost)}</p>
                 </div>
-              `
+              `,
             )
             .join("")}
         </section>
-      `
+      `,
     )
     .join("");
 
@@ -1023,7 +1428,7 @@ function printableTripHtml(trip: DisplayTrip) {
           <p>${escapeHtml(hotel.description)}</p>
           <p class="muted">${escapeHtml(hotel.address)} | ${escapeHtml(hotel.price)}/night | Rating ${hotel.rating}</p>
         </div>
-      `
+      `,
     )
     .join("");
 
@@ -1157,7 +1562,9 @@ function ExportPlanDialog({
           >
             <FileText className="size-5 text-teal-600" />
             <span>
-              <span className="block font-bold text-slate-900">Open PDF window</span>
+              <span className="block font-bold text-slate-900">
+                Open PDF window
+              </span>
               <span className="block text-xs font-medium text-slate-500">
                 Opens a print-ready plan. Use Save as PDF in the print dialog.
               </span>
@@ -1199,11 +1606,21 @@ function MiniStat({ label, value }: { label: string; value: string }) {
   );
 }
 
-function MapMetric({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+function MapMetric({
+  icon,
+  label,
+  value,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+}) {
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
       <div className="text-teal-600">{icon}</div>
-      <p className="mt-2 text-[10px] font-bold uppercase tracking-[0.12em] text-slate-500">{label}</p>
+      <p className="mt-2 text-[10px] font-bold uppercase tracking-[0.12em] text-slate-500">
+        {label}
+      </p>
       <p className="mt-1 text-sm font-bold text-slate-900">{value}</p>
     </div>
   );

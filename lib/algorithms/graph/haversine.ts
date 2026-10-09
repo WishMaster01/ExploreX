@@ -2,8 +2,11 @@ export type Coordinates = { latitude: number; longitude: number };
 
 export function isValidCoordinates(value: unknown): value is Coordinates {
   if (!value || typeof value !== "object") return false;
-  const coordinates = value as Coordinates;
+  if (!("latitude" in value) || !("longitude" in value)) return false;
+  const coordinates = value;
   return (
+    typeof coordinates.latitude === "number" &&
+    typeof coordinates.longitude === "number" &&
     Number.isFinite(coordinates.latitude) &&
     Number.isFinite(coordinates.longitude) &&
     Math.abs(coordinates.latitude) <= 90 &&
@@ -11,7 +14,10 @@ export function isValidCoordinates(value: unknown): value is Coordinates {
   );
 }
 
-export function haversineDistanceKm(from: Coordinates, to: Coordinates): number {
+export function haversineDistanceKm(
+  from: Coordinates,
+  to: Coordinates,
+): number {
   const earthRadiusKm = 6371;
   const radians = (degrees: number) => (degrees * Math.PI) / 180;
   const latitudeDelta = radians(to.latitude - from.latitude);
@@ -23,4 +29,3 @@ export function haversineDistanceKm(from: Coordinates, to: Coordinates): number 
       Math.sin(longitudeDelta / 2) ** 2;
   return earthRadiusKm * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
-

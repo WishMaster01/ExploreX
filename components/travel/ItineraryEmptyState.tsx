@@ -17,10 +17,26 @@ export function ItineraryEmptyState() {
   const { tripLoading } = useTripPlan();
 
   const steps = [
-    { icon: <MapPin className="size-5" />, title: "Share destination", desc: "Tell the copilot where you want to go" },
-    { icon: <Wallet className="size-5" />, title: "Set budget & group", desc: "Pick budget tier and travel companions" },
-    { icon: <CalendarDays className="size-5" />, title: "Choose duration", desc: "How many days for your adventure" },
-    { icon: <Sparkles className="size-5" />, title: "AI builds your plan", desc: "Hotels, timeline, map & insights appear here" },
+    {
+      icon: <MapPin className="size-5" />,
+      title: "Share destination",
+      desc: "Tell the copilot where you want to go",
+    },
+    {
+      icon: <Wallet className="size-5" />,
+      title: "Set budget & group",
+      desc: "Pick budget tier and travel companions",
+    },
+    {
+      icon: <CalendarDays className="size-5" />,
+      title: "Choose duration",
+      desc: "How many days for your adventure",
+    },
+    {
+      icon: <Sparkles className="size-5" />,
+      title: "AI builds your plan",
+      desc: "Hotels, timeline, map & insights appear here",
+    },
   ];
 
   return (
@@ -40,7 +56,9 @@ export function ItineraryEmptyState() {
           </div>
 
           <h2 className="mt-6 font-display text-3xl font-bold text-slate-900">
-            {tripLoading ? "Building your itinerary…" : "Your trip dashboard awaits"}
+            {tripLoading
+              ? "Building your itinerary…"
+              : "Your trip dashboard awaits"}
           </h2>
           <p className="mx-auto mt-3 max-w-md text-sm leading-7 text-slate-600">
             {tripLoading
@@ -66,7 +84,9 @@ export function ItineraryEmptyState() {
                     <p className="font-heading text-sm font-bold text-slate-900">
                       {i + 1}. {step.title}
                     </p>
-                    <p className="mt-1 text-xs leading-5 text-slate-500">{step.desc}</p>
+                    <p className="mt-1 text-xs leading-5 text-slate-500">
+                      {step.desc}
+                    </p>
                   </div>
                 </div>
               </GlassPanel>
@@ -81,7 +101,10 @@ export function ItineraryEmptyState() {
             className="mt-8 space-y-3"
           >
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-16 animate-pulse rounded-xl bg-white/80 shadow-sm" />
+              <div
+                key={i}
+                className="h-16 animate-pulse rounded-xl bg-white/80 shadow-sm"
+              />
             ))}
           </motion.div>
         )}
@@ -94,7 +117,8 @@ export function ItineraryEmptyState() {
             className="mt-8 inline-flex items-center gap-2 rounded-full border border-teal-200 bg-teal-50 px-4 py-2 text-xs font-semibold text-teal-700"
           >
             <Map className="size-3.5" />
-            Includes map, budget, documents, transport & booking checklist
+            Includes geographic route estimates, budget guidance, documents,
+            transport & booking checklist
           </motion.div>
         )}
       </div>

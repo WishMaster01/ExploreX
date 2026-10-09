@@ -28,7 +28,7 @@ ExploreX is a full-stack travel planning application built with Next.js. It uses
 - Explicit final-step trip saving instead of automatic persistence
 - Duplicate detection using SHA-256 plan hashes
 - Cursor pagination, destination filtering, favorites, numeric budget/duration sorting, and deletion
-- Trip, packing, and booking reminders with a cron-ready due-reminder endpoint
+- Trip, packing, and booking reminder scheduling with a protected due-reminder endpoint; delivery is not implemented
 - Role-protected 30-day admin analytics for active users, generated trips, AI failures, events, and popular destinations
 - Clerk authentication, Arcjet token-bucket protection, local sliding-window fallback, validation, and safe API errors
 
@@ -76,20 +76,20 @@ CRON_SECRET=replace_with_a_long_random_secret
 
 ### Required Variables
 
-| Variable | Purpose |
-| --- | --- |
-| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Public Clerk key used by the frontend. |
-| `CLERK_SECRET_KEY` | Server-side Clerk key used for authentication. |
-| `NEXT_PUBLIC_CLERK_SIGN_IN_URL` | Sign-in route used by Clerk. |
-| `NEXT_PUBLIC_CLERK_SIGN_UP_URL` | Sign-up route used by Clerk. |
-| `NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL` | Redirect after sign-in fallback. |
-| `NEXT_PUBLIC_CLERK_SIGN_UP_FALLBACK_REDIRECT_URL` | Redirect after sign-up fallback. |
-| `DATABASE_URL` | Prisma database connection string. |
-| `DIRECT_URL` | Direct PostgreSQL connection string for Prisma operations. |
-| `OPENROUTER_API_KEY` | API key used by `/api/aimodel` to generate trip plans. |
-| `ARCJET_KEY` | Arcjet key used for production API rate limiting. |
-| `ADMIN_USERS` | Comma-separated admin emails or Clerk user IDs allowed to view `/admin`. |
-| `CRON_SECRET` | Bearer secret used by a scheduler to read due reminders. |
+| Variable                                          | Purpose                                                                  |
+| ------------------------------------------------- | ------------------------------------------------------------------------ |
+| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`               | Public Clerk key used by the frontend.                                   |
+| `CLERK_SECRET_KEY`                                | Server-side Clerk key used for authentication.                           |
+| `NEXT_PUBLIC_CLERK_SIGN_IN_URL`                   | Sign-in route used by Clerk.                                             |
+| `NEXT_PUBLIC_CLERK_SIGN_UP_URL`                   | Sign-up route used by Clerk.                                             |
+| `NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL` | Redirect after sign-in fallback.                                         |
+| `NEXT_PUBLIC_CLERK_SIGN_UP_FALLBACK_REDIRECT_URL` | Redirect after sign-up fallback.                                         |
+| `DATABASE_URL`                                    | Prisma database connection string.                                       |
+| `DIRECT_URL`                                      | Direct PostgreSQL connection string for Prisma operations.               |
+| `OPENROUTER_API_KEY`                              | API key used by `/api/aimodel` to generate trip plans.                   |
+| `ARCJET_KEY`                                      | Arcjet key used for production API rate limiting.                        |
+| `ADMIN_USERS`                                     | Comma-separated admin emails or Clerk user IDs allowed to view `/admin`. |
+| `CRON_SECRET`                                     | Bearer secret used by a scheduler to read due reminders.                 |
 
 Do not commit real `.env` files. This repository keeps `.env` ignored and allows `.env.example` to be committed.
 
@@ -150,14 +150,14 @@ For other hosted PostgreSQL providers, use a runtime-safe pooled connection for 
 
 The database contains six models:
 
-| Model | Description |
-| --- | --- |
-| `User` | Stores the Clerk-linked profile, subscription, and application role. |
-| `Trip` | Stores trip details, normalized sort fields, favorite/view state, plan hash, and full generated plan JSON. |
-| `Hotel` | Stores hotel options for a trip. |
-| `ItineraryItem` | Stores day-wise activity summaries for a trip. |
-| `Reminder` | Stores indexed trip, packing, and booking reminders. |
-| `AnalyticsEvent` | Stores indexed generation and product analytics events. |
+| Model            | Description                                                                                                |
+| ---------------- | ---------------------------------------------------------------------------------------------------------- |
+| `User`           | Stores the Clerk-linked profile, subscription, and application role.                                       |
+| `Trip`           | Stores trip details, normalized sort fields, favorite/view state, plan hash, and full generated plan JSON. |
+| `Hotel`          | Stores hotel options for a trip.                                                                           |
+| `ItineraryItem`  | Stores day-wise activity summaries for a trip.                                                             |
+| `Reminder`       | Stores indexed trip, packing, and booking reminders.                                                       |
+| `AnalyticsEvent` | Stores indexed generation and product analytics events.                                                    |
 
 The `20260628000000_product_intelligence` migration adds:
 
@@ -168,53 +168,53 @@ The `20260628000000_product_intelligence` migration adds:
 
 ## Available Scripts
 
-| Script | Description |
-| --- | --- |
-| `npm run dev` | Start the Next.js development server. |
-| `npm run build` | Build the production application. |
-| `npm run start` | Start the production server after building. |
-| `npm run lint` | Run the configured lint command. |
-| `npm run typecheck` | Run strict TypeScript checking. |
-| `npm test` | Run algorithm and reliability tests with Vitest. |
-| `npm run db:generate` | Generate Prisma client types. |
-| `npm run db:push` | Push the Prisma schema to the database. |
-| `npm run db:deploy` | Apply committed Prisma migrations in production. |
-| `npm run db:migrate` | Create and run a Prisma migration. |
-| `npm run db:studio` | Open Prisma Studio. |
-| `npm run db:seed` | Seed the database with demo data. |
-| `npm run prisma:validate` | Validate `prisma/schema.prisma`. |
+| Script                    | Description                                      |
+| ------------------------- | ------------------------------------------------ |
+| `npm run dev`             | Start the Next.js development server.            |
+| `npm run build`           | Build the production application.                |
+| `npm run start`           | Start the production server after building.      |
+| `npm run lint`            | Run the configured lint command.                 |
+| `npm run typecheck`       | Run strict TypeScript checking.                  |
+| `npm test`                | Run algorithm and reliability tests with Vitest. |
+| `npm run db:generate`     | Generate Prisma client types.                    |
+| `npm run db:push`         | Push the Prisma schema to the database.          |
+| `npm run db:deploy`       | Apply committed Prisma migrations in production. |
+| `npm run db:migrate`      | Create and run a Prisma migration.               |
+| `npm run db:studio`       | Open Prisma Studio.                              |
+| `npm run db:seed`         | Seed the database with demo data.                |
+| `npm run prisma:validate` | Validate `prisma/schema.prisma`.                 |
 
 ## Main Routes
 
-| Route | Description |
-| --- | --- |
-| `/` | Public landing page with hero and popular city sections. |
-| `/sign-in` | Clerk sign-in page. |
-| `/sign-up` | Clerk sign-up page. |
-| `/create-new-trip` | Authenticated trip planning workspace. |
-| `/saved-trips` | Authenticated saved-trip search, sorting, favorites, reminders, and deletion. |
-| `/explore-cities` | City guide catalog using curated demonstration data. |
-| `/explore-cities/[slug]` | Detailed city guide with places, estimated costs, transit, season, food, and preparation notes. |
-| `/ai-features` | Interactive workspaces for five specialized travel AI agents. |
-| `/travel-signals/[signal]` | Weather, route, safety, and budget planning guidance. |
-| `/admin` | Role-protected product analytics dashboard. |
+| Route                      | Description                                                                                     |
+| -------------------------- | ----------------------------------------------------------------------------------------------- |
+| `/`                        | Public landing page with hero and popular city sections.                                        |
+| `/sign-in`                 | Clerk sign-in page.                                                                             |
+| `/sign-up`                 | Clerk sign-up page.                                                                             |
+| `/create-new-trip`         | Authenticated trip planning workspace.                                                          |
+| `/saved-trips`             | Authenticated saved-trip search, sorting, favorites, reminders, and deletion.                   |
+| `/explore-cities`          | City guide catalog using curated demonstration data.                                            |
+| `/explore-cities/[slug]`   | Detailed city guide with places, estimated costs, transit, season, food, and preparation notes. |
+| `/ai-features`             | Interactive workspaces for five specialized travel AI agents.                                   |
+| `/travel-signals/[signal]` | Weather, route, safety, and budget planning guidance.                                           |
+| `/admin`                   | Role-protected product analytics dashboard.                                                     |
 
 ## API Routes
 
-| Method | Endpoint | Description |
-| --- | --- | --- |
-| `POST` | `/api/aimodel` | Sends chat history to OpenRouter and returns structured AI output. |
-| `POST` | `/api/ai-features` | Runs a selected route, budget, destination, packing, or chat-support agent prompt. |
-| `GET` | `/api/users` | Returns the authenticated user. |
-| `POST` | `/api/users` | Creates or updates the authenticated user. |
-| `GET` | `/api/trips` | Returns filtered, sorted, cursor-paginated saved trips. |
-| `POST` | `/api/trips` | Validates and atomically saves a trip, hotels, itinerary items, and analytics event. |
-| `GET` | `/api/destinations` | Returns cached prefix and fuzzy destination matches. |
-| `PATCH` | `/api/trips` | Updates favorites and recently viewed state. |
-| `DELETE` | `/api/trips?id=...` | Deletes an authenticated user's saved trip. |
-| `GET/POST/PATCH` | `/api/reminders` | Lists, schedules, and updates trip reminders. |
-| `GET` | `/api/reminders/due` | Returns due reminders to an authenticated cron worker. |
-| `GET` | `/api/admin/analytics` | Returns role-protected 30-day product analytics. |
+| Method           | Endpoint               | Description                                                                          |
+| ---------------- | ---------------------- | ------------------------------------------------------------------------------------ |
+| `POST`           | `/api/aimodel`         | Sends chat history to OpenRouter and returns structured AI output.                   |
+| `POST`           | `/api/ai-features`     | Runs a selected route, budget, destination, packing, or chat-support agent prompt.   |
+| `GET`            | `/api/users`           | Returns the authenticated user.                                                      |
+| `POST`           | `/api/users`           | Creates or updates the authenticated user.                                           |
+| `GET`            | `/api/trips`           | Returns filtered, sorted, cursor-paginated saved trips.                              |
+| `POST`           | `/api/trips`           | Validates and atomically saves a trip, hotels, itinerary items, and analytics event. |
+| `GET`            | `/api/destinations`    | Returns cached prefix and fuzzy destination matches.                                 |
+| `PATCH`          | `/api/trips`           | Updates favorites and recently viewed state.                                         |
+| `DELETE`         | `/api/trips?id=...`    | Deletes an authenticated user's saved trip.                                          |
+| `GET/POST/PATCH` | `/api/reminders`       | Lists, schedules, and updates trip reminders.                                        |
+| `GET`            | `/api/reminders/due`   | Returns due reminders to an authenticated cron worker.                               |
+| `GET`            | `/api/admin/analytics` | Returns role-protected 30-day product analytics.                                     |
 
 Protected routes and API endpoints require an authenticated Clerk session. `/api/reminders/due` uses `Authorization: Bearer <CRON_SECRET>`, while `/api/destinations` remains public and rate limited.
 
@@ -222,14 +222,14 @@ Protected routes and API endpoints require an authenticated Clerk session. `/api
 
 `GET /api/trips` accepts:
 
-| Parameter | Values | Purpose |
-| --- | --- | --- |
-| `limit` | `1`–`30` | Page size. |
-| `cursor` | Trip ID | Loads the next cursor page. |
-| `search` | Text | Case-insensitive destination filtering. |
-| `sort` | `recent`, `destination`, `budget`, `duration` | Selects indexed ordering. |
-| `favorite` | `true` | Returns favorites only. |
-| `similarTo` | Trip ID | Ranks the page by content similarity to another owned trip. |
+| Parameter   | Values                                        | Purpose                                                     |
+| ----------- | --------------------------------------------- | ----------------------------------------------------------- |
+| `limit`     | `1`–`30`                                      | Page size.                                                  |
+| `cursor`    | Trip ID                                       | Loads the next cursor page.                                 |
+| `search`    | Text                                          | Case-insensitive destination filtering.                     |
+| `sort`      | `recent`, `destination`, `budget`, `duration` | Selects indexed ordering.                                   |
+| `favorite`  | `true`                                        | Returns favorites only.                                     |
+| `similarTo` | Trip ID                                       | Ranks the page by content similarity to another owned trip. |
 
 ## Project Structure
 
@@ -249,7 +249,10 @@ ai_trip_planner/
 ├── context/                    # React context providers
 ├── lib/
 │   ├── algorithms/             # Search, graph, budget, ranking, cache, rate-limit utilities
-│   ├── data/                   # Destination search catalog
+│   ├── data/                   # Curated destinations and travel guidance
+│   ├── domain/                 # Shared domain types and validation schemas
+│   ├── observability/          # Structured client/server logging
+│   ├── config.ts               # AI, cache, queue, pagination defaults
 │   ├── ai-schemas.ts           # AI response schemas
 │   ├── trip-optimizer.ts       # Route, schedule, ranking, and budget integration
 │   └── trips-route-handlers.ts # Saved-trip API implementation
@@ -286,21 +289,21 @@ Each prompt defines its task boundary, required assumptions, response structure,
 
 ## Algorithms and Integration
 
-| Algorithm | Used for | Integration |
-| --- | --- | --- |
-| Trie | Fast prefix lookup | Destination autocomplete API |
-| Levenshtein and fuzzy scoring | Typo tolerance | Destination and hotel search |
-| Haversine formula | Geographic distance | Hotel ranking and attraction route metrics |
-| Nearest neighbor and 2-opt | TSP approximation | Day-wise attraction ordering |
-| Greedy time-slot scheduling | Conflict prevention | Opening windows and visit-duration allocation |
-| 0/1 knapsack | Experience maximization | Activity selection under the activity budget |
-| Weighted scoring | Personalized ranking | Hotel rating, price, distance, and amenities |
-| Cosine similarity | Related-trip ranking | `similarTo` saved-trip queries |
-| Priority queue and Top-K | Ranked aggregation | Recommendation utilities and admin analytics |
-| LRU plus TTL cache | Reuse and bounded memory | AI plans and destination suggestions |
-| Sliding window | Development abuse control | Fallback when Arcjet is not configured |
+| Algorithm                     | Used for                  | Integration                                   |
+| ----------------------------- | ------------------------- | --------------------------------------------- |
+| Trie                          | Fast prefix lookup        | Destination autocomplete API                  |
+| Levenshtein and fuzzy scoring | Typo tolerance            | Destination and hotel search                  |
+| Haversine formula             | Geographic distance       | Hotel ranking and attraction route metrics    |
+| Nearest neighbor and 2-opt    | TSP approximation         | Day-wise attraction ordering                  |
+| Greedy time-slot scheduling   | Conflict prevention       | Opening windows and visit-duration allocation |
+| 0/1 knapsack                  | Experience maximization   | Activity selection under the activity budget  |
+| Weighted scoring              | Personalized ranking      | Hotel rating, price, distance, and amenities  |
+| Cosine similarity             | Related-trip ranking      | `similarTo` saved-trip queries                |
+| Priority queue and Top-K      | Ranked aggregation        | Recommendation utilities and admin analytics  |
+| LRU plus TTL cache            | Reuse and bounded memory  | AI plans and destination suggestions          |
+| Sliding window                | Development abuse control | Fallback when Arcjet is not configured        |
 
-The application deliberately does not claim road-network Dijkstra or A* routing. It has geographic coordinates but no road graph or routing-provider data; Haversine nearest-neighbor optimization is the valid approximation for the available data.
+The application deliberately does not claim road-network Dijkstra or A\* routing. It has geographic coordinates but no road graph or routing-provider data; Haversine nearest-neighbor optimization is the valid approximation for the available data.
 
 ## Testing and Quality Checks
 
@@ -325,7 +328,19 @@ GET /api/reminders/due
 Authorization: Bearer <CRON_SECRET>
 ```
 
-Results are ordered by due time and limited to 100 reminders per call so an external delivery worker can process them safely.
+Results are ordered by due time and limited to 100 reminders per call. Polling does not claim or mark reminders, so delivery must account for repeated results and this endpoint is not an idempotent work queue.
+
+## Architecture boundaries
+
+- `lib/domain/` contains shared domain types and Zod validation.
+- `lib/data/` contains curated destination and travel guidance; these are not live provider results.
+- `lib/algorithms/` contains provider-independent ranking, route approximation, scheduling, and cache primitives.
+- `lib/config.ts` centralizes model, cache, queue, and pagination defaults.
+- `lib/observability/` provides structured, redacted application logs.
+- `lib/auth-user.ts`, `lib/admin.ts`, `lib/rate-limit.ts`, and `lib/db.ts` isolate identity, authorization, abuse controls, and persistence.
+- React client components are limited to interactive workflows; static city showcase content is rendered by the server around its interactive carousel.
+
+AI-generated venue facts, prices, hours, ratings, and coordinates are unverified. The app does not provide bookings, collaboration, public trip sharing, live traffic, or live weather.
 
 ## Deployment Notes
 

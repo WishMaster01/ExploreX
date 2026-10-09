@@ -1,6 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { apiError, apiOk, serverError } from "@/lib/api";
 import { enforceRateLimit } from "@/lib/rate-limit";
+import "server-only";
 
 export async function GET(req: Request) {
   try {

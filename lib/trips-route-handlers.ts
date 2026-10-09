@@ -7,7 +7,6 @@ import {
   readJsonObject,
   serverError,
 } from "@/lib/api";
-import { tripInfoSchema } from "@/lib/ai-schemas";
 import { getOrCreateCurrentUser } from "@/lib/auth-user";
 import { prisma } from "@/lib/db";
 import { enforceRateLimit } from "@/lib/rate-limit";
@@ -16,6 +15,9 @@ import {
   cosineSimilarity,
   textVector,
 } from "@/lib/algorithms/recommendation/cosine-similarity";
+import { APP_CONFIG } from "@/lib/config";
+import { savedTripSchema } from "@/lib/domain/schemas";
+import "server-only";
 
 const tripSelect = {
   id: true,
@@ -69,7 +71,7 @@ export async function tripsPost(request: Request) {
     const serialized = JSON.stringify(body.plan);
     if (serialized.length > 200_000)
       return apiError("plan is too large", 400, "BAD_REQUEST");
-    const parsed = tripInfoSchema.safeParse(body.plan);
+    const parsed = savedTripSchema.safeParse(body.plan);
     if (!parsed.success)
       return apiError(
         "plan does not match the trip schema",
@@ -103,7 +105,7 @@ export async function tripsPost(request: Request) {
           durationDays: integerFromText(plan.duration),
           groupSize: boundedString(plan.group_size, 80) || null,
           origin: boundedString(plan.origin, 160) || null,
-          plan: plan as Prisma.InputJsonValue,
+          plan,
           planHash,
           userId: user.id,
           hotels: {
@@ -151,10 +153,13 @@ export async function tripsGet(request: Request) {
     const url = new URL(request.url);
     const advanced = url.searchParams.size > 0;
     const take = Math.min(
-      30,
+      APP_CONFIG.pagination.maxTrips,
       Math.max(
         1,
-        Number(url.searchParams.get("limit") ?? (advanced ? 12 : 50)) || 12,
+        Number(
+          url.searchParams.get("limit") ??
+            (advanced ? APP_CONFIG.pagination.defaultTrips : 50),
+        ) || APP_CONFIG.pagination.defaultTrips,
       ),
     );
     const cursor = boundedString(url.searchParams.get("cursor"), 100);
@@ -187,11 +192,10 @@ export async function tripsGet(request: Request) {
     const hasMore = trips.length > take;
     const page = trips.slice(0, take);
     const nextCursor = hasMore ? (page.at(-1)?.id ?? null) : null;
-    let items = page
-      .map((trip) => ({
-        ...trip,
-        similarityScore: undefined as number | undefined,
-      }));
+    let items = page.map((trip) => ({
+      ...trip,
+      similarityScore: undefined as number | undefined,
+    }));
     if (similarTo) {
       const reference = await prisma.trip.findFirst({
         where: { id: similarTo, userId: user.id },

@@ -20,11 +20,20 @@ export default async function Page() {
             Create a premium AI travel workspace.
           </h1>
           <p className="mt-4 text-base leading-7 text-slate-600">
-            Save trips, compare itineraries, invite collaborators, and personalize plans by budget and travel style.
+            Save trips, compare itineraries, invite collaborators, and
+            personalize plans by budget and travel style.
           </p>
           <div className="mt-8 grid grid-cols-2 gap-3">
-            {["AI copilot", "Smart packing", "Trip sharing", "Map routes"].map((item) => (
-              <div key={item} className="rounded-xl border border-slate-200 bg-white/80 px-4 py-3 text-sm font-medium text-slate-700 shadow-sm">
+            {[
+              "AI copilot",
+              "Smart packing",
+              "Saved itineraries",
+              "Geographic route estimates",
+            ].map((item) => (
+              <div
+                key={item}
+                className="rounded-xl border border-slate-200 bg-white/80 px-4 py-3 text-sm font-medium text-slate-700 shadow-sm"
+              >
                 {item}
               </div>
             ))}

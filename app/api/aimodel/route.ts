@@ -1,29 +1,32 @@
 import OpenAI from "openai";
 import type { ChatCompletionMessageParam } from "openai/resources/chat/completions";
+import { z } from "zod";
 import { auth } from "@clerk/nextjs/server";
 import { createHash } from "node:crypto";
-import {
-  apiError,
-  apiOk,
-  isRecord,
-  nonEmptyString,
-  readJsonObject,
-  serverError,
-} from "@/lib/api";
+import { apiError, apiOk, readJsonObject } from "@/lib/api";
 import { enforceRateLimit } from "@/lib/rate-limit";
 import { chatResponseSchema, finalResponseSchema } from "@/lib/ai-schemas";
-import { AsyncRequestQueue, withExponentialBackoff } from "@/lib/async-request-queue";
+import { chatHistorySchema } from "@/lib/domain/schemas";
+import {
+  AsyncRequestQueue,
+  withExponentialBackoff,
+} from "@/lib/async-request-queue";
 import { LruTtlCache } from "@/lib/algorithms/cache/lru-ttl-cache";
 import { safeJsonParse } from "@/lib/algorithms/validation/safe-json-parser";
 import { optimizeTripPlan } from "@/lib/trip-optimizer";
 import { prisma } from "@/lib/db";
+import { APP_CONFIG } from "@/lib/config";
+import { serverLogger } from "@/lib/observability/server-logger";
+import "server-only";
 
-const OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1";
-const MODEL = "openai/gpt-4.1-mini";
-const MAX_MESSAGES = 40;
-const MAX_MESSAGE_CHARS = 4000;
-const aiQueue = new AsyncRequestQueue(3, 75);
-const responseCache = new LruTtlCache<unknown>(100, 30 * 60_000);
+const aiQueue = new AsyncRequestQueue(
+  APP_CONFIG.queue.aiConcurrency,
+  APP_CONFIG.queue.aiMaxPending,
+);
+const responseCache = new LruTtlCache<unknown>(
+  APP_CONFIG.cache.aiEntries,
+  APP_CONFIG.cache.aiTtlMs,
+);
 
 const PROMPT = `You are an AI Trip Planner Agent. Your goal is to help the user plan a trip by asking one relevant trip-related question at a time.
 Only ask questions about the following details in order, and wait for the user's answer before asking the next:
@@ -105,44 +108,40 @@ Return the result strictly in JSON format matching the schema below:
 }
 `;
 
-function normalizeMessages(value: unknown): ChatCompletionMessageParam[] | null {
-  if (!Array.isArray(value) || value.length === 0 || value.length > MAX_MESSAGES) {
-    return null;
-  }
+function normalizeMessages(
+  value: unknown,
+): ChatCompletionMessageParam[] | null {
+  const parsed = chatHistorySchema
+    .max(APP_CONFIG.ai.chatMaxMessages)
+    .safeParse(value);
+  if (!parsed.success) return null;
 
-  const messages = value.map((message) => {
-    if (!isRecord(message) || !nonEmptyString(message.content)) {
-      return null;
-    }
-
-    const role = message.role === "assistant" ? "assistant" : message.role === "user" ? "user" : null;
-
-    if (!role) {
-      return null;
-    }
-
-    return {
-      role,
-      content: message.content
-        .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, " ")
-        .replace(/\s{3,}/g, "  ")
-        .trim()
-        .slice(0, MAX_MESSAGE_CHARS),
-    } satisfies ChatCompletionMessageParam;
-  });
-
-  if (messages.some((message) => message === null)) {
-    return null;
-  }
-
-  return messages as ChatCompletionMessageParam[];
+  return parsed.data.map(
+    (message) =>
+      ({
+        role: message.role,
+        content: message.content
+          .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, " ")
+          .replace(/\s{3,}/g, "  ")
+          .trim()
+          .slice(0, APP_CONFIG.ai.maxMessageChars),
+      }) satisfies ChatCompletionMessageParam,
+  );
 }
 
 function retryableProviderError(error: unknown) {
-  const status = typeof error === "object" && error && "status" in error
-    ? Number((error as { status?: unknown }).status)
-    : 0;
-  return status === 0 || status === 408 || status === 409 || status === 429 || status >= 500;
+  const status =
+    typeof error === "object" && error && "status" in error
+      ? Number((error as { status?: unknown }).status)
+      : 0;
+
+  return (
+    status === 0 ||
+    status === 408 ||
+    status === 409 ||
+    status === 429 ||
+    status >= 500
+  );
 }
 
 function cacheKey(userId: string, messages: ChatCompletionMessageParam[]) {
@@ -163,7 +162,11 @@ export async function POST(req: Request) {
     const apiKey = process.env.OPENROUTER_API_KEY;
 
     if (!apiKey) {
-      return apiError("AI provider is not configured", 503, "SERVICE_UNAVAILABLE");
+      return apiError(
+        "AI provider is not configured",
+        503,
+        "SERVICE_UNAVAILABLE",
+      );
     }
 
     const body = await readJsonObject(req);
@@ -175,7 +178,11 @@ export async function POST(req: Request) {
     const messages = normalizeMessages(body?.messages);
 
     if (!messages) {
-      return apiError("messages must be a non-empty array of user/assistant messages", 400, "BAD_REQUEST");
+      return apiError(
+        "messages must be a non-empty array of user/assistant messages",
+        400,
+        "BAD_REQUEST",
+      );
     }
 
     const rateLimitResponse = await enforceRateLimit(req, {
@@ -200,56 +207,106 @@ export async function POST(req: Request) {
 
     const openai = new OpenAI({
       apiKey,
-      baseURL: OPENROUTER_BASE_URL,
+      baseURL: APP_CONFIG.ai.baseUrl,
+      timeout: APP_CONFIG.ai.timeoutMs,
     });
 
     const parsed = await aiQueue.run(() =>
-      withExponentialBackoff(async () => {
-        const completion = await openai.chat.completions.create({
-          max_tokens: isFinal ? 6000 : 1000,
-          messages: [
-            { role: "system", content: isFinal ? FINAL_PROMPT : PROMPT },
-            ...messages,
-          ],
-          model: MODEL,
-          response_format: { type: "json_object" },
-        });
-        const rawMessage = completion.choices?.[0]?.message?.content?.trim();
-        if (!rawMessage) throw new Error("AI returned an empty response");
-        if (isFinal) {
-          const result = safeJsonParse(rawMessage, finalResponseSchema);
-          if (!result.data) throw new Error(`AI response validation failed: ${result.error}`);
-          return { kind: "final" as const, data: result.data };
-        }
-        const result = safeJsonParse(rawMessage, chatResponseSchema);
-        if (!result.data) throw new Error(`AI response validation failed: ${result.error}`);
-        return { kind: "chat" as const, data: result.data };
-      }, { retries: 2, shouldRetry: retryableProviderError }),
+      withExponentialBackoff(
+        async () => {
+          const completion = await openai.chat.completions.create({
+            max_tokens: isFinal ? 6000 : 1000,
+            messages: [
+              { role: "system", content: isFinal ? FINAL_PROMPT : PROMPT },
+              ...messages,
+            ],
+            model: APP_CONFIG.ai.model,
+            response_format: { type: "json_object" },
+          });
+
+          const rawMessage = completion.choices?.[0]?.message?.content?.trim();
+          if (!rawMessage) throw new Error("AI returned an empty response");
+          if (isFinal) {
+            const result = safeJsonParse(rawMessage, finalResponseSchema);
+            if (!result.data)
+              throw new Error(`AI response validation failed: ${result.error}`);
+            return { kind: "final" as const, data: result.data };
+          }
+
+          const result = safeJsonParse(rawMessage, chatResponseSchema);
+          if (!result.data)
+            throw new Error(`AI response validation failed: ${result.error}`);
+          return { kind: "chat" as const, data: result.data };
+        },
+        { retries: APP_CONFIG.ai.retries, shouldRetry: retryableProviderError },
+      ),
     );
 
-    const response = parsed.kind === "final"
-      ? { trip_plan: optimizeTripPlan(parsed.data.trip_plan) }
-      : parsed.data;
+    const response =
+      parsed.kind === "final"
+        ? { trip_plan: optimizeTripPlan(parsed.data.trip_plan) }
+        : parsed.data;
     if (isFinal) await responseCache.set(key, response);
     if (isFinal) {
-      void prisma.analyticsEvent.create({
-        data: { type: "ai_generation", success: true, destination: response && "trip_plan" in response ? response.trip_plan.destination : null },
-      }).catch((analyticsError) => console.error("Unable to record AI analytics", analyticsError));
+      void prisma.analyticsEvent
+        .create({
+          data: {
+            type: "ai_generation",
+            success: true,
+            destination:
+              response && "trip_plan" in response
+                ? response.trip_plan.destination
+                : null,
+          },
+        })
+        .catch(() =>
+          serverLogger.warn("analytics.write_failed", {
+            event: "ai_generation",
+            success: true,
+          }),
+        );
     }
     return apiOk(response);
   } catch (error) {
-    if (error instanceof Error && error.message === "AI request queue is full") {
-      return apiError("AI service is busy; try again shortly", 503, "SERVICE_UNAVAILABLE");
+    if (
+      error instanceof Error &&
+      error.message === "AI request queue is full"
+    ) {
+      return apiError(
+        "AI service is busy; try again shortly",
+        503,
+        "SERVICE_UNAVAILABLE",
+      );
     }
-    void prisma.analyticsEvent.create({
-      data: { type: "ai_generation", success: false },
-    }).catch((analyticsError) => console.error("Unable to record failed AI analytics", analyticsError));
-    if (!finalRequest) {
-      return apiOk({
-        resp: "I could not process that answer reliably. Please rephrase the last trip detail.",
-        ui: "default",
-      });
+    void prisma.analyticsEvent
+      .create({
+        data: { type: "ai_generation", success: false },
+      })
+      .catch(() =>
+        serverLogger.warn("analytics.write_failed", {
+          event: "ai_generation",
+          success: false,
+        }),
+      );
+    if (!finalRequest)
+      return apiError(
+        "AI provider could not process the request",
+        502,
+        "AI_PROVIDER_ERROR",
+      );
+    if (
+      error instanceof OpenAI.APIError &&
+      (error.status === 408 || error.status === 504)
+    ) {
+      return apiError("AI provider timed out", 504, "PROVIDER_TIMEOUT");
     }
-    return serverError(error, "Error generating AI response");
+    serverLogger.error("ai.generation_failed", {
+      errorType: error instanceof Error ? error.name : "unknown",
+    });
+    return apiError(
+      "AI provider could not complete the request",
+      502,
+      "AI_PROVIDER_ERROR",
+    );
   }
 }

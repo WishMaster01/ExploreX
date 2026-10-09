@@ -23,7 +23,13 @@ const FinalUI = ({
 
   return (
     <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-4">
-      <AIThinking message={loading ? "Generating your personalized itinerary..." : "Trip plan ready!"} />
+      <AIThinking
+        message={
+          loading
+            ? "Generating your personalized itinerary..."
+            : "Trip plan ready!"
+        }
+      />
       <div className="mt-4 grid gap-2 text-xs">
         {steps.map((item, i) => (
           <motion.div

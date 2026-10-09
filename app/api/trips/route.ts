@@ -4,6 +4,7 @@ import {
   tripsPatch,
   tripsPost,
 } from "@/lib/trips-route-handlers";
+import "server-only";
 
 export async function POST(request: Request) {
   return tripsPost(request);

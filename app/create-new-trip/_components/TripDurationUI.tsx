@@ -4,7 +4,9 @@ import { Button } from "@/components/ui/button";
 import { CalendarDays, Minus, Plus } from "lucide-react";
 import React, { useState } from "react";
 
-const TripDurationUI = ({ onSelectOption }: any) => {
+type TripDurationUIProps = { onSelectOption: (value: string) => void };
+
+const TripDurationUI = ({ onSelectOption }: TripDurationUIProps) => {
   const [days, setDays] = useState<number>(3);
 
   const increaseDays = () => setDays((prev) => Math.min(prev + 1, 30));
@@ -22,7 +24,9 @@ const TripDurationUI = ({ onSelectOption }: any) => {
         </div>
         <div>
           <p className="text-sm font-bold text-slate-900">How many days?</p>
-          <p className="text-xs text-slate-500">This shapes pacing, transit, and rest windows.</p>
+          <p className="text-xs text-slate-500">
+            This shapes pacing, transit, and rest windows.
+          </p>
         </div>
       </div>
 
@@ -38,8 +42,12 @@ const TripDurationUI = ({ onSelectOption }: any) => {
         </button>
 
         <div className="text-center">
-          <span className="block font-heading text-3xl font-bold text-slate-900">{days}</span>
-          <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">days</span>
+          <span className="block font-heading text-3xl font-bold text-slate-900">
+            {days}
+          </span>
+          <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">
+            days
+          </span>
         </div>
 
         <button

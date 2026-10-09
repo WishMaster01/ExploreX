@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { aiFeatureKeys } from "./data/ai-features";
 
 const boundedText = z.string().trim().min(1).max(2_000);
 const optionalText = z.string().trim().max(2_000);
@@ -10,6 +11,18 @@ const coordinateSchema = z.object({
 export const chatResponseSchema = z.object({
   resp: z.string().trim().min(1).max(4_000),
   ui: z.enum(["default", "budget", "groupSize", "tripDuration", "final"]),
+});
+
+export const chatMessageSchema = z.object({
+  role: z.enum(["user", "assistant"]),
+  content: z.string().trim().min(1).max(4_000),
+});
+
+export const chatHistorySchema = z.array(chatMessageSchema).min(1).max(40);
+
+export const aiFeatureRequestSchema = z.object({
+  feature: z.enum(aiFeatureKeys),
+  messages: z.array(chatMessageSchema).min(1).max(16),
 });
 
 export const tripActivitySchema = z.object({
@@ -48,19 +61,24 @@ export const tripInfoSchema = z.object({
   budget: boundedText,
   group_size: boundedText,
   hotels: z.array(tripHotelSchema).max(20),
-  itinerary: z.array(z.object({
-    day: z.coerce.number().int().min(1).max(365),
-    day_plan: boundedText,
-    best_time_to_visit_day: optionalText,
-    activities: z.array(tripActivitySchema).max(30),
-  })).max(365),
-  optimization: z.object({
-    route_distance_km: z.number().min(0),
-    distance_saved_km: z.number().min(0),
-    budget_activity_cost: z.number().min(0),
-    budget_activity_names: z.array(z.string()),
-  }).optional(),
+  itinerary: z
+    .array(
+      z.object({
+        day: z.coerce.number().int().min(1).max(365),
+        day_plan: boundedText,
+        best_time_to_visit_day: optionalText,
+        activities: z.array(tripActivitySchema).max(30),
+      }),
+    )
+    .max(365),
+  optimization: z
+    .object({
+      route_distance_km: z.number().min(0),
+      distance_saved_km: z.number().min(0),
+      budget_activity_cost: z.number().min(0),
+      budget_activity_names: z.array(z.string()),
+    })
+    .optional(),
 });
 
 export const finalResponseSchema = z.object({ trip_plan: tripInfoSchema });
-export type ValidTripInfo = z.infer<typeof tripInfoSchema>;

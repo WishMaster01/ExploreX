@@ -213,14 +213,23 @@ export function AITravelCopilot() {
     setError("");
     try {
       const response = await fetch("/api/ai-features", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ feature: "chat-support", messages: [{ role: "user", content }] }),
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          feature: "chat-support",
+          messages: [{ role: "user", content }],
+        }),
       });
       const data = await response.json().catch(() => null);
-      if (!response.ok) throw new Error(data?.error?.message || "Chat support is unavailable.");
+      if (!response.ok)
+        throw new Error(data?.error?.message || "Chat support is unavailable.");
       setAnswer(data.answer);
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : "Chat support is unavailable.");
+      setError(
+        reason instanceof Error
+          ? reason.message
+          : "Chat support is unavailable.",
+      );
     } finally {
       setLoading(false);
     }
@@ -265,7 +274,16 @@ export function AITravelCopilot() {
               </div>
               <div className="space-y-3 p-4">
                 <div className="rounded-xl bg-slate-50 p-3.5 text-sm leading-6 text-slate-600">
-                  {loading ? <span className="flex items-center gap-2"><LoaderCircle className="size-4 animate-spin" /> Working on your question…</span> : answer || error || "I can explain ExploreX, refine planning questions, and route you to the right specialist agent."}
+                  {loading ? (
+                    <span className="flex items-center gap-2">
+                      <LoaderCircle className="size-4 animate-spin" /> Working
+                      on your question…
+                    </span>
+                  ) : (
+                    answer ||
+                    error ||
+                    "I can explain ExploreX, refine planning questions, and route you to the right specialist agent."
+                  )}
                 </div>
                 <div className="space-y-2">
                   {starterTips.map((tip) => (
@@ -287,7 +305,12 @@ export function AITravelCopilot() {
                     placeholder="Ask about your trip..."
                     value={input}
                     onChange={(event) => setInput(event.target.value)}
-                    onKeyDown={(event) => { if (event.key === "Enter") { event.preventDefault(); void askCopilot(); } }}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter") {
+                        event.preventDefault();
+                        void askCopilot();
+                      }
+                    }}
                     className="min-w-0 flex-1 bg-transparent px-2 text-sm text-slate-800 outline-none placeholder:text-slate-400"
                   />
                   <Button
@@ -299,8 +322,20 @@ export function AITravelCopilot() {
                     <Send className="size-4" />
                   </Button>
                 </div>
-                {!user && <Link href="/sign-in" className="block text-center text-xs font-bold text-teal-700">Sign in to use chat support</Link>}
-                <Link href="/ai-features" className="block text-center text-xs font-semibold text-slate-500 hover:text-teal-700">Open all specialist agents</Link>
+                {!user && (
+                  <Link
+                    href="/sign-in"
+                    className="block text-center text-xs font-bold text-teal-700"
+                  >
+                    Sign in to use chat support
+                  </Link>
+                )}
+                <Link
+                  href="/ai-features"
+                  className="block text-center text-xs font-semibold text-slate-500 hover:text-teal-700"
+                >
+                  Open all specialist agents
+                </Link>
               </div>
             </GlassPanel>
           </motion.div>
@@ -381,7 +416,21 @@ export function TravelFooter() {
               AI Features
             </p>
             <div className="mt-4 grid gap-2.5 text-sm text-slate-600">
-              {["Route Optimization", "Smart Budget", "Destination Intel", "Packing Assistant", "Chat Support"].map((label) => <Link key={label} href="/ai-features" className="transition hover:text-teal-600">{label}</Link>)}
+              {[
+                "Route Optimization",
+                "Smart Budget",
+                "Destination Intel",
+                "Packing Assistant",
+                "Chat Support",
+              ].map((label) => (
+                <Link
+                  key={label}
+                  href="/ai-features"
+                  className="transition hover:text-teal-600"
+                >
+                  {label}
+                </Link>
+              ))}
             </div>
           </div>
 
@@ -391,10 +440,26 @@ export function TravelFooter() {
             </p>
             <div className="mt-4 grid grid-cols-2 gap-2">
               {[
-                { icon: <CloudSun className="size-4" />, label: "Weather", href: "/travel-signals/weather" },
-                { icon: <ShieldCheck className="size-4" />, label: "Safety", href: "/travel-signals/safety" },
-                { icon: <Route className="size-4" />, label: "Routes", href: "/travel-signals/routes" },
-                { icon: <DollarSign className="size-4" />, label: "Budget", href: "/travel-signals/budget" },
+                {
+                  icon: <CloudSun className="size-4" />,
+                  label: "Weather",
+                  href: "/travel-signals/weather",
+                },
+                {
+                  icon: <ShieldCheck className="size-4" />,
+                  label: "Safety",
+                  href: "/travel-signals/safety",
+                },
+                {
+                  icon: <Route className="size-4" />,
+                  label: "Routes",
+                  href: "/travel-signals/routes",
+                },
+                {
+                  icon: <DollarSign className="size-4" />,
+                  label: "Budget",
+                  href: "/travel-signals/budget",
+                },
               ].map((item) => (
                 <Link
                   key={item.label}
@@ -493,7 +558,7 @@ export const quickFeatureCards = [
   },
   {
     icon: <Globe2 className="size-5" />,
-    title: "Trip sharing",
-    text: "Prepare public, private, collaborator, and export-ready trip views.",
+    title: "Trip export",
+    text: "Export an itinerary as a print-ready plan or JSON file.",
   },
 ];

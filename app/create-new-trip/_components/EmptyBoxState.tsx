@@ -5,7 +5,9 @@ import { Bot, Send, Sparkles } from "lucide-react";
 import { motion } from "motion/react";
 import React from "react";
 
-const EmptyBoxState = ({ onSelectOption }: any) => {
+type EmptyBoxStateProps = { onSelectOption: (value: string) => void };
+
+const EmptyBoxState = ({ onSelectOption }: EmptyBoxStateProps) => {
   return (
     <motion.div
       initial={{ opacity: 0, y: 16 }}
@@ -20,7 +22,8 @@ const EmptyBoxState = ({ onSelectOption }: any) => {
         Start with any travel idea.
       </h2>
       <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-slate-500">
-        The assistant will collect budget, group size, duration, interests, and route preferences before building the trip.
+        The assistant will collect budget, group size, duration, interests, and
+        route preferences before building the trip.
       </p>
 
       <div className="mt-6 grid gap-2">
@@ -47,7 +50,8 @@ const EmptyBoxState = ({ onSelectOption }: any) => {
 
       <div className="mt-6 rounded-xl border border-teal-200/80 bg-teal-50/80 p-3.5 text-left text-xs leading-5 text-teal-800">
         <Sparkles className="mr-2 inline size-3.5" />
-        Future-ready for personalization by travel style, adventure level, food preferences, and group needs.
+        Future-ready for personalization by travel style, adventure level, food
+        preferences, and group needs.
       </div>
     </motion.div>
   );

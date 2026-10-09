@@ -10,6 +10,9 @@ import {
 } from "@/components/travel/TravelUI";
 import { usePathname } from "next/navigation";
 import { AnimatePresence } from "motion/react";
+import type { User } from "@/lib/domain/types";
+import { logger } from "@/lib/observability/logger";
+import { userDtoSchema } from "@/lib/domain/schemas";
 
 const Provider = ({
   children,
@@ -17,7 +20,7 @@ const Provider = ({
   children: React.ReactNode;
 }>) => {
   const { user } = useUser();
-  const [userDetail, setUserDetail] = useState<any>();
+  const [userDetail, setUserDetail] = useState<User | null>(null);
   const pathname = usePathname();
   const isImmersiveRoute =
     pathname?.startsWith("/create-new-trip") || pathname?.startsWith("/sign-");
@@ -42,18 +45,23 @@ const Provider = ({
     })
       .then(async (response) => {
         if (!response.ok) {
-          console.error("Failed to create user");
+          logger.warn("profile.sync_failed", { status: response.status });
           return;
         }
 
-        const result = await response.json();
+        const payload: unknown = await response.json();
+        const parsedUser = userDtoSchema.safeParse(payload);
+        if (!parsedUser.success) {
+          logger.warn("profile.sync_invalid_response");
+          return;
+        }
+        const result = parsedUser.data;
         if (isCurrent) {
           setUserDetail(result);
-          console.log("User created:", result);
         }
       })
-      .catch((error) => {
-        console.error("Error creating user:", error);
+      .catch(() => {
+        logger.warn("profile.sync_request_failed");
       });
 
     return () => {
@@ -80,5 +88,7 @@ const Provider = ({
 export default Provider;
 
 export const useUserDetail = () => {
-  return useContext(UserDetailContext);
+  const context = useContext(UserDetailContext);
+  if (!context) throw new Error("useUserDetail must be used within Provider");
+  return context;
 };
