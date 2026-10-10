@@ -120,6 +120,7 @@ const UserTrips = () => {
         tripId: trip.id,
         type: "trip",
         remindAt: new Date(remindAt).toISOString(),
+        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
         message: `Prepare for your ${trip.destination} trip`,
       }),
     });

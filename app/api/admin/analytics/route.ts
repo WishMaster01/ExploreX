@@ -1,11 +1,13 @@
 import { apiError, apiOk, serverError } from "@/lib/api";
+import { Prisma } from "@/lib/generated/prisma/client";
 import { topK } from "@/lib/algorithms/analytics/top-k";
 import { isAdmin } from "@/lib/admin";
 import { getOrCreateCurrentUser } from "@/lib/auth-user";
 import { prisma } from "@/lib/db";
+import { enforceRateLimit } from "@/lib/rate-limit";
 import "server-only";
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const user = await getOrCreateCurrentUser();
 
@@ -14,6 +16,14 @@ export async function GET() {
 
     if (!isAdmin(user))
       return apiError("Admin access is required", 403, "FORBIDDEN");
+
+    const denied = await enforceRateLimit(request, {
+      capacity: 60,
+      interval: 3600,
+      refillRate: 30,
+      userId: user.id,
+    });
+    if (denied) return denied;
 
     const since = new Date(Date.now() - 30 * 24 * 60 * 60_000);
     const [eventGroups, destinationGroups, activeUsers, totalTrips] =
@@ -28,11 +38,11 @@ export async function GET() {
           where: { createdAt: { gte: since }, destination: { not: null } },
           _count: { _all: true },
         }),
-        prisma.analyticsEvent.findMany({
-          where: { createdAt: { gte: since }, userId: { not: null } },
-          distinct: ["userId"],
-          select: { userId: true },
-        }),
+        prisma.$queryRaw<Array<{ count: bigint }>>(Prisma.sql`
+          SELECT COUNT(DISTINCT "userId") AS count
+          FROM "analytics_events"
+          WHERE "createdAt" >= ${since} AND "userId" IS NOT NULL
+        `),
         prisma.trip.count({ where: { createdAt: { gte: since } } }),
       ]);
 
@@ -46,7 +56,7 @@ export async function GET() {
     }));
     return apiOk({
       windowDays: 30,
-      activeUsers: activeUsers.length,
+      activeUsers: Number(activeUsers[0]?.count ?? 0),
       totalTrips,
       events: eventGroups.map((event) => ({
         type: event.type,

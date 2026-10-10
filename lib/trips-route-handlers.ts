@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import type { Prisma } from "@prisma/client";
+import { Prisma } from "@/lib/generated/prisma/client";
 import {
   apiError,
   apiOk,
@@ -16,8 +16,14 @@ import {
   textVector,
 } from "@/lib/algorithms/recommendation/cosine-similarity";
 import { APP_CONFIG } from "@/lib/config";
-import { savedTripSchema } from "@/lib/domain/schemas";
+import {
+  parseTripListQuery,
+  savedTripSchema,
+  tripDeleteQuerySchema,
+  tripPatchSchema,
+} from "@/lib/domain/schemas";
 import "server-only";
+import { ownedTripWhere } from "@/lib/domain/ownership";
 
 const tripSelect = {
   id: true,
@@ -46,26 +52,51 @@ function safeMoney(value: string): number | null {
     : null;
 }
 
+function toMinorUnits(
+  amount: number | null | undefined,
+  currencyCode?: string,
+): number | null {
+  if (amount === null || amount === undefined || !currencyCode) return null;
+  try {
+    const digits = new Intl.NumberFormat("en", {
+      style: "currency",
+      currency: currencyCode,
+    }).resolvedOptions().maximumFractionDigits;
+    const minor = Math.round(amount * 10 ** (digits ?? 2));
+    return Number.isSafeInteger(minor) && minor >= 0 && minor <= 2_147_483_647
+      ? minor
+      : null;
+  } catch {
+    return null;
+  }
+}
+
 function rateLimit(request: Request, userId: string, write = false) {
+  const policy = write
+    ? APP_CONFIG.rateLimits.tripWrite
+    : APP_CONFIG.rateLimits.tripRead;
   return enforceRateLimit(request, {
-    capacity: write ? 20 : 120,
-    interval: 3600,
-    refillRate: write ? 10 : 60,
+    capacity: policy.capacity,
+    interval: policy.interval,
+    refillRate: policy.refillRate,
     requested: 1,
     userId,
   });
 }
 
 export async function tripsPost(request: Request) {
+  let authenticatedUserId: string | null = null;
+  let requestedPlanHash: string | null = null;
   try {
-    const body = await readJsonObject(request);
-    if (!body)
-      return apiError("Request body must be a JSON object", 400, "BAD_REQUEST");
     const user = await getOrCreateCurrentUser();
     if (!user)
       return apiError("Authentication is required", 401, "UNAUTHORIZED");
+    authenticatedUserId = user.id;
     const denied = await rateLimit(request, user.id, true);
     if (denied) return denied;
+    const body = await readJsonObject(request);
+    if (!body)
+      return apiError("Request body must be a JSON object", 400, "BAD_REQUEST");
 
     if (!body.plan) return apiError("plan is required", 400, "BAD_REQUEST");
     const serialized = JSON.stringify(body.plan);
@@ -82,6 +113,7 @@ export async function tripsPost(request: Request) {
     const planHash = createHash("sha256")
       .update(JSON.stringify(plan))
       .digest("hex");
+    requestedPlanHash = planHash;
     const existing = await prisma.trip.findUnique({
       where: { userId_planHash: { userId: user.id, planHash } },
       select: tripSelect,
@@ -100,6 +132,11 @@ export async function tripsPost(request: Request) {
         data: {
           budget: boundedString(plan.budget, 80) || null,
           budgetAmount: safeMoney(plan.budget),
+          budgetAmountMinor: toMinorUnits(
+            parseMoney(plan.budget),
+            plan.currency_code,
+          ),
+          budgetCurrencyCode: plan.currency_code ?? null,
           destination: boundedString(plan.destination, 160),
           duration: boundedString(plan.duration, 80) || null,
           durationDays: integerFromText(plan.duration),
@@ -111,14 +148,52 @@ export async function tripsPost(request: Request) {
           hotels: {
             create: plan.hotels.map((hotel) => ({
               name: hotel.hotel_name,
+              address: hotel.hotel_address,
+              imageUrl: hotel.hotel_image_url || null,
+              latitude: hotel.geo_coordinates.latitude,
+              longitude: hotel.geo_coordinates.longitude,
+              description: hotel.description,
               pricePerNight: hotel.price_per_night,
+              priceAmountMinor: toMinorUnits(
+                parseMoney(hotel.price_per_night),
+                plan.currency_code,
+              ),
+              currencyCode: plan.currency_code ?? null,
               rating: hotel.rating,
+              recommendationScore: hotel.recommendation_score ?? null,
             })),
           },
-          itineraryItems: {
+          days: {
             create: plan.itinerary.map((day) => ({
-              day: day.day,
-              activities: day.activities.map((activity) => activity.place_name),
+              dayNumber: day.day,
+              title: day.day_plan,
+              bestTime: day.best_time_to_visit_day || null,
+              activities: {
+                create: day.activities.map((activity, position) => ({
+                  position,
+                  placeName: activity.place_name,
+                  details: activity.place_details,
+                  imageUrl: activity.place_image_url || null,
+                  latitude: activity.geo_coordinates.latitude,
+                  longitude: activity.geo_coordinates.longitude,
+                  address: activity.place_address,
+                  ticketPricing: activity.ticket_pricing || null,
+                  estimatedCostMinor: toMinorUnits(
+                    activity.estimated_cost,
+                    plan.currency_code,
+                  ),
+                  currencyCode: plan.currency_code ?? null,
+                  travelTime: activity.time_travel_each_location || null,
+                  bestTime: activity.best_time_to_visit || null,
+                  openingTime: activity.opening_time || null,
+                  closingTime: activity.closing_time || null,
+                  visitDurationMinutes: activity.visit_duration_minutes ?? null,
+                  scheduledStart: activity.scheduled_start ?? null,
+                  scheduledEnd: activity.scheduled_end ?? null,
+                  distanceFromPreviousKm:
+                    activity.distance_from_previous_km ?? null,
+                })),
+              },
             })),
           },
         },
@@ -139,6 +214,30 @@ export async function tripsPost(request: Request) {
     });
     return apiOk(trip, 201);
   } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002" &&
+      authenticatedUserId &&
+      requestedPlanHash
+    ) {
+      const duplicate = await prisma.trip.findUnique({
+        where: {
+          userId_planHash: {
+            userId: authenticatedUserId,
+            planHash: requestedPlanHash,
+          },
+        },
+        select: tripSelect,
+      });
+      if (duplicate) {
+        const refreshed = await prisma.trip.update({
+          where: { id: duplicate.id, userId: authenticatedUserId },
+          data: { lastViewedAt: new Date() },
+          select: tripSelect,
+        });
+        return apiOk({ ...refreshed, deduplicated: true });
+      }
+    }
     return serverError(error, "Error creating trip");
   }
 }
@@ -151,22 +250,27 @@ export async function tripsGet(request: Request) {
     const denied = await rateLimit(request, user.id);
     if (denied) return denied;
     const url = new URL(request.url);
+    const query = parseTripListQuery(url.searchParams);
+    if (!query)
+      return apiError(
+        "Trip query parameters are invalid",
+        400,
+        "VALIDATION_ERROR",
+      );
     const advanced = url.searchParams.size > 0;
     const take = Math.min(
       APP_CONFIG.pagination.maxTrips,
-      Math.max(
-        1,
-        Number(
-          url.searchParams.get("limit") ??
-            (advanced ? APP_CONFIG.pagination.defaultTrips : 50),
-        ) || APP_CONFIG.pagination.defaultTrips,
-      ),
+      query.limit ?? (advanced ? APP_CONFIG.pagination.defaultTrips : 50),
     );
-    const cursor = boundedString(url.searchParams.get("cursor"), 100);
-    const search = boundedString(url.searchParams.get("search"), 100);
-    const sort = url.searchParams.get("sort") ?? "recent";
-    const favorite = url.searchParams.get("favorite") === "true";
-    const similarTo = boundedString(url.searchParams.get("similarTo"), 100);
+    const { cursor, search, sort, favorite, similarTo } = query;
+    if (cursor) {
+      const ownedCursor = await prisma.trip.findFirst({
+        where: ownedTripWhere(user.id, cursor),
+        select: { id: true },
+      });
+      if (!ownedCursor)
+        return apiError("Trip cursor not found", 400, "VALIDATION_ERROR");
+    }
     const orderBy: Prisma.TripOrderByWithRelationInput[] =
       sort === "budget"
         ? [{ budgetAmount: "asc" }, { id: "asc" }]
@@ -178,7 +282,7 @@ export async function tripsGet(request: Request) {
 
     const trips = await prisma.trip.findMany({
       where: {
-        userId: user.id,
+        ...ownedTripWhere(user.id),
         ...(favorite ? { isFavorite: true } : {}),
         ...(search
           ? { destination: { contains: search, mode: "insensitive" } }
@@ -198,7 +302,7 @@ export async function tripsGet(request: Request) {
     }));
     if (similarTo) {
       const reference = await prisma.trip.findFirst({
-        where: { id: similarTo, userId: user.id },
+        where: ownedTripWhere(user.id, similarTo),
         select: {
           destination: true,
           budget: true,
@@ -256,24 +360,27 @@ export async function tripsPatch(request: Request) {
       return apiError("Authentication is required", 401, "UNAUTHORIZED");
     const denied = await rateLimit(request, user.id, true);
     if (denied) return denied;
-    const body = await readJsonObject(request);
-    const id = boundedString(body?.id, 100);
-    if (!id) return apiError("id is required", 400, "BAD_REQUEST");
-    const existing = await prisma.trip.findFirst({
+    const parsed = tripPatchSchema.safeParse(await readJsonObject(request));
+    if (!parsed.success)
+      return apiError(
+        "A valid trip update is required",
+        400,
+        "VALIDATION_ERROR",
+      );
+    const { id, isFavorite, viewed } = parsed.data;
+    const updated = await prisma.trip.updateMany({
       where: { id, userId: user.id },
-      select: { id: true },
-    });
-    if (!existing) return apiError("Trip not found", 404, "NOT_FOUND");
-    const trip = await prisma.trip.update({
-      where: { id },
       data: {
-        ...(typeof body?.isFavorite === "boolean"
-          ? { isFavorite: body.isFavorite }
-          : {}),
-        ...(body?.viewed === true ? { lastViewedAt: new Date() } : {}),
+        ...(isFavorite !== undefined ? { isFavorite } : {}),
+        ...(viewed === true ? { lastViewedAt: new Date() } : {}),
       },
+    });
+    if (!updated.count) return apiError("Trip not found", 404, "NOT_FOUND");
+    const trip = await prisma.trip.findFirst({
+      where: ownedTripWhere(user.id, id),
       select: tripSelect,
     });
+    if (!trip) return apiError("Trip not found", 404, "NOT_FOUND");
     return apiOk(trip);
   } catch (error) {
     return serverError(error, "Error updating trip");
@@ -287,10 +394,15 @@ export async function tripsDelete(request: Request) {
       return apiError("Authentication is required", 401, "UNAUTHORIZED");
     const denied = await rateLimit(request, user.id, true);
     if (denied) return denied;
-    const id = boundedString(new URL(request.url).searchParams.get("id"), 100);
-    if (!id) return apiError("id is required", 400, "BAD_REQUEST");
+    const params = new URL(request.url).searchParams;
+    if (params.size !== 1 || params.getAll("id").length !== 1)
+      return apiError("Trip delete query is invalid", 400, "VALIDATION_ERROR");
+    const parsed = tripDeleteQuerySchema.safeParse({ id: params.get("id") });
+    if (!parsed.success)
+      return apiError("A valid trip id is required", 400, "VALIDATION_ERROR");
+    const { id } = parsed.data;
     const result = await prisma.trip.deleteMany({
-      where: { id, userId: user.id },
+      where: ownedTripWhere(user.id, id),
     });
     if (!result.count) return apiError("Trip not found", 404, "NOT_FOUND");
     return apiOk({ deleted: true });

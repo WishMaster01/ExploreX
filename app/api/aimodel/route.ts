@@ -3,8 +3,9 @@ import type { ChatCompletionMessageParam } from "openai/resources/chat/completio
 import { z } from "zod";
 import { auth } from "@clerk/nextjs/server";
 import { createHash } from "node:crypto";
-import { apiError, apiOk, readJsonObject } from "@/lib/api";
+import { apiError, apiOk, isRecord, readJson } from "@/lib/api";
 import { enforceRateLimit } from "@/lib/rate-limit";
+import { recordAiGeneration } from "@/lib/observability/ai-analytics";
 import { chatResponseSchema, finalResponseSchema } from "@/lib/ai-schemas";
 import { chatHistorySchema } from "@/lib/domain/schemas";
 import {
@@ -14,7 +15,6 @@ import {
 import { LruTtlCache } from "@/lib/algorithms/cache/lru-ttl-cache";
 import { safeJsonParse } from "@/lib/algorithms/validation/safe-json-parser";
 import { optimizeTripPlan } from "@/lib/trip-optimizer";
-import { prisma } from "@/lib/db";
 import { APP_CONFIG } from "@/lib/config";
 import { serverLogger } from "@/lib/observability/server-logger";
 import "server-only";
@@ -60,6 +60,7 @@ Return the result strictly in JSON format matching the schema below:
 {
   "trip_plan": {
     "destination": "string",
+    "currency_code": "ISO 4217 three-letter currency code used for all monetary amounts",
     "duration": "string",
     "origin": "string",
     "budget": "string",
@@ -152,12 +153,14 @@ function cacheKey(userId: string, messages: ChatCompletionMessageParam[]) {
 
 export async function POST(req: Request) {
   let finalRequest = false;
+  let clerkUserId: string | null = null;
   try {
     const { userId } = await auth();
 
     if (!userId) {
       return apiError("Authentication is required", 401, "UNAUTHORIZED");
     }
+    clerkUserId = userId;
 
     const apiKey = process.env.OPENROUTER_API_KEY;
 
@@ -169,9 +172,9 @@ export async function POST(req: Request) {
       );
     }
 
-    const body = await readJsonObject(req);
+    const body = await readJson(req);
 
-    if (!body) {
+    if (!isRecord(body)) {
       return apiError("Request body must be a JSON object", 400, "BAD_REQUEST");
     }
 
@@ -185,10 +188,14 @@ export async function POST(req: Request) {
       );
     }
 
+    const policy =
+      body.isFinal === true
+        ? APP_CONFIG.rateLimits.aiFinal
+        : APP_CONFIG.rateLimits.aiChat;
     const rateLimitResponse = await enforceRateLimit(req, {
-      capacity: body.isFinal === true ? 5 : 30,
-      interval: 3600,
-      refillRate: body.isFinal === true ? 2 : 15,
+      capacity: policy.capacity,
+      interval: policy.interval,
+      refillRate: policy.refillRate,
       requested: body.isFinal === true ? 2 : 1,
       userId,
     });
@@ -248,23 +255,13 @@ export async function POST(req: Request) {
         : parsed.data;
     if (isFinal) await responseCache.set(key, response);
     if (isFinal) {
-      void prisma.analyticsEvent
-        .create({
-          data: {
-            type: "ai_generation",
-            success: true,
-            destination:
-              response && "trip_plan" in response
-                ? response.trip_plan.destination
-                : null,
-          },
-        })
-        .catch(() =>
-          serverLogger.warn("analytics.write_failed", {
-            event: "ai_generation",
-            success: true,
-          }),
-        );
+      recordAiGeneration(
+        userId,
+        true,
+        response && "trip_plan" in response
+          ? response.trip_plan.destination
+          : null,
+      );
     }
     return apiOk(response);
   } catch (error) {
@@ -278,16 +275,7 @@ export async function POST(req: Request) {
         "SERVICE_UNAVAILABLE",
       );
     }
-    void prisma.analyticsEvent
-      .create({
-        data: { type: "ai_generation", success: false },
-      })
-      .catch(() =>
-        serverLogger.warn("analytics.write_failed", {
-          event: "ai_generation",
-          success: false,
-        }),
-      );
+    if (clerkUserId) recordAiGeneration(clerkUserId, false);
     if (!finalRequest)
       return apiError(
         "AI provider could not process the request",

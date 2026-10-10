@@ -107,6 +107,8 @@ Generate the Prisma client:
 npm run db:generate
 ```
 
+Prisma 7 generates the application client into `lib/generated/prisma`; this directory is generated during `db:generate`, `typecheck`, and `build` and is not committed. Runtime database connections use the PostgreSQL driver adapter with `DATABASE_URL`. Prisma CLI migrations and schema operations read `DIRECT_URL` from `prisma.config.ts`.
+
 Apply the committed database migration:
 
 ```bash
@@ -135,7 +137,7 @@ The app uses PostgreSQL with Prisma. For local development, create a database na
 CREATE DATABASE ai_trip_planner;
 ```
 
-Then set `DATABASE_URL` and `DIRECT_URL` in `.env`.
+Then set `DATABASE_URL` and `DIRECT_URL` in `.env`. Both are required: the application adapter uses `DATABASE_URL`, while Prisma CLI commands use `DIRECT_URL`.
 
 For Neon, use the pooled connection string for `DATABASE_URL` and the direct connection string for `DIRECT_URL`:
 
@@ -148,14 +150,16 @@ For other hosted PostgreSQL providers, use a runtime-safe pooled connection for 
 
 ## Prisma Schema
 
-The database contains six models:
+The database contains these models:
 
 | Model            | Description                                                                                                |
 | ---------------- | ---------------------------------------------------------------------------------------------------------- |
 | `User`           | Stores the Clerk-linked profile, subscription, and application role.                                       |
 | `Trip`           | Stores trip details, normalized sort fields, favorite/view state, plan hash, and full generated plan JSON. |
-| `Hotel`          | Stores hotel options for a trip.                                                                           |
-| `ItineraryItem`  | Stores day-wise activity summaries for a trip.                                                             |
+| `TripHotel`      | Stores queryable hotel options; it maps to the existing `hotels` table.                                    |
+| `TripDay`        | Stores normalized itinerary days and their ordered activities.                                             |
+| `TripActivity`   | Stores queryable activity details, coordinates, schedule, and optional minor-unit estimates.               |
+| `ItineraryItem`  | Legacy day-wise summary table retained for compatibility; new saves use `TripDay` and `TripActivity`.      |
 | `Reminder`       | Stores indexed trip, packing, and booking reminders.                                                       |
 | `AnalyticsEvent` | Stores indexed generation and product analytics events.                                                    |
 
@@ -165,6 +169,17 @@ The `20260628000000_product_intelligence` migration adds:
 - User/recency, favorite, budget, and duration trip indexes
 - Reminder indexes on user, status, due time, and trip
 - Analytics indexes for event type, destination, user, and creation time
+
+The `20261010000000_persistence_hardening` migration adds relational trip days and activities, typed roles and reminder states, reminder time zones, and minor-unit money columns. It backfills days and activities from existing `Trip.plan` JSON and leaves that JSON intact as the complete AI response and provenance record. Backfilled day numbers follow the array order, and the stored JSON retains any original numbering. It also drops the unused global trip-destination index and a redundant hotel index; both can be recreated if future query plans require them.
+
+Before production migration deployment:
+
+1. Take and verify a PostgreSQL backup and confirm a rollback/restore plan.
+2. Check that existing `users.role`, `reminders.type`, and `reminders.status` values match the supported enum values. The migration intentionally aborts if it finds an unknown value.
+3. Confirm existing timestamp-without-time-zone values represent UTC. The migration interprets them as UTC instants when converting to `timestamptz`; schedule the migration with time for PostgreSQL to rewrite those columns and build indexes.
+4. Deploy with `npm run db:deploy`; do not use `db:push` for production. Regenerate the Prisma client as part of the application build/deploy.
+
+The migration is additive for trip data and preserves the source JSON and legacy tables. No production database has been migrated by this change. Trips currently have no calendar start/end dates, so a destination trip time zone is not stored; reminders store an explicit IANA time zone alongside their UTC instant.
 
 ## Available Scripts
 

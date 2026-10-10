@@ -14,7 +14,7 @@ const nextConfig: NextConfig = {
     ],
   },
   reactStrictMode: true,
-  serverExternalPackages: ["@prisma/client"],
+  serverExternalPackages: ["@prisma/adapter-pg", "pg"],
   async headers() {
     return [
       {

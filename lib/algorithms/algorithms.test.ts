@@ -11,7 +11,17 @@ import { levenshteinDistance } from "./search/levenshtein";
 import { Trie } from "./search/trie";
 import { safeJsonParse } from "./validation/safe-json-parser";
 import { isValidCoordinates } from "./graph/haversine";
-import { tripPreferenceSchema } from "../domain/schemas";
+import {
+  parseDestinationSearchQuery,
+  parseTripListQuery,
+  tripPreferenceSchema,
+} from "../domain/schemas";
+import {
+  isAdminIdentity,
+  ownedReminderWhere,
+  ownedTripWhere,
+} from "../domain/ownership";
+import { tripInfoSchema } from "../ai-schemas";
 
 describe("destination search", () => {
   it("supports prefix lookup and typo-tolerant matching", () => {
@@ -152,5 +162,72 @@ describe("shared domain validation", () => {
     expect(isValidCoordinates({ latitude: 35.6, longitude: 139.7 })).toBe(true);
     expect(isValidCoordinates({ latitude: 95, longitude: 139.7 })).toBe(false);
     expect(isValidCoordinates(null)).toBe(false);
+  });
+
+  it("rejects duplicate normalized itinerary day numbers", () => {
+    const day = {
+      day: 1,
+      day_plan: "Walk the old town",
+      best_time_to_visit_day: "morning",
+      activities: [],
+    };
+    expect(
+      tripInfoSchema.safeParse({
+        destination: "Tokyo",
+        currency_code: "JPY",
+        duration: "2 days",
+        origin: "Delhi",
+        budget: "100000",
+        group_size: "Couple",
+        hotels: [],
+        itinerary: [day, day],
+      }).success,
+    ).toBe(false);
+  });
+
+  it("rejects malformed and duplicate query parameters", () => {
+    expect(parseTripListQuery(new URLSearchParams("limit=31"))).toBeNull();
+    expect(parseTripListQuery(new URLSearchParams("sort=unknown"))).toBeNull();
+    expect(
+      parseTripListQuery(new URLSearchParams("limit=3&limit=4")),
+    ).toBeNull();
+    expect(
+      parseDestinationSearchQuery(new URLSearchParams("q=Tokyo&q=Paris")),
+    ).toBeNull();
+  });
+});
+
+describe("ownership and admin authorization", () => {
+  it("scopes a resource lookup to the authenticated owner", () => {
+    const tripFilter = ownedTripWhere("user-a", "trip-b");
+    const reminderFilter = ownedReminderWhere("user-a", "reminder-b");
+    const userBTrip = { id: "trip-b", userId: "user-b" };
+    const userBReminder = { id: "reminder-b", userId: "user-b" };
+
+    expect(tripFilter).toEqual({ id: "trip-b", userId: "user-a" });
+    expect(reminderFilter).toEqual({ id: "reminder-b", userId: "user-a" });
+    expect(tripFilter.userId === userBTrip.userId).toBe(false);
+    expect(reminderFilter.userId === userBReminder.userId).toBe(false);
+  });
+
+  it("does not authorize a regular user for admin access", () => {
+    expect(
+      isAdminIdentity(
+        { clerkUserId: "clerk-user", email: "user@example.com", role: "user" },
+        [],
+      ),
+    ).toBe(false);
+    expect(
+      isAdminIdentity(
+        { clerkUserId: null, email: "admin@example.com", role: "user" },
+        ["ADMIN@example.com"],
+      ),
+    ).toBe(true);
+    expect(
+      isAdminIdentity(
+        { clerkUserId: null, email: "admin@example.com", role: "ADMIN" },
+        [],
+      ),
+    ).toBe(true);
   });
 });

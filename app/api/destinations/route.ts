@@ -5,6 +5,7 @@ import { Trie } from "@/lib/algorithms/search/trie";
 import { DESTINATIONS } from "@/lib/data/destinations";
 import { enforceRateLimit } from "@/lib/rate-limit";
 import { APP_CONFIG } from "@/lib/config";
+import { parseDestinationSearchQuery } from "@/lib/domain/schemas";
 import "server-only";
 
 const destinationCache = new LruTtlCache<typeof DESTINATIONS>(
@@ -23,26 +24,28 @@ const labelTrie = new Trie(
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
-  const query = boundedString(url.searchParams.get("q"), 80);
+  const parsedQuery = parseDestinationSearchQuery(url.searchParams);
+  if (!parsedQuery)
+    return apiError(
+      "Destination query parameters are invalid",
+      400,
+      "VALIDATION_ERROR",
+    );
+  const query = boundedString(parsedQuery.q, 80);
   const defaultLimit = APP_CONFIG.pagination.defaultDestinations;
   const limit = Math.min(
     APP_CONFIG.pagination.maxDestinations,
-    Math.max(
-      1,
-      Number(url.searchParams.get("limit") ?? defaultLimit) || defaultLimit,
-    ),
+    parsedQuery.limit ?? defaultLimit,
   );
   if (query.length < 2) return apiOk({ suggestions: [] });
 
-  const ip =
-    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-    "anonymous";
-
+  const policy = APP_CONFIG.rateLimits.destination;
   const denied = await enforceRateLimit(request, {
-    capacity: 90,
-    interval: 60,
-    refillRate: 60,
-    userId: `destination:${ip}`,
+    capacity: policy.capacity,
+    interval: policy.interval,
+    refillRate: policy.refillRate,
+    userId: "destination:public",
+    keyByIp: true,
   });
   if (denied) return denied;
 

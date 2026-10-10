@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import "server-only";
 import { serverLogger } from "./observability/server-logger";
+import { APP_CONFIG } from "./config";
 
 export type ApiErrorCode =
   | "BAD_REQUEST"
@@ -72,8 +73,44 @@ export function boundedString(
 
 export async function readJsonObject(request: Request) {
   try {
-    const body = await request.json();
+    const body = await readJson(request);
     return isRecord(body) ? body : null;
+  } catch {
+    return null;
+  }
+}
+
+export async function readJson(request: Request): Promise<unknown> {
+  const declaredLength = Number(request.headers.get("content-length"));
+  if (
+    Number.isFinite(declaredLength) &&
+    declaredLength > APP_CONFIG.api.maxJsonBodyBytes
+  )
+    return null;
+  try {
+    if (!request.body) return null;
+    const reader = request.body.getReader();
+    const chunks: Uint8Array[] = [];
+    let totalBytes = 0;
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      totalBytes += value.byteLength;
+      if (totalBytes > APP_CONFIG.api.maxJsonBodyBytes) {
+        await reader.cancel();
+        return null;
+      }
+      chunks.push(value);
+    }
+    const bytes = new Uint8Array(totalBytes);
+    let offset = 0;
+    for (const chunk of chunks) {
+      bytes.set(chunk, offset);
+      offset += chunk.byteLength;
+    }
+    return JSON.parse(
+      new TextDecoder("utf-8", { fatal: true }).decode(bytes),
+    ) as unknown;
   } catch {
     return null;
   }

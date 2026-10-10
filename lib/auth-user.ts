@@ -1,6 +1,6 @@
 import { auth, currentUser } from "@clerk/nextjs/server";
-import { Prisma } from "@prisma/client";
-import { boundedString, readJsonObject, safeString } from "./api";
+import { Prisma } from "@/lib/generated/prisma/client";
+import { boundedString } from "./api";
 import { prisma } from "./db";
 import "server-only";
 
@@ -32,7 +32,7 @@ async function findExistingUser(profile: UserProfile) {
   });
 }
 
-export async function getOrCreateCurrentUser(request?: Request) {
+export async function getOrCreateCurrentUser() {
   const { userId } = await auth();
 
   if (!userId) {
@@ -40,13 +40,10 @@ export async function getOrCreateCurrentUser(request?: Request) {
   }
 
   const clerkUser = await currentUser();
-  const body = request ? await readJsonObject(request) : null;
   const primaryEmail =
     clerkUser?.emailAddresses.find(
       (email) => email.id === clerkUser.primaryEmailAddressId,
-    )?.emailAddress ??
-    clerkUser?.emailAddresses[0]?.emailAddress ??
-    safeString(body?.email);
+    )?.emailAddress ?? clerkUser?.emailAddresses[0]?.emailAddress;
 
   if (!primaryEmail) {
     return null;
@@ -55,14 +52,14 @@ export async function getOrCreateCurrentUser(request?: Request) {
   const profile = {
     clerkUserId: userId,
     email: primaryEmail.toLowerCase(),
-    imageUrl: boundedString(clerkUser?.imageUrl || body?.imageUrl, 500) || null,
+    imageUrl: clerkUser?.imageUrl || null,
     name:
       boundedString(clerkUser?.fullName, 120) ||
       boundedString(
         [clerkUser?.firstName, clerkUser?.lastName].filter(Boolean).join(" "),
         120,
       ) ||
-      boundedString(body?.name, 120, "New User"),
+      "New User",
   };
 
   try {

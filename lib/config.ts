@@ -1,4 +1,7 @@
 export const APP_CONFIG = {
+  api: {
+    maxJsonBodyBytes: 256_000,
+  },
   ai: {
     model: "openai/gpt-4.1-mini",
     baseUrl: "https://openrouter.ai/api/v1",
@@ -32,5 +35,10 @@ export const APP_CONFIG = {
     aiChat: { capacity: 30, interval: 3_600, refillRate: 15 },
     aiFinal: { capacity: 5, interval: 3_600, refillRate: 2 },
     destination: { capacity: 90, interval: 60, refillRate: 60 },
+    reminderRead: { capacity: 120, interval: 3_600, refillRate: 60 },
+    reminderWrite: { capacity: 30, interval: 3_600, refillRate: 15 },
+  },
+  reminders: {
+    maxScheduleAheadMs: 2 * 365 * 24 * 60 * 60_000,
   },
 } as const;

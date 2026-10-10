@@ -1,4 +1,5 @@
 import { apiError, apiOk, serverError } from "@/lib/api";
+import { ReminderStatus } from "@/lib/generated/prisma/client";
 import { prisma } from "@/lib/db";
 import "server-only";
 
@@ -12,7 +13,10 @@ export async function GET(request: Request) {
       return apiError("Unauthorized", 401, "UNAUTHORIZED");
     }
     const reminders = await prisma.reminder.findMany({
-      where: { status: "scheduled", remindAt: { lte: new Date() } },
+      where: {
+        status: ReminderStatus.SCHEDULED,
+        remindAt: { lte: new Date() },
+      },
       orderBy: [{ remindAt: "asc" }, { id: "asc" }],
       take: 100,
       select: {

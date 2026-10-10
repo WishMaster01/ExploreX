@@ -19,7 +19,7 @@ function toUserDto(
 
 export async function POST(request: Request) {
   try {
-    const user = await getOrCreateCurrentUser(request);
+    const user = await getOrCreateCurrentUser();
 
     if (!user) {
       return apiError("Authentication is required", 401, "UNAUTHORIZED");

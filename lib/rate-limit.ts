@@ -11,11 +11,19 @@ type RateLimitOptions = {
   requested?: number;
   refillRate: number;
   userId: string;
+  keyByIp?: boolean;
 };
 
 export async function enforceRateLimit(
   request: Request,
-  { capacity, interval, requested = 1, refillRate, userId }: RateLimitOptions,
+  {
+    capacity,
+    interval,
+    requested = 1,
+    refillRate,
+    userId,
+    keyByIp = false,
+  }: RateLimitOptions,
 ) {
   if (!process.env.ARCJET_KEY) {
     if (process.env.NODE_ENV === "production") {
@@ -26,11 +34,8 @@ export async function enforceRateLimit(
       );
     }
 
-    const forwardedFor = request.headers
-      .get("x-forwarded-for")
-      ?.split(",")[0]
-      ?.trim();
-    const key = `${userId}:${forwardedFor || "local"}`;
+    // In development, do not trust caller-controlled forwarding headers as identity.
+    const key = `${userId}:${keyByIp ? "ip-unavailable" : "local"}`;
     const result = localLimiter.check(
       key,
       capacity,
@@ -48,7 +53,7 @@ export async function enforceRateLimit(
     rules: [
       tokenBucket({
         capacity,
-        characteristics: ["userId"],
+        characteristics: [keyByIp ? "ip.src" : "userId"],
         interval,
         mode: "LIVE",
         refillRate,

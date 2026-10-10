@@ -2,7 +2,7 @@ import OpenAI from "openai";
 import type { ChatCompletionMessageParam } from "openai/resources/chat/completions";
 import { aiFeatureRequestSchema } from "@/lib/domain/schemas";
 import { aiFeatureKeys, getAiFeature } from "@/lib/data/ai-features";
-import { apiError, apiOk, serverError } from "@/lib/api";
+import { apiError, apiOk, readJson, serverError } from "@/lib/api";
 import {
   AsyncRequestQueue,
   withExponentialBackoff,
@@ -31,18 +31,17 @@ export async function POST(request: Request) {
     const user = await getOrCreateCurrentUser();
     if (!user)
       return apiError("Authentication is required", 401, "UNAUTHORIZED");
+    const policy = APP_CONFIG.rateLimits.aiChat;
     const denied = await enforceRateLimit(request, {
-      capacity: 30,
-      interval: 3600,
-      refillRate: 15,
+      capacity: policy.capacity,
+      interval: policy.interval,
+      refillRate: policy.refillRate,
       requested: 1,
       userId: user.id,
     });
     if (denied) return denied;
 
-    const parsed = aiFeatureRequestSchema.safeParse(
-      await request.json().catch(() => null),
-    );
+    const parsed = aiFeatureRequestSchema.safeParse(await readJson(request));
     if (!parsed.success)
       return apiError(
         "A valid feature and message history are required",

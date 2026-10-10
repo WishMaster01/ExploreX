@@ -56,6 +56,11 @@ export const tripHotelSchema = z.object({
 
 export const tripInfoSchema = z.object({
   destination: boundedText,
+  currency_code: z
+    .string()
+    .trim()
+    .regex(/^[A-Z]{3}$/)
+    .optional(),
   duration: boundedText,
   origin: boundedText,
   budget: boundedText,
@@ -70,7 +75,28 @@ export const tripInfoSchema = z.object({
         activities: z.array(tripActivitySchema).max(30),
       }),
     )
-    .max(365),
+    .max(365)
+    .superRefine((days, context) => {
+      const seen = new Set<number>();
+      days.forEach((day, index) => {
+        if (day.day !== index + 1) {
+          context.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: [index, "day"],
+            message:
+              "Itinerary day numbers must follow array order starting at one",
+          });
+        }
+        if (seen.has(day.day)) {
+          context.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: [index, "day"],
+            message: "Each itinerary day number must be unique",
+          });
+        }
+        seen.add(day.day);
+      });
+    }),
   optimization: z
     .object({
       route_distance_km: z.number().min(0),

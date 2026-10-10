@@ -2,13 +2,43 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client-js"
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  USER  @map("user")
+  ADMIN @map("admin")
+
+  @@map("user_role")
+}
+
+enum ReminderType {
+  TRIP    @map("trip")
+  PACKING @map("packing")
+  BOOKING @map("booking")
+
+  @@map("reminder_type")
+}
+
+enum ReminderStatus {
+  SCHEDULED @map("scheduled")
+  CANCELLED @map("cancelled")
+  COMPLETED @map("completed")
+
+  @@map("reminder_status")
+}
+
+enum SourceType {
+  AI_GENERATED
+  PROVIDER
+  CURATED
+
+  @@map("source_type")
 }
 
 model User {
@@ -18,9 +48,9 @@ model User {
   name         String
   imageUrl     String?
   subscription String   @default("free")
-  role         String   @default("user")
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  role         Role     @default(USER)
+  createdAt    DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt    DateTime @updatedAt @db.Timestamptz(3)
 
   // Relations
   trips           Trip[]
@@ -31,53 +61,57 @@ model User {
 }
 
 model Trip {
-  id          String   @id @default(cuid())
-  budget      String?
-  destination String
-  duration    String?
-  groupSize   String?
-  origin      String?
-  plan        Json?
-  planHash    String?
-  budgetAmount Int?
-  durationDays Int?
-  isFavorite Boolean  @default(false)
-  lastViewedAt DateTime @default(now())
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id                 String   @id @default(cuid())
+  budget             String?
+  destination        String
+  duration           String?
+  groupSize          String?
+  origin             String?
+  plan               Json?
+  planHash           String?
+  budgetAmount       Int?
+  budgetAmountMinor  Int?
+  budgetCurrencyCode String?
+  durationDays       Int?
+  isFavorite         Boolean  @default(false)
+  lastViewedAt       DateTime @default(now()) @db.Timestamptz(3)
+  createdAt          DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt          DateTime @updatedAt @db.Timestamptz(3)
 
   // Relations
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  hotels Hotel[]
+  userId         String
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  hotels         TripHotel[]
+  days           TripDay[]
   itineraryItems ItineraryItem[]
-  reminders Reminder[]
+  reminders      Reminder[]
 
+  @@unique([userId, planHash])
   @@index([userId, createdAt(sort: Desc)])
   @@index([userId, isFavorite, createdAt(sort: Desc)])
   @@index([userId, budgetAmount])
   @@index([userId, durationDays])
   @@index([userId, destination])
-  @@index([destination])
-  @@unique([userId, planHash])
   @@map("trips")
 }
 
 model Reminder {
-  id        String   @id @default(cuid())
-  type      String
+  id        String         @id @default(cuid())
+  type      ReminderType   @default(TRIP)
   message   String
-  remindAt  DateTime
-  status    String   @default("scheduled")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  remindAt  DateTime       @db.Timestamptz(3)
+  timeZone  String         @default("UTC")
+  status    ReminderStatus @default(SCHEDULED)
+  createdAt DateTime       @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime       @updatedAt @db.Timestamptz(3)
 
   userId String
-  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   tripId String?
-  trip   Trip? @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  trip   Trip?   @relation(fields: [tripId], references: [id], onDelete: Cascade)
 
   @@index([userId, status, remindAt])
+  @@index([status, remindAt, id])
   @@index([tripId])
   @@map("reminders")
 }
@@ -88,10 +122,10 @@ model AnalyticsEvent {
   destination String?
   success     Boolean  @default(true)
   metadata    Json?
-  createdAt   DateTime @default(now())
+  createdAt   DateTime @default(now()) @db.Timestamptz(3)
 
   userId String?
-  user   User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([type, createdAt])
   @@index([destination, createdAt])
@@ -99,21 +133,29 @@ model AnalyticsEvent {
   @@map("analytics_events")
 }
 
-model Hotel {
-  id            String   @id @default(cuid())
-  name          String
-  pricePerNight String
-  rating        Float
-  amenities     String[] @default([])
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+model TripHotel {
+  id                  String     @id @default(cuid())
+  name                String
+  address             String?
+  imageUrl            String?
+  latitude            Float?
+  longitude           Float?
+  description         String?
+  pricePerNight       String
+  priceAmountMinor    Int?
+  currencyCode        String?
+  rating              Float
+  recommendationScore Float?
+  sourceType          SourceType @default(AI_GENERATED)
+  amenities           String[]   @default([])
+  createdAt           DateTime   @default(now()) @db.Timestamptz(3)
+  updatedAt           DateTime   @updatedAt @db.Timestamptz(3)
 
   // Relations
   tripId String
   trip   Trip   @relation(fields: [tripId], references: [id], onDelete: Cascade)
 
   @@index([tripId])
-  @@index([tripId, rating])
   @@map("hotels")
 }
 
@@ -121,8 +163,8 @@ model ItineraryItem {
   id         String   @id @default(cuid())
   day        Int
   activities String[] @default([])
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  createdAt  DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt  DateTime @updatedAt @db.Timestamptz(3)
 
   // Relations
   tripId String
@@ -130,4 +172,47 @@ model ItineraryItem {
 
   @@index([tripId, day])
   @@map("itinerary_items")
+}
+
+// `Trip.plan` retains the complete validated AI plan for provenance and fields
+// that have not been normalized. Day and activity records are queryable entities.
+model TripDay {
+  id         String         @id @default(cuid())
+  dayNumber  Int
+  title      String
+  bestTime   String?
+  tripId     String
+  trip       Trip           @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  activities TripActivity[]
+
+  @@unique([tripId, dayNumber])
+  @@map("trip_days")
+}
+
+model TripActivity {
+  id                     String     @id @default(cuid())
+  position               Int
+  placeName              String?
+  details                String?
+  imageUrl               String?
+  latitude               Float?
+  longitude              Float?
+  address                String?
+  ticketPricing          String?
+  estimatedCostMinor     Int?
+  currencyCode           String?
+  travelTime             String?
+  bestTime               String?
+  openingTime            String?
+  closingTime            String?
+  visitDurationMinutes   Int?
+  scheduledStart         String?
+  scheduledEnd           String?
+  distanceFromPreviousKm Float?
+  sourceType             SourceType @default(AI_GENERATED)
+  dayId                  String
+  day                    TripDay    @relation(fields: [dayId], references: [id], onDelete: Cascade)
+
+  @@unique([dayId, position])
+  @@map("trip_activities")
 }
