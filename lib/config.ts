@@ -7,9 +7,21 @@ export const APP_CONFIG = {
     baseUrl: "https://openrouter.ai/api/v1",
     timeoutMs: 45_000,
     retries: 2,
+    retryBaseDelayMs: 350,
     chatMaxMessages: 40,
     featureMaxMessages: 16,
     maxMessageChars: 4_000,
+    inputCostPerMillionUsd: optionalPositiveNumber(
+      process.env.OPENROUTER_INPUT_COST_PER_MILLION,
+    ),
+    outputCostPerMillionUsd: optionalPositiveNumber(
+      process.env.OPENROUTER_OUTPUT_COST_PER_MILLION,
+    ),
+  },
+  travelData: {
+    timeoutMs: 5_000,
+    maxVerifiedHotels: 3,
+    maxVerifiedActivities: 5,
   },
   cache: {
     aiEntries: 100,
@@ -22,6 +34,8 @@ export const APP_CONFIG = {
     aiMaxPending: 75,
     featureConcurrency: 3,
     featureMaxPending: 60,
+    travelDataConcurrency: 3,
+    travelDataMaxPending: 24,
   },
   pagination: {
     defaultTrips: 12,
@@ -42,3 +56,9 @@ export const APP_CONFIG = {
     maxScheduleAheadMs: 2 * 365 * 24 * 60 * 60_000,
   },
 } as const;
+
+function optionalPositiveNumber(value: string | undefined): number | null {
+  if (!value) return null;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : null;
+}

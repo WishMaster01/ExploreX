@@ -5,6 +5,7 @@ import type {
   Hotel,
 } from "@/lib/domain/types";
 import type { Restaurant } from "@/lib/domain/types";
+import type { TravelSourceMetadata } from "@/lib/travel-data/types";
 
 export type { TripActivity, TripDay, TripInfo };
 export type TripHotel = Hotel;
@@ -18,6 +19,7 @@ export type TimelineSegment = {
   duration: string;
   address: string;
   distanceKm?: number;
+  sourceMetadata?: TravelSourceMetadata;
 };
 
 export type DisplayDay = {
@@ -36,6 +38,7 @@ export type DisplayHotel = {
   rating: number;
   description: string;
   recommendationScore?: number;
+  sourceMetadata?: TravelSourceMetadata;
 };
 
 export type DisplayRestaurant = Restaurant;

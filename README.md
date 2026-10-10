@@ -87,6 +87,9 @@ CRON_SECRET=replace_with_a_long_random_secret
 | `DATABASE_URL`                                    | Prisma database connection string.                                       |
 | `DIRECT_URL`                                      | Direct PostgreSQL connection string for Prisma operations.               |
 | `OPENROUTER_API_KEY`                              | API key used by `/api/aimodel` to generate trip plans.                   |
+| `GOOGLE_MAPS_API_KEY`                              | Optional server key for Google Places exact-name listing checks.         |
+| `OPENROUTER_INPUT_COST_PER_MILLION`                | Optional account-specific input token price for cost estimates.          |
+| `OPENROUTER_OUTPUT_COST_PER_MILLION`               | Optional account-specific output token price for cost estimates.         |
 | `ARCJET_KEY`                                      | Arcjet key used for production API rate limiting.                        |
 | `ADMIN_USERS`                                     | Comma-separated admin emails or Clerk user IDs allowed to view `/admin`. |
 | `CRON_SECRET`                                     | Bearer secret used by a scheduler to read due reminders.                 |
@@ -147,6 +150,14 @@ DIRECT_URL="postgresql://.../ai_trip_planner?sslmode=require"
 ```
 
 For other hosted PostgreSQL providers, use a runtime-safe pooled connection for `DATABASE_URL` when available and a direct connection for Prisma migrations.
+
+## AI and travel data
+
+Trip generation separates user preferences, an AI-generated candidate, optional travel-data checks, deterministic itinerary optimization, and final Zod validation. Prompt versions are recorded with generation metadata. Provider/model latency, token usage, retry count, success, request ID, cache hits, and cost estimates are recorded without conversation text; cost remains unavailable unless the two optional account pricing variables are configured.
+
+Hotels, activities, restaurants, budgets, and travel-time estimates carry source metadata. Without `GOOGLE_MAPS_API_KEY`, hotel/activity suggestions are marked AI generated and route distances are marked estimated. With the key, ExploreX queries Google Places for a small bounded set of candidates and verifies only an exact place-name match. Provider addresses, coordinates, ratings, hours, prices, images, and availability are not used. Only place IDs are retained from Google responses; links are generated from those IDs. Weather, currency conversion, and road/transit routing are not verified by this adapter. Images are illustrative. Google Maps attribution is shown for matches. Provider results are not cached.
+
+All destination-intelligence, budget, packing, routing, and support answers remain AI advice unless explicitly backed by a source label; verify time-sensitive details with official providers.
 
 ## Prisma Schema
 

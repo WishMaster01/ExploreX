@@ -16,6 +16,7 @@ import {
   textVector,
 } from "@/lib/algorithms/recommendation/cosine-similarity";
 import { APP_CONFIG } from "@/lib/config";
+import { sanitizeSavedPlanSources } from "@/lib/travel-data/sanitize-saved-plan";
 import {
   parseTripListQuery,
   savedTripSchema,
@@ -109,7 +110,7 @@ export async function tripsPost(request: Request) {
         400,
         "BAD_REQUEST",
       );
-    const plan = parsed.data;
+    const plan = sanitizeSavedPlanSources(parsed.data);
     const planHash = createHash("sha256")
       .update(JSON.stringify(plan))
       .digest("hex");
@@ -161,6 +162,7 @@ export async function tripsPost(request: Request) {
               currencyCode: plan.currency_code ?? null,
               rating: hotel.rating,
               recommendationScore: hotel.recommendation_score ?? null,
+              sourceType: "AI_GENERATED",
             })),
           },
           days: {
@@ -192,6 +194,7 @@ export async function tripsPost(request: Request) {
                   scheduledEnd: activity.scheduled_end ?? null,
                   distanceFromPreviousKm:
                     activity.distance_from_previous_km ?? null,
+                  sourceType: "AI_GENERATED",
                 })),
               },
             })),

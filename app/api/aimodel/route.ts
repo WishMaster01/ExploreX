@@ -1,268 +1,234 @@
-import OpenAI from "openai";
-import type { ChatCompletionMessageParam } from "openai/resources/chat/completions";
-import { z } from "zod";
+import { randomUUID } from "node:crypto";
 import { auth } from "@clerk/nextjs/server";
-import { createHash } from "node:crypto";
-import { apiError, apiOk, isRecord, readJson } from "@/lib/api";
-import { enforceRateLimit } from "@/lib/rate-limit";
-import { recordAiGeneration } from "@/lib/observability/ai-analytics";
-import { chatResponseSchema, finalResponseSchema } from "@/lib/ai-schemas";
-import { chatHistorySchema } from "@/lib/domain/schemas";
+import { z } from "zod";
 import {
-  AsyncRequestQueue,
-  withExponentialBackoff,
-} from "@/lib/async-request-queue";
-import { LruTtlCache } from "@/lib/algorithms/cache/lru-ttl-cache";
-import { safeJsonParse } from "@/lib/algorithms/validation/safe-json-parser";
-import { optimizeTripPlan } from "@/lib/trip-optimizer";
+  aiGenerationMetadataSchema,
+  chatResponseSchema,
+  finalResponseSchema,
+} from "@/lib/ai-schemas";
+import {
+  generateAiResponse,
+  AiProviderConfigurationError,
+  AiProviderTimeoutError,
+} from "@/lib/ai/generate";
+import type { AiGenerationMetrics } from "@/lib/ai/generate";
+import { createTripPlanCacheKey } from "@/lib/ai/cache-key";
+import {
+  buildTripSystemPrompt,
+  TRIP_PLANNER_PROMPT_VERSION,
+  untrustedPreferencesMessage,
+} from "@/lib/ai/prompts";
 import { APP_CONFIG } from "@/lib/config";
+import { apiError, apiOk, readJson } from "@/lib/api";
+import { chatHistorySchema } from "@/lib/domain/schemas";
+import type { ValidTripInfo } from "@/lib/domain/schemas";
+import { LruTtlCache } from "@/lib/algorithms/cache/lru-ttl-cache";
+import { recordAiGeneration } from "@/lib/observability/ai-analytics";
 import { serverLogger } from "@/lib/observability/server-logger";
+import { enforceRateLimit } from "@/lib/rate-limit";
+import { optimizeTripPlan } from "@/lib/trip-optimizer";
+import { attachTravelSources } from "@/lib/travel-data/verify-plan";
 import "server-only";
 
-const aiQueue = new AsyncRequestQueue(
-  APP_CONFIG.queue.aiConcurrency,
-  APP_CONFIG.queue.aiMaxPending,
-);
-const responseCache = new LruTtlCache<unknown>(
+type CachedTripCandidate = {
+  plan: ValidTripInfo;
+  metrics: AiGenerationMetrics;
+};
+
+const responseCache = new LruTtlCache<CachedTripCandidate>(
   APP_CONFIG.cache.aiEntries,
   APP_CONFIG.cache.aiTtlMs,
 );
 
-const PROMPT = `You are an AI Trip Planner Agent. Your goal is to help the user plan a trip by asking one relevant trip-related question at a time.
-Only ask questions about the following details in order, and wait for the user's answer before asking the next:
-1. Starting location(source)
-2. Destination city or country
-3. Group size (Solo, Couple, Family, Friends)
-4. Budget (Low, Medium, or High)
-5. Trip duration (number of days)
-6. Travel interests (eg., Adventure, Relaxation, Culture, Food, Nightlife, Sightseeing, Shopping, Nature)
-7. Special requirements or preferences (if any)
-Do not ask multiple questions at once, and never ask irrelevant questions.
-If any answer is missing or unclear, politely ask the user to clarify before proceeding.
-Always maintain a conversational, interactive style while asking questions.
-Along with response, also send which ui component to display for generative UI for example (budget/groupSize/tripDuration/final), where Final means AI generating complete final output.
-Use ui "default" when asking free-text questions such as travel interests or special requirements.
-Do not repeat a question that the user has already answered in the conversation.
-After the user provides trip duration, do not return ui "tripDuration" again.
-Once all required information is collected, generate and return a strict JSON response only (no explanations or extra text) with following JSON schema:
-{
-  "resp": "Text Resp",
-  "ui": "(default/budget/groupSize/tripDuration/final)"
+const requestSchema = z
+  .object({
+    messages: chatHistorySchema.max(APP_CONFIG.ai.chatMaxMessages),
+    isFinal: z.boolean().optional(),
+  })
+  .strict();
+
+function makeCacheKey(
+  userId: string,
+  messages: z.infer<typeof chatHistorySchema>,
+) {
+  return createTripPlanCacheKey({
+    userId,
+    promptVersion: TRIP_PLANNER_PROMPT_VERSION,
+    model: APP_CONFIG.ai.model,
+    messages,
+  });
 }
-`;
 
-const FINAL_PROMPT = `Generate a Travel Plan with the given details.
-Provide a Hotels options list with: hotel_name, hotel_address, price_per_night, hotel_image_url, geo coordinates, rating, description.
-Also, suggest an itinerary with: place_name, place_details, place_image_url, geo coordinates, place_address, ticket_pricing, estimated_cost, time_travel_each_location, best_time_to_visit, opening_time, closing_time, and visit_duration_minutes.
-For hotel_image_url and place_image_url, return an empty string if you do not know a real direct image URL. Do not invent placeholder URLs, example.com URLs, or web page URLs.
-Return the result strictly in JSON format matching the schema below:
+function generationMetadata(
+  metrics: Awaited<ReturnType<typeof generateAiResponse>>["metrics"],
+  verifiedPlaceCount: number,
+  travelDataProvider: string,
+  cacheHit: boolean,
+) {
+  return aiGenerationMetadataSchema.parse({
+    promptVersion: TRIP_PLANNER_PROMPT_VERSION,
+    model: metrics.model,
+    provider: metrics.provider,
+    feature: metrics.feature,
+    requestId: metrics.requestId,
+    latencyMs: metrics.latencyMs,
+    promptTokens: metrics.promptTokens,
+    completionTokens: metrics.completionTokens,
+    estimatedCostUsd: metrics.estimatedCostUsd,
+    retryCount: metrics.retryCount,
+    cacheHit,
+    verifiedPlaceCount,
+    travelDataProvider,
+  });
+}
 
-{
-  "trip_plan": {
-    "destination": "string",
-    "currency_code": "ISO 4217 three-letter currency code used for all monetary amounts",
-    "duration": "string",
-    "origin": "string",
-    "budget": "string",
-    "group_size": "string",
-    "hotels": [
-      {
-        "hotel_name": "string",
-        "hotel_address": "string",
-        "price_per_night": "string",
-        "hotel_image_url": "string",
-        "geo_coordinates": {
-          "latitude": "number",
-          "longitude": "number"
-        },
-        "rating": "number",
-        "description": "string"
-      }
-    ],
-    "itinerary": [
-      {
-        "day": "number",
-        "day_plan": "string",
-        "best_time_to_visit_day": "string",
-        "activities": [
-          {
-            "place_name": "string",
-            "place_details": "string",
-            "place_image_url": "string",
-            "geo_coordinates": {
-              "latitude": "number",
-              "longitude": "number"
+async function finalizeTripPlan(
+  candidate: ValidTripInfo,
+  metrics: AiGenerationMetrics,
+  cacheHit: boolean,
+) {
+  const retrieved = await attachTravelSources(candidate);
+  const optimized = optimizeTripPlan(retrieved.plan);
+  return finalResponseSchema.parse({
+    trip_plan: {
+      ...optimized,
+      optimization: optimized.optimization
+        ? {
+            ...optimized.optimization,
+            source_metadata: {
+              source: "ESTIMATED",
+              provider: null,
+              retrievedAt: null,
+              note: "Straight-line distance from itinerary coordinates; not road or transit routing.",
             },
-            "place_address": "string",
-            "ticket_pricing": "string",
-            "estimated_cost": "number",
-            "time_travel_each_location": "string",
-            "best_time_to_visit": "string",
-            "opening_time": "HH:MM",
-            "closing_time": "HH:MM",
-            "visit_duration_minutes": "number"
           }
-        ]
-      }
-    ]
-  }
-}
-`;
-
-function normalizeMessages(
-  value: unknown,
-): ChatCompletionMessageParam[] | null {
-  const parsed = chatHistorySchema
-    .max(APP_CONFIG.ai.chatMaxMessages)
-    .safeParse(value);
-  if (!parsed.success) return null;
-
-  return parsed.data.map(
-    (message) =>
-      ({
-        role: message.role,
-        content: message.content
-          .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, " ")
-          .replace(/\s{3,}/g, "  ")
-          .trim()
-          .slice(0, APP_CONFIG.ai.maxMessageChars),
-      }) satisfies ChatCompletionMessageParam,
-  );
+        : undefined,
+      generation_metadata: generationMetadata(
+        metrics,
+        retrieved.verifiedCount,
+        retrieved.provider,
+        cacheHit,
+      ),
+      budget_source_metadata: {
+        source: "AI_GENERATED",
+        provider: "openrouter",
+        retrievedAt: null,
+        note: "Budget breakdowns and prices are planning estimates, not current quotes.",
+      },
+    },
+  });
 }
 
-function retryableProviderError(error: unknown) {
-  const status =
-    typeof error === "object" && error && "status" in error
-      ? Number((error as { status?: unknown }).status)
-      : 0;
-
-  return (
-    status === 0 ||
-    status === 408 ||
-    status === 409 ||
-    status === 429 ||
-    status >= 500
-  );
-}
-
-function cacheKey(userId: string, messages: ChatCompletionMessageParam[]) {
-  return createHash("sha256")
-    .update(`${userId}:${JSON.stringify(messages)}`)
-    .digest("hex");
-}
-
-export async function POST(req: Request) {
-  let finalRequest = false;
+export async function POST(request: Request) {
   let clerkUserId: string | null = null;
+  let isFinal = false;
   try {
     const { userId } = await auth();
-
-    if (!userId) {
+    if (!userId)
       return apiError("Authentication is required", 401, "UNAUTHORIZED");
-    }
     clerkUserId = userId;
 
-    const apiKey = process.env.OPENROUTER_API_KEY;
-
-    if (!apiKey) {
+    const parsedRequest = requestSchema.safeParse(await readJson(request));
+    if (!parsedRequest.success)
       return apiError(
-        "AI provider is not configured",
-        503,
-        "SERVICE_UNAVAILABLE",
-      );
-    }
-
-    const body = await readJson(req);
-
-    if (!isRecord(body)) {
-      return apiError("Request body must be a JSON object", 400, "BAD_REQUEST");
-    }
-
-    const messages = normalizeMessages(body?.messages);
-
-    if (!messages) {
-      return apiError(
-        "messages must be a non-empty array of user/assistant messages",
+        "A valid message history is required",
         400,
-        "BAD_REQUEST",
+        "VALIDATION_ERROR",
       );
-    }
+    const messages = parsedRequest.data.messages.map((message) => ({
+      ...message,
+      content: message.content
+        .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, " ")
+        .replace(/\s{3,}/g, "  ")
+        .trim()
+        .slice(0, APP_CONFIG.ai.maxMessageChars),
+    }));
+    isFinal = parsedRequest.data.isFinal === true;
 
-    const policy =
-      body.isFinal === true
-        ? APP_CONFIG.rateLimits.aiFinal
-        : APP_CONFIG.rateLimits.aiChat;
-    const rateLimitResponse = await enforceRateLimit(req, {
+    const policy = isFinal
+      ? APP_CONFIG.rateLimits.aiFinal
+      : APP_CONFIG.rateLimits.aiChat;
+    const denied = await enforceRateLimit(request, {
       capacity: policy.capacity,
       interval: policy.interval,
       refillRate: policy.refillRate,
-      requested: body.isFinal === true ? 2 : 1,
+      requested: isFinal ? 2 : 1,
       userId,
     });
+    if (denied) return denied;
 
-    if (rateLimitResponse) {
-      return rateLimitResponse;
+    const key = isFinal ? makeCacheKey(userId, messages) : null;
+    if (key) {
+      const cached = await responseCache.get(key);
+      if (cached) {
+        const data = await finalizeTripPlan(cached.plan, cached.metrics, true);
+        const currentCacheMetrics: AiGenerationMetrics = {
+          requestId: randomUUID(),
+          provider: "openrouter",
+          model: cached.metrics.model,
+          feature: "trip-planner",
+          latencyMs: 0,
+          promptTokens: null,
+          completionTokens: null,
+          estimatedCostUsd: null,
+          retryCount: 0,
+          success: true,
+        };
+        recordAiGeneration(
+          userId,
+          currentCacheMetrics,
+          TRIP_PLANNER_PROMPT_VERSION,
+          true,
+        );
+        serverLogger.info("ai.cache.hit", {
+          feature: "trip-planner",
+          cacheHit: true,
+        });
+        return apiOk(data);
+      }
+    }
+    if (isFinal)
+      serverLogger.info("ai.cache.miss", {
+        feature: "trip-planner",
+        cacheHit: false,
+      });
+
+    const userContent = untrustedPreferencesMessage(messages);
+    const onMetrics = (metrics: Parameters<typeof recordAiGeneration>[1]) =>
+      recordAiGeneration(userId, metrics, TRIP_PLANNER_PROMPT_VERSION);
+    if (!isFinal) {
+      const chat = await generateAiResponse({
+        feature: "trip-chat",
+        systemPrompt: buildTripSystemPrompt(false),
+        userContent,
+        schema: chatResponseSchema,
+        maxTokens: 1_000,
+        jsonMode: true,
+        onMetrics,
+      });
+      return apiOk(chat.data);
     }
 
-    const isFinal = body.isFinal === true;
-    finalRequest = isFinal;
-    const key = isFinal ? cacheKey(userId, messages) : "";
-    const cached = isFinal ? await responseCache.get(key) : undefined;
-    if (cached) {
-      return apiOk(cached);
-    }
-
-    const openai = new OpenAI({
-      apiKey,
-      baseURL: APP_CONFIG.ai.baseUrl,
-      timeout: APP_CONFIG.ai.timeoutMs,
+    const generated = await generateAiResponse({
+      feature: "trip-planner",
+      systemPrompt: buildTripSystemPrompt(true),
+      userContent,
+      schema: finalResponseSchema,
+      maxTokens: 6_000,
+      jsonMode: true,
+      onMetrics,
     });
-
-    const parsed = await aiQueue.run(() =>
-      withExponentialBackoff(
-        async () => {
-          const completion = await openai.chat.completions.create({
-            max_tokens: isFinal ? 6000 : 1000,
-            messages: [
-              { role: "system", content: isFinal ? FINAL_PROMPT : PROMPT },
-              ...messages,
-            ],
-            model: APP_CONFIG.ai.model,
-            response_format: { type: "json_object" },
-          });
-
-          const rawMessage = completion.choices?.[0]?.message?.content?.trim();
-          if (!rawMessage) throw new Error("AI returned an empty response");
-          if (isFinal) {
-            const result = safeJsonParse(rawMessage, finalResponseSchema);
-            if (!result.data)
-              throw new Error(`AI response validation failed: ${result.error}`);
-            return { kind: "final" as const, data: result.data };
-          }
-
-          const result = safeJsonParse(rawMessage, chatResponseSchema);
-          if (!result.data)
-            throw new Error(`AI response validation failed: ${result.error}`);
-          return { kind: "chat" as const, data: result.data };
-        },
-        { retries: APP_CONFIG.ai.retries, shouldRetry: retryableProviderError },
-      ),
+    const candidate = generated.data.trip_plan;
+    const response = await finalizeTripPlan(
+      candidate,
+      generated.metrics,
+      false,
     );
-
-    const response =
-      parsed.kind === "final"
-        ? { trip_plan: optimizeTripPlan(parsed.data.trip_plan) }
-        : parsed.data;
-    if (isFinal) await responseCache.set(key, response);
-    if (isFinal) {
-      recordAiGeneration(
-        userId,
-        true,
-        response && "trip_plan" in response
-          ? response.trip_plan.destination
-          : null,
-      );
-    }
+    if (key)
+      await responseCache.set(key, {
+        plan: candidate,
+        metrics: generated.metrics,
+      });
     return apiOk(response);
   } catch (error) {
     if (
@@ -275,24 +241,21 @@ export async function POST(req: Request) {
         "SERVICE_UNAVAILABLE",
       );
     }
-    if (clerkUserId) recordAiGeneration(clerkUserId, false);
-    if (!finalRequest)
+    if (error instanceof AiProviderConfigurationError) {
       return apiError(
-        "AI provider could not process the request",
-        502,
-        "AI_PROVIDER_ERROR",
+        "AI provider is not configured",
+        503,
+        "SERVICE_UNAVAILABLE",
       );
-    if (
-      error instanceof OpenAI.APIError &&
-      (error.status === 408 || error.status === 504)
-    ) {
+    }
+    if (error instanceof AiProviderTimeoutError) {
       return apiError("AI provider timed out", 504, "PROVIDER_TIMEOUT");
     }
     serverLogger.error("ai.generation_failed", {
       errorType: error instanceof Error ? error.name : "unknown",
     });
     return apiError(
-      "AI provider could not complete the request",
+      "AI provider could not process a valid response",
       502,
       "AI_PROVIDER_ERROR",
     );

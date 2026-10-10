@@ -25,6 +25,9 @@ export function BudgetPanel({ trip }: { trip: DisplayTrip }) {
           <p className="text-sm text-slate-300">Estimated total</p>
 
           <p className="mt-1 font-heading text-3xl font-bold">{trip.budget}</p>
+          <p className="mt-1 text-xs text-amber-200">
+            AI planning estimate · not a live quote
+          </p>
 
           {trip.budgetActivityNames.length > 0 && (
             <p className="mt-2 text-xs text-slate-300">

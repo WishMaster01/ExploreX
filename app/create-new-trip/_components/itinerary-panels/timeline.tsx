@@ -22,7 +22,7 @@ export function TimelinePanel({ trip }: { trip: DisplayTrip }) {
         <SectionHeading
           eyebrow="AI travel timeline"
           title="Day-wise schedule with morning, afternoon, and evening pacing."
-          description="Activities grouped by optimal visit windows from your AI-generated plan."
+          description="AI-generated activity suggestions. Travel times and route distances are estimates, not live road or transit directions."
         />
 
         <div className="mt-6 space-y-6">
@@ -84,6 +84,22 @@ export function TimelinePanel({ trip }: { trip: DisplayTrip }) {
 
                       <p className="mt-2 line-clamp-3 text-sm leading-6 text-slate-600">
                         {segment.detail}
+                      </p>
+
+                      <p className="mt-2 text-xs font-semibold text-amber-700">
+                        {segment.sourceMetadata?.source === "VERIFIED" &&
+                        segment.sourceMetadata.mapsUrl ? (
+                          <a
+                            href={segment.sourceMetadata.mapsUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-blue-700 underline"
+                          >
+                            Name matched · Google Maps
+                          </a>
+                        ) : (
+                          "AI generated · verify hours, prices, and availability"
+                        )}
                       </p>
 
                       <p className="mt-2 flex items-center gap-1 text-xs text-slate-400">

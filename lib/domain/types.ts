@@ -4,6 +4,7 @@ import type {
   ValidTripInfo,
 } from "./schemas";
 import type { chatHistorySchema } from "./schemas";
+import type { TravelSourceMetadata } from "@/lib/travel-data/types";
 
 export type User = {
   id: string;
@@ -25,6 +26,7 @@ export type Restaurant = {
   type: string;
   price: string;
   note: string;
+  source_metadata?: TravelSourceMetadata;
 };
 export type Expense = { label: string; amount: number; currency: string };
 export type Reminder = {

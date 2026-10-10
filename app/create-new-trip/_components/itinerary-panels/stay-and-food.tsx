@@ -40,6 +40,11 @@ export function StayAndFoodPanel({ trip }: { trip: DisplayTrip }) {
           />
 
           <div className="mt-5 space-y-4">
+            <p className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs leading-5 text-amber-900">
+              AI suggestions and prices may be inaccurate. Confirm each place,
+              availability, hours, and price with the provider before booking.
+              Images are illustrative.
+            </p>
             {trip.hotels.length > 0 && (
               <label className="relative mb-3 block">
                 <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
@@ -89,6 +94,22 @@ export function StayAndFoodPanel({ trip }: { trip: DisplayTrip }) {
                         {hotel.rating}
                       </span>
                     </div>
+
+                    {hotel.sourceMetadata?.source === "VERIFIED" &&
+                    hotel.sourceMetadata.mapsUrl ? (
+                      <a
+                        href={hotel.sourceMetadata.mapsUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="mt-2 inline-block text-xs font-semibold text-blue-700 underline"
+                      >
+                        Name matched · Google Maps
+                      </a>
+                    ) : (
+                      <p className="mt-2 text-xs font-semibold text-amber-700">
+                        AI generated · verify before booking
+                      </p>
+                    )}
 
                     <p className="mt-3 text-sm leading-6 text-slate-600">
                       {hotel.description}
@@ -149,6 +170,11 @@ export function StayAndFoodPanel({ trip }: { trip: DisplayTrip }) {
 
                 <p className="mt-3 text-sm leading-6 text-slate-600">
                   {restaurant.note}
+                </p>
+                <p className="mt-2 text-xs font-semibold text-amber-700">
+                  {restaurant.source_metadata?.source === "VERIFIED"
+                    ? "Name matched · Google Maps"
+                    : "AI generated · verify before visiting"}
                 </p>
               </div>
             ))}
