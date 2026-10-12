@@ -70,7 +70,7 @@ export function SectionHeading({
       transition={{ duration: 0.25 }}
       className={cn(
         "max-w-3xl",
-        align === "center" ? "text-center" : "text-left",
+        align === "center" ? "mx-auto text-center" : "text-left",
       )}
     >
       {eyebrow && (
@@ -79,11 +79,11 @@ export function SectionHeading({
           {eyebrow}
         </div>
       )}
-      <h2 className="font-heading text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl lg:text-4xl">
+      <h2 className="text-balance font-display text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl lg:text-5xl">
         {title}
       </h2>
       {description && (
-        <p className="mt-3 text-sm leading-7 text-slate-600 sm:text-base">
+        <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-slate-600 sm:text-base">
           {description}
         </p>
       )}

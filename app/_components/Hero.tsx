@@ -80,13 +80,13 @@ const Hero = () => {
 
   return (
     <div className={travelGradient}>
-      <section className="relative isolate flex min-h-[calc(100svh-4.25rem)] overflow-hidden px-4 pb-10 pt-24 sm:px-6 lg:px-10 lg:pb-12 lg:pt-28 2xl:px-12">
-        <div className="relative mx-auto grid w-full max-w-[1760px] flex-1 items-center gap-10 lg:grid-cols-[minmax(0,0.95fr)_minmax(420px,0.82fr)] xl:gap-14 2xl:gap-20">
+      <section className="relative isolate flex overflow-hidden px-4 pb-16 pt-28 sm:px-6 sm:pb-20 sm:pt-32 lg:px-10 lg:pb-24 lg:pt-36 2xl:px-12">
+        <div className="relative mx-auto grid w-full max-w-[1440px] flex-1 items-center gap-10 lg:grid-cols-[minmax(0,0.9fr)_minmax(420px,1fr)] xl:gap-16 2xl:gap-20">
           <motion.div
             variants={containerVariants}
             initial="hidden"
             animate="visible"
-            className="mx-auto w-full max-w-2xl text-center lg:mx-0 lg:text-left xl:max-w-3xl"
+            className="mx-auto w-full max-w-2xl text-center xl:max-w-3xl"
           >
             <motion.div variants={itemVariants}>
               <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-teal-200/80 bg-white/80 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-teal-700 shadow-sm backdrop-blur">
@@ -97,7 +97,7 @@ const Hero = () => {
 
             <motion.h1
               variants={itemVariants}
-              className="text-balance font-display text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl lg:text-[3.75rem] lg:leading-[1.05] 2xl:text-[4.4rem]"
+              className="text-balance font-display text-4xl font-semibold leading-[1.08] tracking-tight text-slate-900 sm:text-5xl lg:text-[3.65rem] 2xl:text-[4.2rem]"
             >
               Plan smarter trips with a{" "}
               <span className="gradient-text">copilot</span> that thinks like a
@@ -106,7 +106,7 @@ const Hero = () => {
 
             <motion.p
               variants={itemVariants}
-              className="mx-auto mt-5 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg lg:mx-0 2xl:text-xl 2xl:leading-8"
+              className="mx-auto mt-5 max-w-xl text-base leading-7 text-slate-600 sm:text-lg 2xl:text-xl 2xl:leading-8"
             >
               Shape a trip around your dates, budget, pace, and interests.
               Explore a day-by-day plan with route and cost estimates you can
@@ -115,7 +115,7 @@ const Hero = () => {
 
             <motion.div
               variants={itemVariants}
-              className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center lg:justify-start"
+              className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center"
             >
               <Button
                 onClick={handleCreateTrip}
@@ -134,7 +134,7 @@ const Hero = () => {
             </motion.div>
 
             <motion.div variants={itemVariants}>
-              <GlassPanel className="mt-8 max-w-3xl p-4 text-left shadow-[var(--shadow-elevated)]">
+              <GlassPanel className="mx-auto mt-8 max-w-2xl border-white/80 bg-white/90 p-4 text-left shadow-[var(--shadow-elevated)] backdrop-blur-xl">
                 <div className="relative">
                   <Textarea
                     value={tripIdea}
@@ -179,7 +179,7 @@ const Hero = () => {
             initial={{ opacity: 0, scale: 0.95, x: 20 }}
             animate={{ opacity: 1, scale: 1, x: 0 }}
             transition={{ delay: 0.2, duration: 0.6, ease: "easeOut" }}
-            className="relative mx-auto w-full max-w-[640px] lg:max-w-none"
+            className="relative mx-auto w-full max-w-[680px] lg:max-w-none"
           >
             <GlassPanel className="relative overflow-hidden p-3 shadow-[var(--shadow-elevated)] sm:p-4">
               <div className="overflow-hidden rounded-xl [&_img]:aspect-[4/3] [&_img]:h-auto [&_img]:object-cover lg:[&_img]:aspect-[16/13] 2xl:[&_img]:aspect-[4/3]">
@@ -225,7 +225,7 @@ const Hero = () => {
         </div>
       </section>
 
-      <section id="ai-features" className="px-4 py-14 sm:px-6 lg:px-8">
+      <section id="ai-features" className="border-y border-slate-200/70 bg-white/55 px-4 py-20 sm:px-6 sm:py-24 lg:px-8">
         <div className="mx-auto max-w-7xl">
           <SectionHeading
             align="center"
@@ -238,7 +238,7 @@ const Hero = () => {
             whileInView="visible"
             viewport={{ once: true, margin: "-60px" }}
             variants={containerVariants}
-            className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
+            className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
           >
             {insightCards.map((card) => (
               <motion.div key={card.label} variants={itemVariants}>
@@ -277,9 +277,9 @@ const Hero = () => {
       </section>
 
       <section className="px-4 pb-20 sm:px-6 lg:px-8">
-        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-5 rounded-2xl border border-teal-200 bg-teal-50/70 p-6 text-center sm:flex-row sm:text-left">
+        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-5 rounded-3xl border border-teal-200/80 bg-gradient-to-br from-teal-50 via-white to-sky-50 p-8 text-center shadow-sm sm:flex-row sm:p-10 sm:text-left">
           <div>
-            <h2 className="font-heading text-2xl font-bold text-slate-900">
+            <h2 className="font-display text-2xl font-semibold text-slate-900 sm:text-3xl">
               Your plans now have a dedicated home.
             </h2>
             <p className="mt-2 text-sm text-slate-600">

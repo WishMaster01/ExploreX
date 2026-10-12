@@ -31,7 +31,7 @@ export function PopularCityList() {
   return (
     <section
       id="explore"
-      className={`w-full overflow-hidden border-t border-slate-200/80 py-16 md:py-24 ${travelGradient}`}
+      className={`w-full overflow-hidden py-20 md:py-28 ${travelGradient}`}
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <SectionHeading
