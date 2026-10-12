@@ -18,6 +18,7 @@ export type TimelineSegment = {
   cost: string;
   duration: string;
   address: string;
+  coordinates?: { latitude: number; longitude: number };
   distanceKm?: number;
   sourceMetadata?: TravelSourceMetadata;
 };
@@ -39,15 +40,22 @@ export type DisplayHotel = {
   description: string;
   recommendationScore?: number;
   sourceMetadata?: TravelSourceMetadata;
+  amenities: string[];
+  recommendationReasons: string[];
 };
 
-export type DisplayRestaurant = Restaurant;
+export type DisplayRestaurant = Restaurant & {
+  name: string;
+  type: string;
+  price: string;
+  note: string;
+};
 
 export type MapMarker = {
   label: string;
-  left: string;
-  top: string;
   type: "hotel" | "activity" | "food";
+  coordinates: { latitude: number; longitude: number };
+  day?: number;
 };
 
 export type BudgetTier = {
@@ -69,7 +77,7 @@ export type DisplayTrip = {
   restaurants: DisplayRestaurant[];
   days: DisplayDay[];
   mapMarkers: MapMarker[];
-  budgetBreakdown: { label: string; percent: number }[];
+  budgetBreakdown: { label: string; percent: number; amount: string }[];
   budgetTiers: BudgetTier[];
   topAttractions: string[];
   insights: { label: string; value: string }[];

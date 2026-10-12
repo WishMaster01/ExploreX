@@ -4,7 +4,6 @@ import HeroVideoDialog from "@/components/magicui/hero-video-dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  FloatingElement,
   GlassPanel,
   MetricCard,
   SectionHeading,
@@ -16,19 +15,17 @@ import { useUser } from "@clerk/nextjs";
 import {
   ArrowRight,
   Bot,
-  CalendarDays,
   Globe2,
   MapPin,
   Plane,
   Route,
   Send,
-  ShieldCheck,
   Sparkles,
   Wallet,
 } from "lucide-react";
 import { motion } from "motion/react";
 import { useRouter } from "next/navigation";
-import React from "react";
+import React, { useState } from "react";
 
 export const suggestions = [
   {
@@ -65,45 +62,25 @@ const itemVariants = {
 const Hero = () => {
   const { user } = useUser();
   const router = useRouter();
+  const [tripIdea, setTripIdea] = useState("");
 
   const handleCreateTrip = () => {
-    if (!user) {
-      router.push("/sign-in");
-      return;
+    const query = new URLSearchParams();
+    if (tripIdea.trim()) {
+      query.set("idea", tripIdea.trim());
+      query.set("autostart", "1");
     }
-    router.push("/create-new-trip");
+    const destination = `/create-new-trip${query.size ? `?${query}` : ""}`;
+    router.push(
+      user
+        ? destination
+        : `/sign-in?redirect_url=${encodeURIComponent(destination)}`,
+    );
   };
 
   return (
     <div className={travelGradient}>
       <section className="relative isolate flex min-h-[calc(100svh-4.25rem)] overflow-hidden px-4 pb-10 pt-24 sm:px-6 lg:px-10 lg:pb-12 lg:pt-28 2xl:px-12">
-        {/* Animated gradient orbs */}
-        <div className="pointer-events-none absolute inset-0 overflow-hidden">
-          <div className="absolute -left-32 top-20 size-96 rounded-full bg-teal-200/30 blur-3xl animate-gradient-shift" />
-          <div className="absolute -right-32 top-40 size-80 rounded-full bg-sky-200/25 blur-3xl" />
-          <div className="absolute bottom-0 left-1/2 size-96 -translate-x-1/2 rounded-full bg-amber-100/20 blur-3xl" />
-        </div>
-
-        {/* Floating travel elements */}
-        <FloatingElement className="absolute left-6 top-36 hidden xl:block 2xl:left-10" delay={0.2}>
-          <div className="flex items-center gap-2">
-            <ShieldCheck className="size-4 text-teal-600" />
-            Safety score: A
-          </div>
-        </FloatingElement>
-        <FloatingElement className="absolute right-6 top-40 hidden 2xl:right-10 2xl:block" delay={0.4}>
-          <div className="flex items-center gap-2">
-            <Wallet className="size-4 text-amber-600" />
-            Route saves 38 min
-          </div>
-        </FloatingElement>
-        <FloatingElement className="absolute bottom-16 left-8 hidden 2xl:block" delay={0.6}>
-          <div className="flex items-center gap-2">
-            <MapPin className="size-4 text-sky-600" />
-            120+ destinations
-          </div>
-        </FloatingElement>
-
         <div className="relative mx-auto grid w-full max-w-[1760px] flex-1 items-center gap-10 lg:grid-cols-[minmax(0,0.95fr)_minmax(420px,0.82fr)] xl:gap-14 2xl:gap-20">
           <motion.div
             variants={containerVariants}
@@ -123,14 +100,17 @@ const Hero = () => {
               className="text-balance font-display text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl lg:text-[3.75rem] lg:leading-[1.05] 2xl:text-[4.4rem]"
             >
               Plan smarter trips with a{" "}
-              <span className="gradient-text">copilot</span> that thinks like a local.
+              <span className="gradient-text">copilot</span> that thinks like a
+              local.
             </motion.h1>
 
             <motion.p
               variants={itemVariants}
               className="mx-auto mt-5 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg lg:mx-0 2xl:text-xl 2xl:leading-8"
             >
-              Build itineraries, optimize routes, compare budgets, track packing, and surface destination intelligence in one polished travel workspace.
+              Shape a trip around your dates, budget, pace, and interests.
+              Explore a day-by-day plan with route and cost estimates you can
+              review and refine.
             </motion.p>
 
             <motion.div
@@ -157,13 +137,22 @@ const Hero = () => {
               <GlassPanel className="mt-8 max-w-3xl p-4 text-left shadow-[var(--shadow-elevated)]">
                 <div className="relative">
                   <Textarea
+                    value={tripIdea}
+                    onChange={(event) => setTripIdea(event.target.value)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" && !event.shiftKey) {
+                        event.preventDefault();
+                        handleCreateTrip();
+                      }
+                    }}
                     aria-label="Trip idea"
-                    placeholder="Ask for a 5-day Tokyo trip with food markets, hidden gems, and a standard budget..."
+                    placeholder="Where would you like to go? Add dates, budget, or interests..."
                     className="min-h-28 resize-none rounded-xl border-slate-200 bg-white/90 p-4 pr-14 text-base text-slate-800 shadow-none placeholder:text-slate-400 focus-visible:ring-teal-500/40"
                   />
                   <Button
                     size="icon"
                     onClick={handleCreateTrip}
+                    aria-label="Start planning this trip"
                     className="absolute bottom-3 right-3 size-10 rounded-lg bg-teal-600 text-white shadow-md hover:bg-teal-700"
                   >
                     <Send className="size-4" />
@@ -192,7 +181,6 @@ const Hero = () => {
             transition={{ delay: 0.2, duration: 0.6, ease: "easeOut" }}
             className="relative mx-auto w-full max-w-[640px] lg:max-w-none"
           >
-            <div className="absolute -inset-6 rounded-[2.5rem] bg-gradient-to-br from-teal-200/40 via-sky-200/30 to-amber-100/30 blur-3xl" />
             <GlassPanel className="relative overflow-hidden p-3 shadow-[var(--shadow-elevated)] sm:p-4">
               <div className="overflow-hidden rounded-xl [&_img]:aspect-[4/3] [&_img]:h-auto [&_img]:object-cover lg:[&_img]:aspect-[16/13] 2xl:[&_img]:aspect-[4/3]">
                 <HeroVideoDialog
@@ -204,20 +192,32 @@ const Hero = () => {
                 />
               </div>
               <div className="grid gap-3 pt-3 sm:grid-cols-3 sm:pt-4">
-                <div className="rounded-xl bg-gradient-to-br from-teal-600 to-teal-500 p-3 text-white shadow-lg shadow-teal-500/20 sm:p-4">
-                  <Bot className="size-5" />
-                  <p className="mt-2 font-heading text-xl font-bold sm:mt-3">AI</p>
-                  <p className="text-xs text-teal-100">Live copilot</p>
+                <div className="rounded-xl border border-slate-200 bg-white p-3 sm:p-4">
+                  <Bot className="size-5 text-teal-700" />
+                  <p className="mt-2 font-heading font-bold text-slate-900 sm:mt-3">
+                    Personalized planning
+                  </p>
+                  <p className="text-xs text-slate-500">
+                    Dates, budget and interests
+                  </p>
                 </div>
                 <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4">
                   <Route className="size-5 text-sky-600" />
-                  <p className="mt-2 font-heading text-xl font-bold text-slate-900 sm:mt-3">38m</p>
-                  <p className="text-xs text-slate-500">Time saved</p>
+                  <p className="mt-2 font-heading font-bold text-slate-900 sm:mt-3">
+                    Route planning
+                  </p>
+                  <p className="text-xs text-slate-500">
+                    Distances labeled by source
+                  </p>
                 </div>
                 <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4">
-                  <CalendarDays className="size-5 text-amber-600" />
-                  <p className="mt-2 font-heading text-xl font-bold text-slate-900 sm:mt-3">7 days</p>
-                  <p className="text-xs text-slate-500">Ready to refine</p>
+                  <Wallet className="size-5 text-amber-600" />
+                  <p className="mt-2 font-heading font-bold text-slate-900 sm:mt-3">
+                    Budget estimates
+                  </p>
+                  <p className="text-xs text-slate-500">
+                    Review costs by category
+                  </p>
                 </div>
               </div>
             </GlassPanel>
@@ -230,8 +230,8 @@ const Hero = () => {
           <SectionHeading
             align="center"
             eyebrow="AI travel intelligence"
-            title="Everything a premium travel platform needs, structured for real AI workflows."
-            description="Ready for generated recommendations, itinerary comparison, personalization, maps, budgets, insights, packing, sharing, and analytics."
+            title="A practical workspace for building a better trip."
+            description="Explore an itinerary, its route and distance estimates, budget allocation, accommodation, dining suggestions, and travel checklists in one place."
           />
           <motion.div
             initial="hidden"
@@ -276,7 +276,25 @@ const Hero = () => {
         </div>
       </section>
 
-      <section className="px-4 pb-20 sm:px-6 lg:px-8"><div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-5 rounded-2xl border border-teal-200 bg-teal-50/70 p-6 text-center sm:flex-row sm:text-left"><div><h2 className="font-heading text-2xl font-bold text-slate-900">Your plans now have a dedicated home.</h2><p className="mt-2 text-sm text-slate-600">Search, sort, favorite, and manage every itinerary from Saved Trips.</p></div><Button onClick={() => router.push("/saved-trips")} className="shrink-0 rounded-xl bg-teal-600 text-white hover:bg-teal-700">Open Saved Trips <ArrowRight className="size-4" /></Button></div></section>
+      <section className="px-4 pb-20 sm:px-6 lg:px-8">
+        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-5 rounded-2xl border border-teal-200 bg-teal-50/70 p-6 text-center sm:flex-row sm:text-left">
+          <div>
+            <h2 className="font-heading text-2xl font-bold text-slate-900">
+              Your plans now have a dedicated home.
+            </h2>
+            <p className="mt-2 text-sm text-slate-600">
+              Search, sort, favorite, and manage every itinerary from Saved
+              Trips.
+            </p>
+          </div>
+          <Button
+            onClick={() => router.push("/saved-trips")}
+            className="shrink-0 rounded-xl bg-teal-600 text-white hover:bg-teal-700"
+          >
+            Open Saved Trips <ArrowRight className="size-4" />
+          </Button>
+        </div>
+      </section>
     </div>
   );
 };

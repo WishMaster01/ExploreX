@@ -111,6 +111,19 @@ export function StayAndFoodPanel({ trip }: { trip: DisplayTrip }) {
                       </p>
                     )}
 
+                    {hotel.amenities.length > 0 && (
+                      <div className="mt-3 flex flex-wrap gap-1.5">
+                        {hotel.amenities.slice(0, 6).map((amenity) => (
+                          <span
+                            key={amenity}
+                            className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] text-slate-700"
+                          >
+                            {amenity}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
                     <p className="mt-3 text-sm leading-6 text-slate-600">
                       {hotel.description}
                     </p>
@@ -126,6 +139,15 @@ export function StayAndFoodPanel({ trip }: { trip: DisplayTrip }) {
                         </span>
                       )}
                     </div>
+                    {hotel.recommendationReasons.length > 0 && (
+                      <ul className="mt-2 list-disc space-y-1 pl-4 text-xs text-slate-600">
+                        {hotel.recommendationReasons
+                          .slice(0, 3)
+                          .map((reason) => (
+                            <li key={reason}>{reason}</li>
+                          ))}
+                      </ul>
+                    )}
                   </div>
                 </div>
               ))
@@ -163,13 +185,53 @@ export function StayAndFoodPanel({ trip }: { trip: DisplayTrip }) {
                     </p>
                   </div>
 
-                  <span className="rounded-full border border-teal-200 bg-teal-50 px-3 py-1 text-xs font-bold text-teal-700">
-                    {restaurant.price}
-                  </span>
+                  <div className="flex flex-col items-end gap-1">
+                    <span className="rounded-full border border-teal-200 bg-teal-50 px-3 py-1 text-xs font-bold text-teal-700">
+                      {restaurant.price}
+                    </span>
+                    {restaurant.rating !== undefined ? (
+                      <span className="inline-flex items-center gap-1 text-xs text-amber-700">
+                        <Star className="size-3 fill-current" />
+                        {restaurant.rating.toFixed(1)}
+                      </span>
+                    ) : (
+                      <span className="text-[11px] text-slate-500">
+                        Rating unavailable
+                      </span>
+                    )}
+                  </div>
                 </div>
 
                 <p className="mt-3 text-sm leading-6 text-slate-600">
                   {restaurant.note}
+                </p>
+                {restaurant.address && (
+                  <p className="mt-2 text-xs text-slate-500">
+                    {restaurant.address}
+                  </p>
+                )}
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {(restaurant.dietary_tags ?? []).map((tag) => (
+                    <span
+                      key={tag}
+                      className="rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] text-emerald-800"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                  {(restaurant.meal_types ?? []).map((meal) => (
+                    <span
+                      key={meal}
+                      className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] text-slate-700"
+                    >
+                      {meal}
+                    </span>
+                  ))}
+                </div>
+                <p className="mt-2 text-xs text-slate-500">
+                  {restaurant.geo_coordinates
+                    ? `Coordinates available · ${restaurant.geo_coordinates.latitude.toFixed(3)}, ${restaurant.geo_coordinates.longitude.toFixed(3)}`
+                    : "Distance unavailable · no restaurant coordinates"}
                 </p>
                 <p className="mt-2 text-xs font-semibold text-amber-700">
                   {restaurant.source_metadata?.source === "VERIFIED"

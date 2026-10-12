@@ -21,8 +21,8 @@ export function BudgetPanel({ trip }: { trip: DisplayTrip }) {
           title="Smart Budget Planner"
         />
 
-        <div className="mt-5 rounded-xl bg-gradient-to-br from-slate-800 to-slate-900 p-5 text-white shadow-lg">
-          <p className="text-sm text-slate-300">Estimated total</p>
+        <div className="mt-5 rounded-xl bg-slate-900 p-5 text-white">
+          <p className="text-sm text-slate-300">Modeled trip budget</p>
 
           <p className="mt-1 font-heading text-3xl font-bold">{trip.budget}</p>
           <p className="mt-1 text-xs text-amber-200">
@@ -39,14 +39,26 @@ export function BudgetPanel({ trip }: { trip: DisplayTrip }) {
           )}
 
           <div className="mt-4 space-y-3">
-            {trip.budgetBreakdown.map(({ label, percent }) => (
+            {trip.budgetBreakdown.map(({ label, percent, amount }) => (
               <div key={label}>
-                <div className="mb-1 flex justify-between text-xs text-slate-300">
-                  <span>{label}</span>
-                  <span>{percent}%</span>
+                <div className="mb-1 flex flex-wrap justify-between gap-x-3 text-xs text-slate-300">
+                  <span>
+                    {label} <span className="text-slate-400">· estimated</span>
+                  </span>
+                  <span>
+                    {amount}{" "}
+                    <span className="text-slate-400">({percent}%)</span>
+                  </span>
                 </div>
 
-                <div className="h-2 overflow-hidden rounded-full bg-white/10">
+                <div
+                  role="progressbar"
+                  aria-label={`${label} estimated allocation`}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-valuenow={percent}
+                  className="h-2 overflow-hidden rounded-full bg-white/10"
+                >
                   <div
                     className="h-full rounded-full bg-gradient-to-r from-teal-400 to-teal-500"
                     style={{ width: `${percent}%` }}

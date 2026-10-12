@@ -464,6 +464,32 @@ describe("shared domain validation", () => {
     expect(
       tripPreferenceSchema.safeParse({ ...valid, destination: "" }).success,
     ).toBe(false);
+    expect(
+      tripPreferenceSchema.safeParse({
+        ...valid,
+        currency_code: "JPY",
+        travel_style: "slow travel",
+        start_date: "2027-04-10",
+        end_date: "2027-04-15",
+        accommodation: "Near public transit",
+        food_preferences: "Vegetarian",
+        transport_preferences: "Train",
+        walking_tolerance: "low",
+      }).success,
+    ).toBe(true);
+    expect(
+      tripPreferenceSchema.safeParse({
+        ...valid,
+        start_date: "2027-04-15",
+        end_date: "2027-04-10",
+      }).success,
+    ).toBe(false);
+    expect(
+      tripPreferenceSchema.safeParse({
+        ...valid,
+        start_date: "2027-04-15",
+      }).success,
+    ).toBe(false);
   });
 
   it("narrows coordinate input without accepting invalid values", () => {

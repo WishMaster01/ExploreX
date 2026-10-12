@@ -5,15 +5,43 @@ import {
   tripInfoSchema,
 } from "../ai-schemas";
 
-export const tripPreferenceSchema = z.object({
-  origin: z.string().trim().min(1).max(160),
-  destination: z.string().trim().min(1).max(160),
-  group_size: z.string().trim().min(1).max(80),
-  budget: z.string().trim().min(1).max(80),
-  duration: z.string().trim().min(1).max(80),
-  interests: z.array(z.string().trim().max(80)).max(30).optional(),
-  requirements: z.array(z.string().trim().max(300)).max(30).optional(),
-});
+export const tripPreferenceSchema = z
+  .object({
+    origin: z.string().trim().min(1).max(160),
+    destination: z.string().trim().min(1).max(160),
+    group_size: z.string().trim().min(1).max(80),
+    budget: z.string().trim().min(1).max(80),
+    duration: z.string().trim().min(1).max(80),
+    interests: z.array(z.string().trim().max(80)).max(30).optional(),
+    requirements: z.array(z.string().trim().max(300)).max(30).optional(),
+    currency_code: z
+      .string()
+      .trim()
+      .toUpperCase()
+      .regex(/^[A-Z]{3}$/)
+      .optional(),
+    travel_style: z.string().trim().max(80).optional(),
+    start_date: z.string().date().optional(),
+    end_date: z.string().date().optional(),
+    accommodation: z.string().trim().max(160).optional(),
+    food_preferences: z.string().trim().max(160).optional(),
+    transport_preferences: z.string().trim().max(160).optional(),
+    walking_tolerance: z.enum(["low", "moderate", "high"]).optional(),
+  })
+  .refine(
+    (value) =>
+      !value.start_date ||
+      !value.end_date ||
+      value.end_date >= value.start_date,
+    {
+      message: "End date must be on or after start date",
+      path: ["end_date"],
+    },
+  )
+  .refine((value) => Boolean(value.start_date) === Boolean(value.end_date), {
+    message: "Provide both trip dates or leave both flexible",
+    path: ["end_date"],
+  });
 
 export type TripPreference = z.infer<typeof tripPreferenceSchema>;
 

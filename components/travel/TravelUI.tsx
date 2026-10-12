@@ -41,8 +41,8 @@ export function GlassPanel({
   return (
     <div
       className={cn(
-        "glass-card rounded-2xl transition-all duration-300",
-        hover && "hover:-translate-y-1 hover:shadow-[var(--shadow-elevated)]",
+        "rounded-2xl border border-slate-200 bg-white shadow-sm transition-shadow duration-200",
+        hover && "hover:shadow-md",
         className,
       )}
     >
@@ -67,9 +67,9 @@ export function SectionHeading({
       initial={{ opacity: 0, y: 16 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-40px" }}
-      transition={{ duration: 0.5 }}
+      transition={{ duration: 0.25 }}
       className={cn(
-        "mx-auto max-w-3xl",
+        "max-w-3xl",
         align === "center" ? "text-center" : "text-left",
       )}
     >
@@ -389,8 +389,8 @@ export function TravelFooter() {
               </div>
             </div>
             <p className="mt-5 max-w-sm text-sm leading-7 text-slate-600">
-              Plan, optimize, compare, and share richer travel experiences with
-              an AI assistant built for modern explorers.
+              Plan and refine trip itineraries with an AI assistant. Review
+              route and budget estimates, and export or share trip summaries.
             </p>
           </div>
 
@@ -505,28 +505,28 @@ export function PageTransition({ children }: { children: React.ReactNode }) {
 
 export const insightCards = [
   {
-    icon: <CloudSun className="size-5" />,
-    label: "Weather fit",
-    value: "92%",
-    detail: "Mild, low-rain window",
+    icon: <CalendarDays className="size-5" />,
+    label: "Planning inputs",
+    value: "Dates & pace",
+    detail: "Set the shape of your itinerary",
   },
   {
-    icon: <ShieldCheck className="size-5" />,
-    label: "Safety score",
-    value: "A",
-    detail: "Well-lit central routes",
+    icon: <Route className="size-5" />,
+    label: "Route context",
+    value: "Distance estimates",
+    detail: "Source labels clarify what is known",
   },
   {
-    icon: <Users className="size-5" />,
-    label: "Crowd forecast",
-    value: "Medium",
-    detail: "Shift icons to mornings",
+    icon: <DollarSign className="size-5" />,
+    label: "Budget planning",
+    value: "By category",
+    detail: "Review modeled trip costs",
   },
   {
-    icon: <Map className="size-5" />,
-    label: "Route gain",
-    value: "38 min",
-    detail: "Saved by clustering stops",
+    icon: <MessageCircle className="size-5" />,
+    label: "Refinement",
+    value: "Chat guided",
+    detail: "Adjust your preferences as you plan",
   },
 ];
 

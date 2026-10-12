@@ -14,6 +14,7 @@ import {
   MapPinned,
   Send,
   Sparkles,
+  Square,
   UserRound,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
@@ -23,6 +24,7 @@ import EmptyBoxState from "./EmptyBoxState";
 import FinalUI from "./FinalUI";
 import GroupSizeUI from "./GroupSizeUI";
 import TripDurationUI from "./TripDurationUI";
+import { TripPreferencesForm } from "./TripPreferencesForm";
 
 type Message = {
   role: string;
@@ -45,10 +47,12 @@ const ChatBox = () => {
   const [destinationSuggestions, setDestinationSuggestions] = useState<
     DestinationSuggestion[]
   >([]);
+  const [failedRequest, setFailedRequest] = useState(false);
 
   const { tripReady, setTripDetails, setTripLoading, scrollToItinerary } =
     useTripPlan();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const requestControllerRef = useRef<AbortController | null>(null);
   const seededDestinationRef = useRef(false);
 
   const scrollToBottom = () => {
@@ -131,8 +135,12 @@ const ChatBox = () => {
     scrollToBottom();
   }, [messages, loading]);
 
-  const onSend = async (overrideText?: string) => {
-    const outboundText = (overrideText ?? userInput).trim();
+  const onSend = async (overrideText?: string, retry = false) => {
+    const outboundText =
+      (retry
+        ? messages.findLast((message) => message.role === "user")?.content
+        : (overrideText ?? userInput)
+      )?.trim() ?? "";
     if (!outboundText || loading) return;
 
     const newMessage: Message = {
@@ -140,17 +148,24 @@ const ChatBox = () => {
       content: outboundText,
     };
 
-    const nextMessages = [...messages, newMessage];
-    setMessages(nextMessages);
+    const nextMessages = retry ? messages : [...messages, newMessage];
+    if (!retry) setMessages(nextMessages);
     setUserInput("");
+    setFailedRequest(false);
     setLoading(true);
     if (isFinal) setTripLoading(true);
+    const controller = new AbortController();
+    requestControllerRef.current = controller;
 
     try {
-      const result = await axios.post("/api/aimodel", {
-        messages: nextMessages,
-        isFinal,
-      });
+      const result = await axios.post(
+        "/api/aimodel",
+        {
+          messages: nextMessages,
+          isFinal,
+        },
+        { signal: controller.signal },
+      );
 
       let respText = "";
       let uiType = "default";
@@ -202,8 +217,13 @@ const ChatBox = () => {
         ]);
       }
     } catch {
+      if (controller.signal.aborted) {
+        setTripLoading(false);
+        return;
+      }
       logger.warn("trip_chat.request_failed");
       setTripLoading(false);
+      setFailedRequest(true);
       setMessages((prev) => [
         ...prev,
         {
@@ -212,6 +232,8 @@ const ChatBox = () => {
         },
       ]);
     } finally {
+      if (requestControllerRef.current === controller)
+        requestControllerRef.current = null;
       setLoading(false);
       scrollToBottom();
     }
@@ -221,10 +243,11 @@ const ChatBox = () => {
     if (seededDestinationRef.current) return;
     const params = new URLSearchParams(window.location.search);
     const destination = params.get("destination")?.trim();
-    if (params.get("autostart") !== "1" || !destination) return;
+    const idea = params.get("idea")?.trim();
+    if (params.get("autostart") !== "1" || (!destination && !idea)) return;
     seededDestinationRef.current = true;
     queueMicrotask(
-      () => void onSend(`I want to plan a trip to ${destination}.`),
+      () => void onSend(idea || `I want to plan a trip to ${destination}.`),
     );
     // Run once for a city-guide handoff; subsequent conversation state is local.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -271,9 +294,9 @@ const ChatBox = () => {
 
   return (
     <div className="relative flex h-full min-h-[calc(100svh-4.25rem)] flex-col overflow-hidden">
-      <div className="relative border-b border-slate-200/80 bg-gradient-to-r from-teal-50/90 via-white to-sky-50/70 p-4 sm:p-5">
+      <div className="relative border-b border-slate-200 bg-white p-4 sm:p-5">
         <div className="flex items-center gap-3">
-          <div className="flex size-11 items-center justify-center rounded-xl bg-gradient-to-br from-teal-600 to-teal-500 text-white shadow-lg shadow-teal-500/25">
+          <div className="flex size-11 items-center justify-center rounded-xl bg-teal-700 text-white">
             <Bot className="size-5" />
           </div>
           <div>
@@ -283,17 +306,19 @@ const ChatBox = () => {
             <p className="text-xs text-slate-500">Context-aware trip builder</p>
           </div>
         </div>
-        <div className="mt-4 grid grid-cols-2 gap-2 text-xs">
-          <div className="rounded-xl border border-teal-100 bg-white/80 p-3 text-slate-600 shadow-sm">
-            <Sparkles className="mb-1.5 size-4 text-teal-600" />
-            Smart prompts
-          </div>
-          <div className="rounded-xl border border-sky-100 bg-white/80 p-3 text-slate-600 shadow-sm">
-            <MapPinned className="mb-1.5 size-4 text-sky-600" />
-            Route-aware
-          </div>
+        <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500">
+          <span className="inline-flex items-center gap-1.5">
+            <Sparkles className="size-3.5 text-teal-700" />
+            Personalized planning
+          </span>
+          <span className="inline-flex items-center gap-1.5">
+            <MapPinned className="size-3.5 text-teal-700" />
+            Route and budget estimates
+          </span>
         </div>
       </div>
+
+      <TripPreferencesForm onSubmit={(details) => void onSend(details)} />
 
       <section className="relative flex-1 overflow-y-auto px-3 py-4 sm:px-4">
         {messages.length === 0 && (
@@ -319,7 +344,7 @@ const ChatBox = () => {
                   className={`max-w-[92%] rounded-2xl px-4 py-3 text-sm leading-6 shadow-sm sm:max-w-[88%] ${
                     msg.role === "user"
                       ? "bg-gradient-to-br from-teal-600 to-teal-500 text-white"
-                      : "border border-slate-200 bg-white text-slate-700 shadow-[0_10px_30px_rgba(15,23,42,0.06)]"
+                      : "border border-slate-200 bg-white text-slate-700"
                   }`}
                 >
                   {msg.content}
@@ -338,14 +363,45 @@ const ChatBox = () => {
             ))}
           </AnimatePresence>
 
-          {loading && !isFinal && (
-            <AIThinking message="Crafting your perfect itinerary..." />
+          {loading && (
+            <div className="space-y-2">
+              <AIThinking
+                message={
+                  isFinal
+                    ? "Building and checking your itinerary…"
+                    : "Thinking through your trip…"
+                }
+              />
+              <button
+                type="button"
+                onClick={() => requestControllerRef.current?.abort()}
+                className="ml-12 inline-flex min-h-10 items-center gap-2 rounded-lg px-3 text-xs font-semibold text-slate-600 hover:bg-slate-100"
+                aria-label="Cancel request"
+              >
+                <Square className="size-3.5" /> Stop response
+              </button>
+            </div>
           )}
           <div ref={messagesEndRef} />
         </div>
       </section>
 
       <section className="relative border-t border-slate-200/80 bg-white/90 p-3 backdrop-blur-xl sm:p-4">
+        {failedRequest && !loading && (
+          <div
+            role="alert"
+            className="mb-3 flex items-center justify-between gap-3 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800"
+          >
+            <span>The response failed. Your message is still here.</span>
+            <button
+              type="button"
+              onClick={() => void onSend(undefined, true)}
+              className="min-h-10 rounded-md px-3 font-semibold hover:bg-rose-100"
+            >
+              Retry
+            </button>
+          </div>
+        )}
         {showDestinationSuggestions && (
           <div className="absolute bottom-full left-3 right-3 z-20 mb-2 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl sm:left-4 sm:right-16">
             <p className="border-b border-slate-100 px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-slate-400">
@@ -396,7 +452,8 @@ const ChatBox = () => {
           <Button
             size="icon"
             onClick={() => onSend()}
-            disabled={loading}
+            disabled={loading || !userInput.trim()}
+            aria-label="Send message"
             className="mb-1 size-11 shrink-0 rounded-xl bg-teal-600 text-white shadow-md hover:bg-teal-700 disabled:opacity-50"
           >
             <Send className="size-4" />

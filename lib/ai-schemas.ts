@@ -170,6 +170,7 @@ export const tripHotelSchema = z
     description: boundedText,
     recommendation_score: z.number().min(0).max(1).optional(),
     recommendation_reasons: z.array(z.string().max(300)).max(10).optional(),
+    amenities: z.array(z.string().trim().max(80)).max(20).optional(),
     source_metadata: travelSourceMetadataSchema.optional(),
   })
   .strict();

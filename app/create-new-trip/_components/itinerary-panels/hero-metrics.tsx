@@ -119,7 +119,7 @@ export function DashboardMetrics({ trip }: { trip: DisplayTrip }) {
       icon: <Plane className="size-5" />,
       label: "Route",
       value: `${trip.origin} → ${trip.destination.split(",")[0]}`,
-      detail: "AI-optimized route",
+      detail: "Suggested destination plan",
     },
     {
       icon: <CalendarDays className="size-5" />,

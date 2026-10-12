@@ -42,10 +42,10 @@ const Header = () => {
   return (
     <header
       className={cn(
-        "fixed inset-x-0 top-0 z-50 transition-all duration-300",
+        "fixed inset-x-0 top-0 z-50 transition-all duration-200",
         scrolled
-          ? "border-b border-slate-200/80 bg-white/85 shadow-[0_4px_24px_rgba(15,23,42,0.06)] backdrop-blur-2xl"
-          : "border-b border-transparent bg-white/60 backdrop-blur-xl",
+          ? "border-b border-slate-200 bg-white shadow-sm"
+          : "border-b border-slate-200/70 bg-white/95",
       )}
     >
       <div className="mx-auto flex h-[4.25rem] w-full max-w-[1760px] items-center justify-between px-4 sm:px-6 lg:px-10 2xl:px-12">
@@ -75,7 +75,7 @@ const Header = () => {
               {isActive(menu.path) && (
                 <motion.span
                   layoutId="nav-pill"
-                  className="absolute inset-0 rounded-full bg-gradient-to-r from-teal-600 to-teal-500 shadow-sm"
+                  className="absolute inset-0 rounded-full bg-teal-700"
                   transition={{ type: "spring", bounce: 0.2, duration: 0.5 }}
                 />
               )}
@@ -87,7 +87,7 @@ const Header = () => {
         <div className="hidden items-center gap-3 md:flex">
           <div className="hidden items-center gap-2 rounded-full border border-teal-200/80 bg-teal-50/80 px-3 py-1.5 text-xs font-semibold text-teal-700 xl:flex">
             <Sparkles className="size-3.5" />
-            AI optimizer live
+            Trip planner
           </div>
           {!user ? (
             <SignInButton mode="modal">

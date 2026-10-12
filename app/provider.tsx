@@ -9,7 +9,7 @@ import {
   TravelFooter,
 } from "@/components/travel/TravelUI";
 import { usePathname } from "next/navigation";
-import { AnimatePresence } from "motion/react";
+import { AnimatePresence, MotionConfig } from "motion/react";
 import type { User } from "@/lib/domain/types";
 import { logger } from "@/lib/observability/logger";
 import { userDtoSchema } from "@/lib/domain/schemas";
@@ -71,16 +71,18 @@ const Provider = ({
 
   return (
     <UserDetailContext.Provider value={{ userDetail, setUserDetail }}>
-      <div className="min-h-screen overflow-x-hidden travel-page-bg">
-        <Header />
-        <main>
-          <AnimatePresence mode="wait">
-            <PageTransition key={pathname}>{children}</PageTransition>
-          </AnimatePresence>
-        </main>
-        {!isImmersiveRoute && <TravelFooter />}
-        {!pathname?.startsWith("/sign-") && <AITravelCopilot />}
-      </div>
+      <MotionConfig reducedMotion="user">
+        <div className="min-h-screen overflow-x-hidden travel-page-bg">
+          <Header />
+          <main>
+            <AnimatePresence mode="wait">
+              <PageTransition key={pathname}>{children}</PageTransition>
+            </AnimatePresence>
+          </main>
+          {!isImmersiveRoute && <TravelFooter />}
+          {!pathname?.startsWith("/sign-") && <AITravelCopilot />}
+        </div>
+      </MotionConfig>
     </UserDetailContext.Provider>
   );
 };

@@ -10,10 +10,13 @@ import {
   Archive,
   Bell,
   CalendarDays,
+  Copy,
+  Download,
   Heart,
   MapPin,
   Plane,
   Search,
+  Share2,
   Trash2,
   Users,
   Wallet,
@@ -22,6 +25,10 @@ import { motion } from "motion/react";
 import Link from "next/link";
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { logger } from "@/lib/observability/logger";
+import { useUser } from "@clerk/nextjs";
+import { savedTripSchema } from "@/lib/domain/schemas";
+import { exportTripAsJson } from "@/lib/trip-transform";
+import { z } from "zod";
 
 type SavedTrip = {
   id: string;
@@ -34,8 +41,20 @@ type SavedTrip = {
   createdAt: string;
 };
 
+const savedTripSummarySchema = z.object({
+  id: z.string(),
+  budget: z.string().nullable(),
+  destination: z.string(),
+  duration: z.string().nullable(),
+  groupSize: z.string().nullable(),
+  origin: z.string().nullable(),
+  isFavorite: z.boolean(),
+  createdAt: z.string().datetime(),
+});
+
 const UserTrips = () => {
   const { userDetail } = useUserDetail() || {};
+  const { isLoaded, isSignedIn } = useUser();
   const [trips, setTrips] = useState<SavedTrip[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -46,6 +65,8 @@ const UserTrips = () => {
   const [reminderTripId, setReminderTripId] = useState<string | null>(null);
   const [remindAt, setRemindAt] = useState("");
   const [notice, setNotice] = useState("");
+  const [fetchError, setFetchError] = useState(false);
+  const [duplicatingId, setDuplicatingId] = useState<string | null>(null);
 
   const fetchTrips = useCallback(
     async (cursor?: string) => {
@@ -59,11 +80,13 @@ const UserTrips = () => {
         const response = await fetch(`/api/trips?${params}`);
         if (!response.ok) throw new Error("Unable to load trips");
         const data = await response.json();
+        setFetchError(false);
         const items = Array.isArray(data) ? data : data.items;
         setTrips((current) => (cursor ? [...current, ...items] : items));
         setNextCursor(Array.isArray(data) ? null : data.nextCursor);
       } catch {
         logger.warn("saved_trips.fetch_failed");
+        setFetchError(true);
         setNotice("Saved trips could not be loaded.");
       } finally {
         setLoading(false);
@@ -89,12 +112,18 @@ const UserTrips = () => {
         item.id === trip.id ? { ...item, isFavorite } : item,
       ),
     );
-    const response = await fetch("/api/trips", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id: trip.id, isFavorite }),
-    });
-    if (!response.ok) {
+    try {
+      const response = await fetch("/api/trips", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: trip.id, isFavorite }),
+      });
+      if (response.ok) return;
+      setTrips((current) =>
+        current.map((item) => (item.id === trip.id ? trip : item)),
+      );
+      setNotice("Favorite could not be updated.");
+    } catch {
       setTrips((current) =>
         current.map((item) => (item.id === trip.id ? trip : item)),
       );
@@ -103,35 +132,136 @@ const UserTrips = () => {
   };
 
   const deleteTrip = async (id: string) => {
-    const response = await fetch(`/api/trips?id=${encodeURIComponent(id)}`, {
-      method: "DELETE",
-    });
-    if (response.ok)
-      setTrips((current) => current.filter((trip) => trip.id !== id));
-    else setNotice("Trip could not be deleted.");
+    try {
+      const response = await fetch(`/api/trips?id=${encodeURIComponent(id)}`, {
+        method: "DELETE",
+      });
+      if (response.ok) {
+        setTrips((current) => current.filter((trip) => trip.id !== id));
+        return;
+      }
+      setNotice("Trip could not be deleted.");
+    } catch {
+      setNotice("Trip could not be deleted.");
+    }
+  };
+
+  const duplicateTrip = async (trip: SavedTrip) => {
+    if (duplicatingId) return;
+    setDuplicatingId(trip.id);
+    try {
+      const response = await fetch("/api/trips", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ duplicateId: trip.id }),
+      });
+      const result: unknown = await response.json();
+      const parsed = savedTripSummarySchema.safeParse(result);
+      if (!response.ok || !parsed.success) throw new Error("duplicate failed");
+      const duplicate = parsed.data;
+      setTrips((current) => [duplicate, ...current]);
+      setNotice(`Created a copy of the ${trip.destination} trip.`);
+    } catch {
+      setNotice("Trip could not be duplicated.");
+    } finally {
+      setDuplicatingId(null);
+    }
+  };
+
+  const shareTrip = async (trip: SavedTrip) => {
+    const summary = `${trip.origin ? `${trip.origin} → ` : ""}${trip.destination} · ${trip.duration || "Flexible dates"} · ${trip.budget || "Budget not set"}`;
+    try {
+      if (navigator.share)
+        await navigator.share({
+          title: `ExploreX trip to ${trip.destination}`,
+          text: summary,
+        });
+      else if (navigator.clipboard) {
+        await navigator.clipboard.writeText(summary);
+        setNotice(
+          "Trip summary copied. Saved itineraries remain private to your account.",
+        );
+      } else setNotice("Sharing is not available in this browser.");
+    } catch (error) {
+      if (error instanceof Error && error.name !== "AbortError")
+        setNotice("Trip summary could not be shared.");
+    }
+  };
+
+  const exportTrip = async (trip: SavedTrip) => {
+    try {
+      const response = await fetch(
+        `/api/trips?id=${encodeURIComponent(trip.id)}`,
+      );
+      if (!response.ok) throw new Error("Trip export failed");
+      const payload: unknown = await response.json();
+      const plan =
+        payload && typeof payload === "object" && "plan" in payload
+          ? savedTripSchema.safeParse(payload.plan)
+          : null;
+      if (!plan || !plan.success) throw new Error("Trip export failed");
+      exportTripAsJson(plan.data);
+      setNotice(`Exported the ${trip.destination} itinerary.`);
+    } catch {
+      setNotice("Trip could not be exported.");
+    }
   };
 
   const createReminder = async (trip: SavedTrip) => {
     if (!remindAt) return;
-    const response = await fetch("/api/reminders", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        tripId: trip.id,
-        type: "trip",
-        remindAt: new Date(remindAt).toISOString(),
-        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
-        message: `Prepare for your ${trip.destination} trip`,
-      }),
-    });
-    if (response.ok) {
-      setNotice("Trip reminder scheduled.");
-      setReminderTripId(null);
-      setRemindAt("");
-    } else setNotice("Reminder could not be scheduled.");
+    try {
+      const response = await fetch("/api/reminders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          tripId: trip.id,
+          type: "trip",
+          remindAt: new Date(remindAt).toISOString(),
+          timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
+          message: `Prepare for your ${trip.destination} trip`,
+        }),
+      });
+      if (response.ok) {
+        setNotice("Trip reminder scheduled.");
+        setReminderTripId(null);
+        setRemindAt("");
+      } else setNotice("Reminder could not be scheduled.");
+    } catch {
+      setNotice("Reminder could not be scheduled.");
+    }
   };
 
-  if (!userDetail?.id) return null;
+  if (!isLoaded || (isSignedIn && !userDetail?.id)) {
+    return (
+      <div
+        role="status"
+        className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
+      >
+        <SkeletonCard />
+        <SkeletonCard />
+        <SkeletonCard />
+      </div>
+    );
+  }
+
+  if (!isSignedIn) {
+    return (
+      <div className="mt-8 rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
+        <h1 className="text-2xl font-bold text-slate-900">
+          Sign in to view saved trips
+        </h1>
+        <p className="mt-2 text-sm text-slate-600">
+          Your saved itineraries are available in your account.
+        </p>
+        <Link
+          href="/sign-in"
+          className="mt-5 inline-flex min-h-11 items-center rounded-lg bg-teal-700 px-5 font-semibold text-white hover:bg-teal-800"
+        >
+          Sign in
+        </Link>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
@@ -150,6 +280,29 @@ const UserTrips = () => {
     );
   }
 
+  if (fetchError && trips.length === 0) {
+    return (
+      <div
+        className="mt-8 rounded-2xl border border-rose-200 bg-white p-8 text-center shadow-sm"
+        role="alert"
+      >
+        <h2 className="text-xl font-bold text-slate-900">
+          Saved trips are unavailable
+        </h2>
+        <p className="mt-2 text-sm text-slate-600">
+          We couldn’t load your trips. Check your connection and try again.
+        </p>
+        <button
+          type="button"
+          onClick={() => void fetchTrips()}
+          className="mt-5 min-h-11 rounded-lg bg-teal-700 px-5 font-semibold text-white hover:bg-teal-800"
+        >
+          Try again
+        </button>
+      </div>
+    );
+  }
+
   if ((!trips || trips.length === 0) && !search && !favoritesOnly) {
     return (
       <GlassPanel className="mt-8 overflow-hidden p-6 sm:p-8 shadow-[var(--shadow-elevated)]">
@@ -163,8 +316,8 @@ const UserTrips = () => {
             </h2>
             <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600">
               Generate an itinerary and select Save Trip in its final section.
-              Your saved plans will then appear here for searching, sorting,
-              favorites, reminders, and future planning.
+              Your saved plans will appear here for searching, sorting,
+              favoriting, and reminders.
             </p>
             <div className="mt-5 flex flex-wrap gap-3">
               <Link
@@ -249,6 +402,23 @@ const UserTrips = () => {
           {notice}
         </p>
       )}
+      {fetchError && (
+        <div
+          role="alert"
+          className="mt-4 flex flex-col items-start justify-between gap-3 rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800 sm:flex-row sm:items-center"
+        >
+          <span>
+            We couldn’t load saved trips. Check your connection and try again.
+          </span>
+          <button
+            type="button"
+            onClick={() => void fetchTrips()}
+            className="min-h-10 rounded-lg px-3 font-semibold hover:bg-rose-100"
+          >
+            Try again
+          </button>
+        </div>
+      )}
       {trips.length === 0 && (
         <div className="mt-6 rounded-2xl border border-dashed border-slate-300 bg-white/60 p-8 text-center text-sm text-slate-500">
           No saved trips match these filters.
@@ -332,7 +502,37 @@ const UserTrips = () => {
               </div>
               <div className="mt-5 rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs font-medium text-slate-600">
                 <MapPin className="mr-2 inline size-3.5 text-teal-600" />
-                Ready for sharing, comparison, and AI refinement.
+                Saved to your account
+              </div>
+              <div className="mt-3 flex flex-wrap gap-2 border-t border-slate-100 pt-3">
+                <button
+                  type="button"
+                  disabled={duplicatingId !== null}
+                  onClick={() => void duplicateTrip(trip)}
+                  className="inline-flex min-h-10 items-center gap-1.5 rounded-lg border border-slate-200 px-3 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                  aria-label={`Duplicate trip to ${trip.destination}`}
+                >
+                  <Copy className="size-3.5" />
+                  {duplicatingId === trip.id ? "Copying…" : "Duplicate"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void shareTrip(trip)}
+                  className="inline-flex min-h-10 items-center gap-1.5 rounded-lg border border-slate-200 px-3 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                  aria-label={`Share trip summary for ${trip.destination}`}
+                >
+                  <Share2 className="size-3.5" />
+                  Share summary
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void exportTrip(trip)}
+                  className="inline-flex min-h-10 items-center gap-1.5 rounded-lg border border-slate-200 px-3 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                  aria-label={`Export trip to ${trip.destination}`}
+                >
+                  <Download className="size-3.5" />
+                  Export
+                </button>
               </div>
               {reminderTripId === trip.id && (
                 <div className="mt-3 rounded-xl border border-teal-200 bg-teal-50/60 p-3">

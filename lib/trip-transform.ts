@@ -184,9 +184,21 @@ function parseBudgetNumber(budget: string): number {
   return match ? parseFloat(match[0]) : 2000;
 }
 
-function formatCurrency(amount: number, budget: string) {
-  const symbol = budget.includes("€") ? "€" : budget.includes("£") ? "£" : "$";
-  return `${symbol}${Math.round(amount).toLocaleString()}`;
+function formatCurrency(amount: number, budget: string, currencyCode?: string) {
+  const fallbackCurrency = budget.includes("€")
+    ? "EUR"
+    : budget.includes("£")
+      ? "GBP"
+      : "USD";
+  try {
+    return new Intl.NumberFormat(undefined, {
+      style: "currency",
+      currency: currencyCode || fallbackCurrency,
+      maximumFractionDigits: 0,
+    }).format(amount);
+  } catch {
+    return `${Math.round(amount).toLocaleString()} ${currencyCode || ""}`.trim();
+  }
 }
 
 function isFoodRelated(activity: TripActivity) {
@@ -198,6 +210,7 @@ function isFoodRelated(activity: TripActivity) {
 
 function displayRestaurants(trip: TripInfo): DisplayRestaurant[] {
   return (trip.restaurants ?? []).map((restaurant) => ({
+    ...restaurant,
     name: restaurant.restaurant_name,
     type:
       restaurant.cuisine ||
@@ -219,36 +232,41 @@ function displayRestaurants(trip: TripInfo): DisplayRestaurant[] {
 
 function buildMapMarkers(trip: TripInfo): MapMarker[] {
   const markers: MapMarker[] = [];
-  const positions = [
-    { left: "12%", top: "22%" },
-    { left: "38%", top: "35%" },
-    { left: "58%", top: "48%" },
-    { left: "72%", top: "30%" },
-    { left: "28%", top: "58%" },
-    { left: "65%", top: "62%" },
-  ];
-
-  trip.hotels?.slice(0, 1).forEach((h, i) => {
+  trip.hotels?.slice(0, 1).forEach((hotel) => {
+    const coordinates = hotel.geo_coordinates;
+    if (!coordinates) return;
     markers.push({
-      label: h.hotel_name.split(" ").slice(0, 2).join(" "),
-      left: positions[i]?.left ?? "15%",
-      top: positions[i]?.top ?? "20%",
+      label: hotel.hotel_name,
       type: "hotel",
+      coordinates,
     });
   });
 
-  const allActivities = trip.itinerary?.flatMap((d) => d.activities) ?? [];
-  allActivities.slice(0, 5).forEach((a, i) => {
-    const pos = positions[i + 1] ?? positions[i % positions.length];
+  const allActivities =
+    trip.itinerary?.flatMap((day) =>
+      day.activities.map((activity) => ({ activity, day: day.day })),
+    ) ?? [];
+  allActivities.slice(0, 20).forEach(({ activity, day }) => {
+    const coordinates = activity.geo_coordinates;
+    if (!coordinates) return;
     markers.push({
-      label: a.place_name.split(" ").slice(0, 2).join(" "),
-      left: pos.left,
-      top: pos.top,
-      type: isFoodRelated(a) ? "food" : "activity",
+      label: activity.place_name,
+      type: isFoodRelated(activity) ? "food" : "activity",
+      coordinates,
+      day,
     });
   });
 
-  return markers.slice(0, 6);
+  trip.restaurants?.slice(0, 10).forEach((restaurant) => {
+    if (!restaurant.geo_coordinates) return;
+    markers.push({
+      label: restaurant.restaurant_name,
+      type: "food",
+      coordinates: restaurant.geo_coordinates,
+    });
+  });
+
+  return markers;
 }
 
 export function withGeneratedTripImages(trip: TripInfo): TripInfo {
@@ -310,6 +328,7 @@ export function transformTripToDisplay(trip: TripInfo): DisplayTrip {
         : "Visit duration not specified",
       address: act.place_address || tripWithImages.destination,
       distanceKm: act.distance_from_previous_km,
+      coordinates: act.geo_coordinates ?? undefined,
       sourceMetadata: act.source_metadata,
     }));
 
@@ -328,20 +347,32 @@ export function transformTripToDisplay(trip: TripInfo): DisplayTrip {
   const budgetTiers = [
     {
       label: "Budget",
-      value: formatCurrency(budgetNum * 0.6, tripWithImages.budget),
+      value: formatCurrency(
+        budgetNum * 0.6,
+        tripWithImages.budget,
+        tripWithImages.currency_code,
+      ),
       detail: "Hostels, public transit, free attractions",
     },
     {
       label: "Standard",
       value:
         tripWithImages.budget ||
-        formatCurrency(budgetNum, tripWithImages.budget),
+        formatCurrency(
+          budgetNum,
+          tripWithImages.budget,
+          tripWithImages.currency_code,
+        ),
       detail: "Comfortable stays and curated experiences",
       recommended: true,
     },
     {
       label: "Luxury",
-      value: formatCurrency(budgetNum * 1.8, tripWithImages.budget),
+      value: formatCurrency(
+        budgetNum * 1.8,
+        tripWithImages.budget,
+        tripWithImages.currency_code,
+      ),
       detail: "Premium hotels, private transfers, fine dining",
     },
   ];
@@ -369,6 +400,8 @@ export function transformTripToDisplay(trip: TripInfo): DisplayTrip {
       description: h.description || `Well-rated stay in ${destCity}.`,
       recommendationScore: h.recommendation_score,
       sourceMetadata: h.source_metadata,
+      amenities: h.amenities ?? [],
+      recommendationReasons: h.recommendation_reasons ?? [],
     })),
     restaurants: displayRestaurants(tripWithImages),
     days,
@@ -388,6 +421,11 @@ export function transformTripToDisplay(trip: TripInfo): DisplayTrip {
               ? "Miscellaneous"
               : label.charAt(0).toUpperCase() + label.slice(1),
         percent: total > 0 ? Math.round((value / total) * 100) : 0,
+        amount: formatCurrency(
+          value,
+          tripWithImages.budget,
+          tripWithImages.currency_code,
+        ),
       }));
     })(),
     budgetTiers,

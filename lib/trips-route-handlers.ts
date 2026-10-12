@@ -1,4 +1,4 @@
-import { createHash } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { Prisma } from "@/lib/generated/prisma/client";
 import {
   apiError,
@@ -99,6 +99,27 @@ export async function tripsPost(request: Request) {
     if (!body)
       return apiError("Request body must be a JSON object", 400, "BAD_REQUEST");
 
+    const duplicateId = body.duplicateId;
+    if (duplicateId !== undefined) {
+      if (
+        typeof duplicateId !== "string" ||
+        !duplicateId.trim() ||
+        duplicateId.length > 100 ||
+        body.plan !== undefined
+      )
+        return apiError(
+          "A valid trip to duplicate is required",
+          400,
+          "VALIDATION_ERROR",
+        );
+      const source = await prisma.trip.findFirst({
+        where: ownedTripWhere(user.id, duplicateId),
+        select: { plan: true },
+      });
+      if (!source?.plan)
+        return apiError("Trip not found", 404, "TRIP_NOT_FOUND");
+      body.plan = source.plan;
+    }
     if (!body.plan) return apiError("plan is required", 400, "BAD_REQUEST");
     const serialized = JSON.stringify(body.plan);
     if (serialized.length > 200_000)
@@ -113,6 +134,7 @@ export async function tripsPost(request: Request) {
     const plan = sanitizeSavedPlanSources(parsed.data);
     const planHash = createHash("sha256")
       .update(JSON.stringify(plan))
+      .update(duplicateId ? randomUUID() : "")
       .digest("hex");
     requestedPlanHash = planHash;
     const existing = await prisma.trip.findUnique({
@@ -256,6 +278,32 @@ export async function tripsGet(request: Request) {
     const denied = await rateLimit(request, user.id);
     if (denied) return denied;
     const url = new URL(request.url);
+    if (url.searchParams.has("id")) {
+      if (
+        url.searchParams.size !== 1 ||
+        url.searchParams.getAll("id").length !== 1
+      )
+        return apiError(
+          "Trip query parameters are invalid",
+          400,
+          "VALIDATION_ERROR",
+        );
+      const parsedId = tripDeleteQuerySchema.safeParse({
+        id: url.searchParams.get("id"),
+      });
+      if (!parsedId.success)
+        return apiError("A valid trip id is required", 400, "VALIDATION_ERROR");
+      const saved = await prisma.trip.findFirst({
+        where: ownedTripWhere(user.id, parsedId.data.id),
+        select: { plan: true },
+      });
+      if (!saved?.plan)
+        return apiError("Trip not found", 404, "TRIP_NOT_FOUND");
+      const parsedPlan = savedTripSchema.safeParse(saved.plan);
+      if (!parsedPlan.success)
+        return apiError("Saved trip is unavailable", 500, "SERVER_ERROR");
+      return apiOk({ plan: sanitizeSavedPlanSources(parsedPlan.data) });
+    }
     const query = parseTripListQuery(url.searchParams);
     if (!query)
       return apiError(
