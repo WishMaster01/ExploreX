@@ -27,10 +27,16 @@ export async function attachTravelSources(
   const marked = markCandidateSources(plan);
   const hotels = marked.hotels;
   const itinerary = marked.itinerary;
+  const restaurants = marked.restaurants;
 
   if (provider.name === "unavailable") {
     return {
-      plan: { ...plan, hotels, itinerary },
+      plan: {
+        ...plan,
+        hotels,
+        itinerary,
+        ...(restaurants ? { restaurants } : {}),
+      },
       provider: provider.name,
       verifiedCount,
     };
@@ -83,9 +89,35 @@ export async function attachTravelSources(
       };
     },
   );
-  await Promise.all([...hotelChecks, ...activityChecks]);
+  const restaurantChecks = (restaurants ?? [])
+    .slice(0, APP_CONFIG.travelData.maxVerifiedRestaurants)
+    .map(async (restaurant, index) => {
+      const result = await safelySearchPlaces(provider.name, () =>
+        providerQueue.run(() =>
+          provider.searchRestaurants(
+            `${restaurant.restaurant_name}, ${plan.destination}`,
+          ),
+        ),
+      );
+      const match = verifiedPlaceMatch(restaurant.restaurant_name, result);
+      if (!match) return;
+      verifiedCount += 1;
+      restaurants![index] = {
+        ...restaurant,
+        source_metadata: verifiedPlaceMetadata(
+          match,
+          result.source.retrievedAt,
+        ),
+      };
+    });
+  await Promise.all([...hotelChecks, ...activityChecks, ...restaurantChecks]);
   return {
-    plan: { ...plan, hotels, itinerary },
+    plan: {
+      ...plan,
+      hotels,
+      itinerary,
+      ...(restaurants ? { restaurants } : {}),
+    },
     provider: provider.name,
     verifiedCount,
   };

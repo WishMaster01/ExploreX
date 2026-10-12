@@ -71,22 +71,47 @@ export function RouteOptimizationPanel({ trip }: { trip: DisplayTrip }) {
 
           <MapMetric
             icon={<Car className="size-4" />}
-            label="Route"
-            value={trip.routeDistance}
+            label="Distance estimate"
+            value={
+              trip.distanceSource === "UNAVAILABLE"
+                ? "Unavailable"
+                : trip.routeDistance
+            }
           />
 
           <MapMetric
             icon={<Route className="size-4" />}
-            label="Walk"
+            label="Walking distance"
             value={trip.walkDistance}
           />
 
           <MapMetric
             icon={<Sparkles className="size-4" />}
-            label="Distance saved"
+            label="Estimated distance saved"
             value={trip.distanceSaved}
           />
         </div>
+        <p className="mt-3 text-xs text-slate-500">
+          {trip.distanceSource === "PROVIDER_ROUTE"
+            ? "Distance comes from a routing provider."
+            : trip.distanceSource === "MIXED_ESTIMATE"
+              ? "Some legs use provider routes; missing legs use straight-line estimates."
+              : trip.distanceSource === "UNAVAILABLE"
+                ? "Distance is unavailable because the itinerary has no usable route coordinates."
+                : "Straight-line estimates only; no road or transit travel times are available."}
+        </p>
+        {trip.qualityScore !== undefined && (
+          <div className="mt-3 rounded-lg bg-teal-50 p-3 text-xs text-slate-700">
+            <strong>Itinerary quality: {trip.qualityScore}/100</strong>
+            {trip.decisionReasons.length > 0 && (
+              <ul className="mt-2 list-disc space-y-1 pl-4">
+                {trip.decisionReasons.slice(0, 4).map((reason) => (
+                  <li key={reason}>{reason}</li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
       </GlassPanel>
     </motion.div>
   );

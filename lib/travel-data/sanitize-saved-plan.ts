@@ -17,6 +17,18 @@ export function sanitizeSavedPlanSources(plan: ValidTripInfo): ValidTripInfo {
         "Saved-plan listing details are user-submitted and not re-verified.",
       ),
     })),
+    ...(plan.restaurants
+      ? {
+          restaurants: plan.restaurants.map((restaurant) => ({
+            ...restaurant,
+            source_metadata: sourceMetadata(
+              "AI_GENERATED",
+              "user_saved",
+              "Saved restaurant candidate details are user-submitted and not re-verified.",
+            ),
+          })),
+        }
+      : {}),
     itinerary: plan.itinerary.map((day) => ({
       ...day,
       activities: day.activities.map((activity) => ({
@@ -33,6 +45,7 @@ export function sanitizeSavedPlanSources(plan: ValidTripInfo): ValidTripInfo {
       ? {
           optimization: {
             ...plan.optimization,
+            distance_source: "STRAIGHT_LINE_ESTIMATE",
             source_metadata: sourceMetadata(
               "ESTIMATED",
               "user_saved",

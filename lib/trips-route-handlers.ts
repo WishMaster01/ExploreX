@@ -185,7 +185,10 @@ export async function tripsPost(request: Request) {
                     plan.currency_code,
                   ),
                   currencyCode: plan.currency_code ?? null,
-                  travelTime: activity.time_travel_each_location || null,
+                  travelTime:
+                    activity.travel_estimate_source === "VERIFIED"
+                      ? activity.time_travel_each_location || null
+                      : null,
                   bestTime: activity.best_time_to_visit || null,
                   openingTime: activity.opening_time || null,
                   closingTime: activity.closing_time || null,

@@ -137,7 +137,7 @@ export function DashboardMetrics({ trip }: { trip: DisplayTrip }) {
       icon: <Route className="size-5" />,
       label: "Transit",
       value: trip.transitMinutes,
-      detail: `${trip.walkDistance} walking`,
+      detail: "Road and transit times are unavailable",
     },
   ];
 

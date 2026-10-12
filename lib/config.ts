@@ -22,6 +22,7 @@ export const APP_CONFIG = {
     timeoutMs: 5_000,
     maxVerifiedHotels: 3,
     maxVerifiedActivities: 5,
+    maxVerifiedRestaurants: 5,
   },
   cache: {
     aiEntries: 100,

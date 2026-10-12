@@ -196,29 +196,24 @@ function isFoodRelated(activity: TripActivity) {
   );
 }
 
-function deriveRestaurants(
-  activities: TripActivity[],
-  destination: string,
-): DisplayRestaurant[] {
-  const foodActivities = activities.filter(isFoodRelated);
-  const source =
-    foodActivities.length > 0 ? foodActivities : activities.slice(0, 3);
-
-  return source.slice(0, 4).map((a, i) => ({
-    name: a.place_name,
-    type: isFoodRelated(a)
-      ? "Local dining"
-      : `Recommended in ${destination.split(",")[0]}`,
-    price: a.ticket_pricing || ["$", "$$", "$$$"][i % 3],
+function displayRestaurants(trip: TripInfo): DisplayRestaurant[] {
+  return (trip.restaurants ?? []).map((restaurant) => ({
+    name: restaurant.restaurant_name,
+    type:
+      restaurant.cuisine ||
+      restaurant.meal_types?.join(", ") ||
+      "Restaurant candidate",
+    price:
+      restaurant.price ||
+      (restaurant.estimated_cost !== undefined
+        ? `${restaurant.estimated_cost} ${trip.currency_code ?? "currency units"}`
+        : "Price unavailable"),
     note:
-      a.place_details?.slice(0, 120) ||
-      "Popular spot worth booking ahead during peak season.",
-    source_metadata: {
-      source: "AI_GENERATED",
-      provider: "openrouter",
-      retrievedAt: null,
-      note: "This dining suggestion is AI-generated and has not been verified.",
-    },
+      [restaurant.note, ...(restaurant.recommendation_reasons ?? [])]
+        .filter(Boolean)
+        .join(" · ") ||
+      "Restaurant candidate; verify current hours, menu, and availability.",
+    source_metadata: restaurant.source_metadata,
   }));
 }
 
@@ -254,17 +249,6 @@ function buildMapMarkers(trip: TripInfo): MapMarker[] {
   });
 
   return markers.slice(0, 6);
-}
-
-function sumTransitMinutes(itinerary: TripInfo["itinerary"]): number {
-  let total = 0;
-  for (const day of itinerary ?? []) {
-    for (const act of day.activities ?? []) {
-      const match = act.time_travel_each_location?.match(/(\d+)/);
-      if (match) total += parseInt(match[1], 10);
-    }
-  }
-  return total || 42;
 }
 
 export function withGeneratedTripImages(trip: TripInfo): TripInfo {
@@ -321,16 +305,13 @@ export function transformTripToDisplay(trip: TripInfo): DisplayTrip {
       ),
       detail: act.place_details || "Explore at your own pace.",
       cost: act.ticket_pricing || "Free",
-      duration: act.time_travel_each_location || "2 hours",
+      duration: act.visit_duration_minutes
+        ? `${act.visit_duration_minutes} min visit`
+        : "Visit duration not specified",
       address: act.place_address || tripWithImages.destination,
       distanceKm: act.distance_from_previous_km,
       sourceMetadata: act.source_metadata,
     }));
-
-    const transitMins = activities.reduce((sum, a) => {
-      const m = a.time_travel_each_location?.match(/(\d+)/);
-      return sum + (m ? parseInt(m[1], 10) : 15);
-    }, 0);
 
     return {
       day: day.day,
@@ -338,23 +319,12 @@ export function transformTripToDisplay(trip: TripInfo): DisplayTrip {
         day.day_plan ||
         `Day ${day.day} in ${tripWithImages.destination.split(",")[0]}`,
       best: day.best_time_to_visit_day || "Full day exploration",
-      route: `${activities.length} stops · ${activities.reduce((sum, activity) => sum + (activity.distance_from_previous_km ?? 0), 0).toFixed(1)} km · ~${transitMins || 30} min`,
+      route: `${activities.length} stops - ${activities.some((activity) => activity.distance_from_previous_km !== undefined) ? `${activities.reduce((sum, activity) => sum + (activity.distance_from_previous_km ?? 0), 0).toFixed(1)} km ${tripWithImages.optimization?.distance_source === "PROVIDER_ROUTE" ? "provider route" : tripWithImages.optimization?.distance_source === "MIXED_ESTIMATE" ? "mixed distance estimate" : "straight-line estimate"}` : "distance unavailable"}`,
       segments,
     };
   });
 
   const budgetNum = parseBudgetNumber(tripWithImages.budget);
-  const hotelCost = (tripWithImages.hotels ?? []).reduce((sum, h) => {
-    const m = h.price_per_night?.match(/[\d.]+/);
-    return sum + (m ? parseFloat(m[0]) : 100);
-  }, 0);
-
-  const daysCount = parseInt(
-    tripWithImages.duration?.match(/\d+/)?.[0] ?? "5",
-    10,
-  );
-  const estimatedHotelTotal = hotelCost * daysCount || budgetNum * 0.45;
-
   const budgetTiers = [
     {
       label: "Budget",
@@ -400,15 +370,26 @@ export function transformTripToDisplay(trip: TripInfo): DisplayTrip {
       recommendationScore: h.recommendation_score,
       sourceMetadata: h.source_metadata,
     })),
-    restaurants: deriveRestaurants(allActivities, tripWithImages.destination),
+    restaurants: displayRestaurants(tripWithImages),
     days,
     mapMarkers: buildMapMarkers(tripWithImages),
-    budgetBreakdown: [
-      { label: "Accommodation", percent: 45 },
-      { label: "Food", percent: 22 },
-      { label: "Transport", percent: 15 },
-      { label: "Activities", percent: 18 },
-    ],
+    budgetBreakdown: (() => {
+      const allocation = tripWithImages.optimization?.budget_allocation;
+      if (!allocation) return [];
+      const total = Object.values(allocation).reduce(
+        (sum, value) => sum + value,
+        0,
+      );
+      return Object.entries(allocation).map(([label, value]) => ({
+        label:
+          label === "emergency"
+            ? "Emergency buffer"
+            : label === "miscellaneous"
+              ? "Miscellaneous"
+              : label.charAt(0).toUpperCase() + label.slice(1),
+        percent: total > 0 ? Math.round((value / total) * 100) : 0,
+      }));
+    })(),
     budgetTiers,
     topAttractions: allActivities.slice(0, 6).map((a) => a.place_name),
     insights: [
@@ -481,13 +462,13 @@ export function transformTripToDisplay(trip: TripInfo): DisplayTrip {
     transportation: [
       {
         mode: "Airport transfer",
-        value: "45–60 min",
-        note: `From airport to ${destCity} center`,
+        value: "Provider data unavailable",
+        note: `Check a live route from the airport to ${destCity} before departure.`,
       },
       {
         mode: "Local transit",
-        value: `${sumTransitMinutes(tripWithImages.itinerary)} min`,
-        note: "Estimated daily transit between stops",
+        value: "Unavailable",
+        note: "No road or transit provider is configured; distances are straight-line estimates.",
       },
       {
         mode: "Walking",
@@ -532,14 +513,20 @@ export function transformTripToDisplay(trip: TripInfo): DisplayTrip {
       },
     ],
     mapTip: `Cluster ${destCity} activities by neighborhood to reduce transit time between stops.`,
-    transitMinutes: `${sumTransitMinutes(tripWithImages.itinerary)} min`,
-    walkDistance: `~${(allActivities.length * 1.2).toFixed(1)} km`,
-    routeDistance: `${tripWithImages.optimization?.route_distance_km ?? 0} km`,
+    transitMinutes: "Unavailable",
+    walkDistance: "Unavailable",
+    routeDistance:
+      tripWithImages.optimization?.distance_source === "UNAVAILABLE"
+        ? "Unavailable"
+        : `${tripWithImages.optimization?.route_distance_km ?? 0} km`,
     distanceSaved: `${tripWithImages.optimization?.distance_saved_km ?? 0} km`,
     budgetActivityNames:
       tripWithImages.optimization?.budget_activity_names ??
       allActivities.map((activity) => activity.place_name),
     budgetActivityCost: tripWithImages.optimization?.budget_activity_cost ?? 0,
+    qualityScore: tripWithImages.optimization?.quality_score,
+    decisionReasons: tripWithImages.optimization?.decision_reasons ?? [],
+    distanceSource: tripWithImages.optimization?.distance_source,
   };
 }
 

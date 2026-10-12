@@ -86,4 +86,11 @@ export type DisplayTrip = {
   distanceSaved: string;
   budgetActivityNames: string[];
   budgetActivityCost: number;
+  qualityScore?: number;
+  decisionReasons: string[];
+  distanceSource?:
+    | "STRAIGHT_LINE_ESTIMATE"
+    | "PROVIDER_ROUTE"
+    | "MIXED_ESTIMATE"
+    | "UNAVAILABLE";
 };

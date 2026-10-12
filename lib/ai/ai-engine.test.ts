@@ -13,9 +13,14 @@ import {
   createGooglePlacesProvider,
   getTravelDataProvider,
 } from "@/lib/travel-data/provider";
-import type { TravelProviderResult } from "@/lib/travel-data/types";
+import type {
+  TravelDataProvider,
+  TravelPlace,
+  TravelProviderResult,
+} from "@/lib/travel-data/types";
 import { tripInfoSchema } from "@/lib/ai-schemas";
 import { sanitizeSavedPlanSources } from "@/lib/travel-data/sanitize-saved-plan";
+import { attachTravelSources } from "@/lib/travel-data/verify-plan";
 
 describe("AI generation hardening", () => {
   it("rejects malformed or schema-invalid AI JSON", () => {
@@ -63,7 +68,7 @@ describe("AI generation hardening", () => {
   it("uses deterministic cache keys isolated by user and prompt version", () => {
     const base = {
       userId: "user-a",
-      promptVersion: "trip-planner-v2",
+      promptVersion: "trip-planner-v3",
       model: "model-a",
       messages: [{ role: "user", content: "Paris" }],
     };
@@ -72,7 +77,7 @@ describe("AI generation hardening", () => {
       createTripPlanCacheKey({ ...base, userId: "user-b" }),
     );
     expect(createTripPlanCacheKey(base)).not.toBe(
-      createTripPlanCacheKey({ ...base, promptVersion: "trip-planner-v3" }),
+      createTripPlanCacheKey({ ...base, promptVersion: "trip-planner-v2" }),
     );
   });
 });
@@ -93,6 +98,15 @@ describe("travel data source safety", () => {
         geo_coordinates: { latitude: 48.8, longitude: 2.3 },
         rating: 4,
         description: "A stay",
+      },
+    ],
+    restaurants: [
+      {
+        restaurant_name: "Example Cafe",
+        cuisine: "French",
+        price: "€20",
+        estimated_cost: 20,
+        rating: 4.5,
       },
     ],
     itinerary: [
@@ -127,9 +141,63 @@ describe("travel data source safety", () => {
       "AI_GENERATED",
     );
     expect(marked.budget_source_metadata?.source).toBe("AI_GENERATED");
+    expect(marked.restaurants?.[0].source_metadata?.source).toBe(
+      "AI_GENERATED",
+    );
     expect(marked.itinerary[0].activities[0].travel_estimate_source).toBe(
       "ESTIMATED",
     );
+  });
+
+  it("checks restaurant candidates through the dedicated provider capability", async () => {
+    const resultFor = (name: string): TravelProviderResult<TravelPlace[]> => ({
+      status: "available",
+      data: [{ id: `id-${name}`, name }],
+      source: {
+        source: "VERIFIED",
+        provider: "mock_places",
+        retrievedAt: new Date().toISOString(),
+      },
+    });
+    const provider: TravelDataProvider = {
+      name: "mock_places",
+      searchPlaces: async () => ({ ...resultFor("none"), data: [] }),
+      searchHotels: async () => resultFor("Example Hotel"),
+      searchRestaurants: async () => resultFor("Example Cafe"),
+      getRoute: async () => ({
+        status: "unavailable",
+        data: null,
+        source: {
+          source: "UNAVAILABLE",
+          provider: "mock_places",
+          retrievedAt: null,
+        },
+      }),
+      getWeather: async () => ({
+        status: "unavailable",
+        data: null,
+        source: {
+          source: "UNAVAILABLE",
+          provider: "mock_places",
+          retrievedAt: null,
+        },
+      }),
+      getCurrencyRate: async () => ({
+        status: "unavailable",
+        data: null,
+        source: {
+          source: "UNAVAILABLE",
+          provider: "mock_places",
+          retrievedAt: null,
+        },
+      }),
+    };
+    const result = await attachTravelSources(candidate, provider);
+    expect(result.plan.restaurants?.[0].source_metadata).toMatchObject({
+      source: "VERIFIED",
+      placeId: "id-Example Cafe",
+    });
+    expect(result.verifiedCount).toBe(2);
   });
 
   it("does not trust client-provided verified metadata on saved trip plans", () => {
@@ -156,6 +224,10 @@ describe("travel data source safety", () => {
     });
     expect(saved.hotels[0].source_metadata).not.toHaveProperty("mapsUrl");
     expect(saved.hotels[0].source_metadata).not.toHaveProperty("placeId");
+    expect(saved.restaurants?.[0].source_metadata).toMatchObject({
+      source: "AI_GENERATED",
+      provider: "user_saved",
+    });
   });
 
   it("only treats exact provider name matches as verified and degrades on provider errors", () => {

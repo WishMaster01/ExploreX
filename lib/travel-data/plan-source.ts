@@ -23,6 +23,18 @@ export function markCandidateSources(plan: ValidTripInfo): ValidTripInfo {
         "Existence, address, coordinates, rating, and price have not been verified.",
       ),
     })),
+    ...(plan.restaurants
+      ? {
+          restaurants: plan.restaurants.map((restaurant) => ({
+            ...restaurant,
+            source_metadata: sourceMetadata(
+              "AI_GENERATED",
+              "openrouter",
+              "Restaurant listing, hours, menu, and prices have not been verified.",
+            ),
+          })),
+        }
+      : {}),
     itinerary: plan.itinerary.map((day) => ({
       ...day,
       activities: day.activities.map((activity) => ({

@@ -106,6 +106,25 @@ export const tripActivitySchema = z
       .trim()
       .regex(/^([01]\d|2[0-3]):[0-5]\d$/)
       .optional(),
+    reservation_time: z
+      .string()
+      .trim()
+      .regex(/^([01]\d|2[0-3]):[0-5]\d$/)
+      .optional(),
+    unavailable_periods: z
+      .array(
+        z
+          .object({
+            start: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/),
+            end: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/),
+          })
+          .strict(),
+      )
+      .max(20)
+      .optional(),
+    max_travel_time_minutes: z.number().int().min(0).max(720).optional(),
+    estimated_travel_time_minutes: z.number().int().min(0).max(720).optional(),
+    travel_time_minutes: z.number().int().min(0).max(720).optional(),
     closing_time: z
       .string()
       .trim()
@@ -126,7 +145,19 @@ export const tripActivitySchema = z
       .optional(),
     source_metadata: travelSourceMetadataSchema.optional(),
   })
-  .strict();
+  .strict()
+  .superRefine((activity, context) => {
+    for (const [index, period] of (
+      activity.unavailable_periods ?? []
+    ).entries()) {
+      if (period.end <= period.start)
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["unavailable_periods", index],
+          message: "Unavailable periods must end after they start",
+        });
+    }
+  });
 
 export const tripHotelSchema = z
   .object({
@@ -138,6 +169,33 @@ export const tripHotelSchema = z
     rating: z.coerce.number().min(0).max(5),
     description: boundedText,
     recommendation_score: z.number().min(0).max(1).optional(),
+    recommendation_reasons: z.array(z.string().max(300)).max(10).optional(),
+    source_metadata: travelSourceMetadataSchema.optional(),
+  })
+  .strict();
+
+export const tripRestaurantSchema = z
+  .object({
+    restaurant_name: boundedText,
+    cuisine: optionalText.optional(),
+    price: optionalText.optional(),
+    estimated_cost: z.number().min(0).optional(),
+    rating: z.number().min(0).max(5).optional(),
+    dietary_tags: z.array(z.string().trim().max(80)).max(20).optional(),
+    meal_types: z.array(z.string().trim().max(40)).max(10).optional(),
+    opening_time: z
+      .string()
+      .regex(/^([01]\d|2[0-3]):[0-5]\d$/)
+      .optional(),
+    closing_time: z
+      .string()
+      .regex(/^([01]\d|2[0-3]):[0-5]\d$/)
+      .optional(),
+    geo_coordinates: coordinateSchema.optional(),
+    address: optionalText.optional(),
+    note: optionalText.optional(),
+    recommendation_score: z.number().min(0).max(1).optional(),
+    recommendation_reasons: z.array(z.string().max(300)).max(10).optional(),
     source_metadata: travelSourceMetadataSchema.optional(),
   })
   .strict();
@@ -145,6 +203,9 @@ export const tripHotelSchema = z
 export const tripInfoSchema = z
   .object({
     destination: boundedText,
+    start_date: z.string().date().optional(),
+    end_date: z.string().date().optional(),
+    time_zone: z.string().trim().min(1).max(80).optional(),
     currency_code: z
       .string()
       .trim()
@@ -154,7 +215,20 @@ export const tripInfoSchema = z
     origin: boundedText,
     budget: boundedText,
     group_size: boundedText,
+    travel_style: optionalText.optional(),
+    interests: z.array(z.string().trim().max(80)).max(30).optional(),
+    cuisine_preferences: z.array(z.string().trim().max(80)).max(20).optional(),
+    dietary_preferences: z.array(z.string().trim().max(80)).max(20).optional(),
+    preferred_meal_type: z
+      .enum(["breakfast", "brunch", "lunch", "dinner"])
+      .optional(),
+    preferred_time_of_day: z
+      .enum(["morning", "afternoon", "evening", "flexible"])
+      .optional(),
+    activity_intensity: z.enum(["relaxed", "balanced", "packed"]).optional(),
+    walking_tolerance: z.enum(["low", "moderate", "high"]).optional(),
     hotels: z.array(tripHotelSchema).max(20),
+    restaurants: z.array(tripRestaurantSchema).max(30).optional(),
     itinerary: z
       .array(
         z.object({
@@ -192,6 +266,37 @@ export const tripInfoSchema = z
         distance_saved_km: z.number().min(0),
         budget_activity_cost: z.number().min(0),
         budget_activity_names: z.array(z.string()),
+        budget_allocation: z
+          .object({
+            accommodation: z.number().min(0),
+            food: z.number().min(0),
+            transport: z.number().min(0),
+            activities: z.number().min(0),
+            emergency: z.number().min(0),
+            miscellaneous: z.number().min(0),
+          })
+          .strict()
+          .optional(),
+        quality_score: z.number().min(0).max(100).optional(),
+        quality_dimensions: z
+          .object({
+            constraint_satisfaction: z.number().min(0).max(100),
+            travel_efficiency: z.number().min(0).max(100),
+            budget_fit: z.number().min(0).max(100),
+            preference_match: z.number().min(0).max(100),
+            schedule_density: z.number().min(0).max(100),
+          })
+          .strict()
+          .optional(),
+        decision_reasons: z.array(z.string().max(300)).max(100).optional(),
+        distance_source: z
+          .enum([
+            "STRAIGHT_LINE_ESTIMATE",
+            "PROVIDER_ROUTE",
+            "MIXED_ESTIMATE",
+            "UNAVAILABLE",
+          ])
+          .optional(),
         source_metadata: travelSourceMetadataSchema.optional(),
       })
       .strict()
@@ -199,7 +304,27 @@ export const tripInfoSchema = z
     generation_metadata: aiGenerationMetadataSchema.optional(),
     budget_source_metadata: travelSourceMetadataSchema.optional(),
   })
-  .strict();
+  .strict()
+  .superRefine((trip, context) => {
+    if (trip.start_date && trip.end_date && trip.end_date < trip.start_date) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["end_date"],
+        message: "Trip end date must not precede its start date",
+      });
+    }
+    if (trip.time_zone) {
+      try {
+        new Intl.DateTimeFormat("en", { timeZone: trip.time_zone });
+      } catch {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["time_zone"],
+          message: "Trip time zone must be a valid IANA time zone",
+        });
+      }
+    }
+  });
 
 export const finalResponseSchema = z
   .object({ trip_plan: tripInfoSchema })

@@ -96,10 +96,24 @@ async function finalizeTripPlan(
         ? {
             ...optimized.optimization,
             source_metadata: {
-              source: "ESTIMATED",
+              source:
+                optimized.optimization.distance_source === "PROVIDER_ROUTE"
+                  ? "VERIFIED"
+                  : optimized.optimization.distance_source === "MIXED_ESTIMATE"
+                    ? "ESTIMATED"
+                    : optimized.optimization.distance_source === "UNAVAILABLE"
+                      ? "UNAVAILABLE"
+                      : "ESTIMATED",
               provider: null,
               retrievedAt: null,
-              note: "Straight-line distance from itinerary coordinates; not road or transit routing.",
+              note:
+                optimized.optimization.distance_source === "PROVIDER_ROUTE"
+                  ? "Distance returned by the configured route provider. Travel time is not supplied by this distance estimate."
+                  : optimized.optimization.distance_source === "MIXED_ESTIMATE"
+                    ? "Some legs use route provider distances and missing legs use straight-line estimates."
+                    : optimized.optimization.distance_source === "UNAVAILABLE"
+                      ? "No usable route coordinates were available."
+                      : "Straight-line distance from itinerary coordinates; not road or transit routing.",
             },
           }
         : undefined,
