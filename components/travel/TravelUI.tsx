@@ -20,8 +20,8 @@ import {
   Users,
   X,
 } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
+import { ExploreXBrand } from "@/components/travel/ExploreXBrand";
 import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Button } from "@/components/ui/button";
@@ -41,8 +41,8 @@ export function GlassPanel({
   return (
     <div
       className={cn(
-        "rounded-2xl border border-slate-200 bg-white shadow-sm transition-shadow duration-200",
-        hover && "hover:shadow-md",
+        "rounded-2xl border border-slate-200 bg-white dark:border-white/10 dark:bg-slate-900/60 dark:text-white shadow-sm transition-shadow duration-200",
+        hover && "hover:shadow-md dark:hover:border-teal-400/40",
         className,
       )}
     >
@@ -74,16 +74,16 @@ export function SectionHeading({
       )}
     >
       {eyebrow && (
-        <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-teal-200/80 bg-teal-50/90 px-3.5 py-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-teal-700">
+        <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-teal-200/80 bg-teal-50/90 dark:border-teal-500/30 dark:bg-teal-500/10 px-3.5 py-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-teal-700 dark:text-teal-300">
           <Sparkles className="size-3.5" />
           {eyebrow}
         </div>
       )}
-      <h2 className="text-balance font-display text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl lg:text-5xl">
+      <h2 className="text-balance font-display text-3xl font-semibold tracking-tight text-slate-900 dark:text-white sm:text-4xl lg:text-5xl">
         {title}
       </h2>
       {description && (
-        <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-slate-600 sm:text-base">
+        <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-slate-600 dark:text-slate-300 sm:text-base">
           {description}
         </p>
       )}
@@ -363,39 +363,38 @@ export function TravelFooter() {
   const platformLinks = [
     { label: "AI Planner", href: "/create-new-trip" },
     { label: "Saved Trips", href: "/saved-trips" },
+    { label: "Saved Cities", href: "/saved-cities" },
     { label: "Explore Cities", href: "/explore-cities" },
     { label: "AI Features", href: "/ai-features" },
   ];
 
   return (
-    <footer className="border-t border-slate-200/80 bg-white/60 backdrop-blur-xl">
-      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-        <div className="grid gap-10 lg:grid-cols-[1.5fr_1fr_1fr_1fr]">
+    <footer className="relative isolate overflow-hidden border-t border-white/10 bg-[#060a12] text-slate-300">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_15%_0%,rgba(20,184,166,0.12),transparent_42%),linear-gradient(180deg,#080d18_0%,#05080f_100%)]"
+      />
+      <div className="mx-auto max-w-7xl px-5 py-16 sm:px-8 lg:px-10 lg:py-20">
+        <div className="grid gap-12 sm:grid-cols-2 lg:grid-cols-[1.4fr_0.8fr_0.9fr_1.1fr]">
           <div>
-            <div className="flex items-center gap-3">
-              <div className="relative h-11 w-40 overflow-hidden rounded-xl border border-slate-200 bg-slate-900 shadow-lg shadow-slate-900/10">
-                <Image
-                  src="/ExploreX_LOGO_header.png"
-                  alt="ExploreX"
-                  fill
-                  sizes="160px"
-                  className="object-cover"
-                />
-              </div>
-              <div>
-                <p className="text-sm text-slate-500">
-                  Intelligent travel studio
-                </p>
-              </div>
-            </div>
-            <p className="mt-5 max-w-sm text-sm leading-7 text-slate-600">
-              Plan and refine trip itineraries with an AI assistant. Review
-              route and budget estimates, and export or share trip summaries.
+            <Link
+              href="/"
+              aria-label="ExploreX home"
+              className="group inline-flex"
+            >
+              <ExploreXBrand size="large" />
+            </Link>
+            <p className="mt-5 max-w-sm text-sm leading-7 text-slate-400">
+              Thoughtful itineraries, grounded destination guides, and a little
+              more wonder in every journey.
+            </p>
+            <p className="mt-5 text-[11px] font-semibold uppercase tracking-[0.18em] text-teal-300/80">
+              Your next story starts somewhere.
             </p>
           </div>
 
           <div>
-            <p className="font-heading text-sm font-bold text-slate-900">
+            <p className="font-heading text-xs font-bold uppercase tracking-[0.18em] text-white">
               Platform
             </p>
             <div className="mt-4 grid gap-2.5">
@@ -403,7 +402,7 @@ export function TravelFooter() {
                 <Link
                   key={link.label}
                   href={link.href}
-                  className="text-sm text-slate-600 transition hover:text-teal-600"
+                  className="text-sm text-slate-400 transition hover:translate-x-0.5 hover:text-teal-300"
                 >
                   {link.label}
                 </Link>
@@ -412,10 +411,10 @@ export function TravelFooter() {
           </div>
 
           <div>
-            <p className="font-heading text-sm font-bold text-slate-900">
+            <p className="font-heading text-xs font-bold uppercase tracking-[0.18em] text-white">
               AI Features
             </p>
-            <div className="mt-4 grid gap-2.5 text-sm text-slate-600">
+            <div className="mt-4 grid gap-2.5 text-sm text-slate-400">
               {[
                 "Route Optimization",
                 "Smart Budget",
@@ -435,7 +434,7 @@ export function TravelFooter() {
           </div>
 
           <div>
-            <p className="font-heading text-sm font-bold text-slate-900">
+            <p className="font-heading text-xs font-bold uppercase tracking-[0.18em] text-white">
               Travel Signals
             </p>
             <div className="mt-4 grid grid-cols-2 gap-2">
@@ -460,11 +459,16 @@ export function TravelFooter() {
                   label: "Budget",
                   href: "/travel-signals/budget",
                 },
+                {
+                  icon: <Compass className="size-4" />,
+                  label: "Altitude",
+                  href: "/travel-signals/high-altitude-prep",
+                },
               ].map((item) => (
                 <Link
                   key={item.label}
                   href={item.href}
-                  className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50/80 px-3 py-2.5 text-xs font-medium text-slate-600"
+                  className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2.5 text-xs font-medium text-slate-400 transition hover:border-teal-400/30 hover:bg-teal-400/[0.06] hover:text-teal-200"
                 >
                   <span className="text-teal-600">{item.icon}</span>
                   {item.label}
@@ -474,15 +478,15 @@ export function TravelFooter() {
           </div>
         </div>
 
-        <div className="mt-10 flex flex-col items-center justify-between gap-4 border-t border-slate-200/80 pt-8 sm:flex-row">
-          <p className="text-xs text-slate-500">
+        <div className="mt-14 flex flex-col items-center justify-between gap-4 border-t border-white/10 pt-7 sm:flex-row">
+          <p className="text-xs tracking-wide text-slate-500">
             &copy; {new Date().getFullYear()} ExploreX. Crafted for intelligent
             travel.
           </p>
-          <div className="flex gap-4 text-xs text-slate-500">
-            <span>Privacy</span>
-            <span>Terms</span>
-            <span>Support</span>
+          <div className="flex gap-5 text-xs text-slate-500">
+            <span className="transition hover:text-slate-300">Privacy</span>
+            <span className="transition hover:text-slate-300">Terms</span>
+            <span className="transition hover:text-slate-300">Support</span>
           </div>
         </div>
       </div>

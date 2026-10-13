@@ -305,30 +305,30 @@ const UserTrips = () => {
 
   if ((!trips || trips.length === 0) && !search && !favoritesOnly) {
     return (
-      <GlassPanel className="mt-8 overflow-hidden p-6 sm:p-8 shadow-[var(--shadow-elevated)]">
-        <div className="grid gap-6 lg:grid-cols-[1fr_0.8fr] lg:items-center">
+      <div className="mt-8 overflow-hidden rounded-3xl border border-white/10 bg-slate-900/60 p-6 sm:p-10 backdrop-blur-2xl shadow-2xl">
+        <div className="grid gap-8 lg:grid-cols-[1fr_0.8fr] lg:items-center">
           <div>
-            <div className="mb-4 flex size-12 items-center justify-center rounded-xl bg-teal-100 text-teal-700">
+            <div className="mb-4 flex size-12 items-center justify-center rounded-2xl bg-teal-500/20 border border-teal-400/30 text-teal-300">
               <Archive className="size-6" />
             </div>
-            <h2 className="font-heading text-2xl font-bold text-slate-900">
+            <h2 className="font-display text-2xl sm:text-3xl font-bold text-white">
               No saved trips yet.
             </h2>
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600">
+            <p className="mt-3 max-w-2xl text-sm leading-relaxed text-slate-300">
               Generate an itinerary and select Save Trip in its final section.
               Your saved plans will appear here for searching, sorting,
               favoriting, and reminders.
             </p>
-            <div className="mt-5 flex flex-wrap gap-3">
+            <div className="mt-6 flex flex-wrap gap-3">
               <Link
                 href="/create-new-trip"
-                className="inline-flex items-center gap-2 rounded-xl bg-teal-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-teal-700"
+                className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-orange-500 via-amber-500 to-rose-500 px-5 py-3 text-xs font-bold uppercase tracking-wider text-white shadow-lg shadow-orange-500/25"
               >
                 <Plane className="size-4" /> Create a trip
               </Link>
               <Link
                 href="/explore-cities"
-                className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 hover:border-teal-300"
+                className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-5 py-3 text-xs font-bold uppercase tracking-wider text-slate-200 backdrop-blur-xl hover:bg-white/10 hover:text-white"
               >
                 Explore cities
               </Link>
@@ -346,40 +346,49 @@ const UserTrips = () => {
                 initial={{ opacity: 0, x: 12 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: i * 0.08 }}
-                className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 shadow-sm"
+                className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-medium text-slate-200 backdrop-blur-md"
               >
-                <Heart className="size-4 text-rose-500" />
+                <Heart className="size-4 text-rose-400" />
                 {item}
               </motion.div>
             ))}
           </div>
         </div>
-      </GlassPanel>
+      </div>
     );
   }
 
   return (
     <div className="mt-10">
-      <SectionHeading
-        eyebrow="Saved trips"
-        title="Continue planning from your travel dashboard."
-        description="Review recently generated itineraries and compare them by budget, duration, group size, and destination."
-      />
-      <div className="mt-6 flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white/80 p-3 shadow-sm sm:flex-row sm:items-center">
+      <div>
+        <div className="inline-flex items-center gap-2 rounded-full border border-teal-500/30 bg-teal-500/10 px-3.5 py-1 text-xs font-semibold uppercase tracking-widest text-teal-300">
+          <Plane className="size-3.5" />
+          Travel Passport
+        </div>
+        <h2 className="mt-3 font-display text-3xl sm:text-4xl font-bold tracking-tight text-white">
+          Continue Planning from Your Dashboard
+        </h2>
+        <p className="mt-2 text-sm text-slate-300">
+          Review recently saved itineraries, track dates, compare budgets, and
+          revisit AI recommendations.
+        </p>
+      </div>
+
+      <div className="mt-8 flex flex-col gap-3 rounded-3xl border border-white/10 bg-slate-900/60 p-3.5 backdrop-blur-2xl shadow-xl sm:flex-row sm:items-center">
         <label className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
+          <Search className="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
           <input
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search saved destinations"
-            className="h-10 w-full rounded-xl border border-slate-200 bg-white pl-9 pr-3 text-sm outline-none focus:border-teal-400"
+            placeholder="Search saved destinations..."
+            className="h-11 w-full rounded-2xl border border-white/10 bg-slate-950/70 pl-10 pr-4 text-xs text-white outline-none placeholder:text-slate-500 focus:border-teal-400"
           />
         </label>
         <select
           value={sort}
           onChange={(event) => setSort(event.target.value)}
           aria-label="Sort saved trips"
-          className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none focus:border-teal-400"
+          className="h-11 rounded-2xl border border-white/10 bg-slate-950/70 px-4 text-xs text-slate-200 outline-none focus:border-teal-400"
         >
           <option value="recent">Most recent</option>
           <option value="destination">Destination</option>
@@ -389,23 +398,27 @@ const UserTrips = () => {
         <button
           type="button"
           onClick={() => setFavoritesOnly((value) => !value)}
-          className={`h-10 rounded-xl border px-3 text-sm font-semibold ${favoritesOnly ? "border-rose-300 bg-rose-50 text-rose-700" : "border-slate-200 bg-white text-slate-600"}`}
+          className={`h-11 rounded-2xl border px-4 text-xs font-semibold transition ${
+            favoritesOnly
+              ? "border-rose-400/50 bg-rose-500/20 text-rose-300"
+              : "border-white/10 bg-white/5 text-slate-300 hover:text-white"
+          }`}
         >
           <Heart
-            className={`mr-2 inline size-4 ${favoritesOnly ? "fill-current" : ""}`}
+            className={`mr-2 inline size-3.5 ${favoritesOnly ? "fill-current" : ""}`}
           />{" "}
           Favorites
         </button>
       </div>
       {notice && (
-        <p className="mt-3 text-sm font-medium text-teal-700" role="status">
+        <p className="mt-3 text-sm font-medium text-teal-300" role="status">
           {notice}
         </p>
       )}
       {fetchError && (
         <div
           role="alert"
-          className="mt-4 flex flex-col items-start justify-between gap-3 rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800 sm:flex-row sm:items-center"
+          className="mt-4 flex flex-col items-start justify-between gap-3 rounded-2xl border border-rose-500/30 bg-rose-950/40 p-4 text-sm text-rose-300 sm:flex-row sm:items-center"
         >
           <span>
             We couldn’t load saved trips. Check your connection and try again.
@@ -413,18 +426,18 @@ const UserTrips = () => {
           <button
             type="button"
             onClick={() => void fetchTrips()}
-            className="min-h-10 rounded-lg px-3 font-semibold hover:bg-rose-100"
+            className="rounded-xl bg-rose-500/20 px-3 py-1 font-semibold hover:bg-rose-500/30"
           >
             Try again
           </button>
         </div>
       )}
       {trips.length === 0 && (
-        <div className="mt-6 rounded-2xl border border-dashed border-slate-300 bg-white/60 p-8 text-center text-sm text-slate-500">
+        <div className="mt-8 rounded-3xl border border-dashed border-white/15 bg-white/5 p-10 text-center text-sm text-slate-400">
           No saved trips match these filters.
         </div>
       )}
-      <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {trips.map((trip, i) => (
           <motion.div
             key={trip.id}
@@ -433,141 +446,140 @@ const UserTrips = () => {
             viewport={{ once: true }}
             transition={{ delay: i * 0.06 }}
           >
-            <GlassPanel hover className="group h-full overflow-hidden p-5">
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex size-11 items-center justify-center rounded-xl bg-gradient-to-br from-teal-600 to-teal-500 text-white shadow-md shadow-teal-500/20">
-                  <Plane className="size-5" />
-                </div>
-                <div className="flex gap-1">
-                  <button
-                    type="button"
-                    onClick={() => void toggleFavorite(trip)}
-                    aria-label={
-                      trip.isFavorite ? "Remove favorite" : "Add favorite"
-                    }
-                    className="rounded-lg p-2 text-rose-500 hover:bg-rose-50"
-                  >
-                    <Heart
-                      className={`size-4 ${trip.isFavorite ? "fill-current" : ""}`}
-                    />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setReminderTripId((id) =>
-                        id === trip.id ? null : trip.id,
-                      )
-                    }
-                    aria-label="Schedule reminder"
-                    className="rounded-lg p-2 text-teal-600 hover:bg-teal-50"
-                  >
-                    <Bell className="size-4" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (
-                        window.confirm(
-                          `Delete the saved trip to ${trip.destination}?`,
-                        )
-                      )
-                        void deleteTrip(trip.id);
-                    }}
-                    aria-label="Delete trip"
-                    className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-rose-600"
-                  >
-                    <Trash2 className="size-4" />
-                  </button>
-                </div>
-              </div>
-              <div className="mt-5 text-xs font-bold uppercase tracking-[0.14em] text-slate-500">
-                {trip.origin} → {trip.destination}
-              </div>
-              <h3 className="mt-2 font-heading text-xl font-bold text-slate-900">
-                {trip.destination}
-              </h3>
-              <div className="mt-5 grid gap-3 text-sm text-slate-600">
-                <TripMeta
-                  icon={<Wallet className="size-4" />}
-                  label={`Budget: ${trip.budget || "Not specified"}`}
-                />
-                <TripMeta
-                  icon={<CalendarDays className="size-4" />}
-                  label={`Duration: ${trip.duration || "Not specified"}`}
-                />
-                <TripMeta
-                  icon={<Users className="size-4" />}
-                  label={`Group: ${trip.groupSize || "Not specified"}`}
-                />
-              </div>
-              <div className="mt-5 rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs font-medium text-slate-600">
-                <MapPin className="mr-2 inline size-3.5 text-teal-600" />
-                Saved to your account
-              </div>
-              <div className="mt-3 flex flex-wrap gap-2 border-t border-slate-100 pt-3">
-                <button
-                  type="button"
-                  disabled={duplicatingId !== null}
-                  onClick={() => void duplicateTrip(trip)}
-                  className="inline-flex min-h-10 items-center gap-1.5 rounded-lg border border-slate-200 px-3 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
-                  aria-label={`Duplicate trip to ${trip.destination}`}
-                >
-                  <Copy className="size-3.5" />
-                  {duplicatingId === trip.id ? "Copying…" : "Duplicate"}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => void shareTrip(trip)}
-                  className="inline-flex min-h-10 items-center gap-1.5 rounded-lg border border-slate-200 px-3 text-xs font-semibold text-slate-700 hover:bg-slate-50"
-                  aria-label={`Share trip summary for ${trip.destination}`}
-                >
-                  <Share2 className="size-3.5" />
-                  Share summary
-                </button>
-                <button
-                  type="button"
-                  onClick={() => void exportTrip(trip)}
-                  className="inline-flex min-h-10 items-center gap-1.5 rounded-lg border border-slate-200 px-3 text-xs font-semibold text-slate-700 hover:bg-slate-50"
-                  aria-label={`Export trip to ${trip.destination}`}
-                >
-                  <Download className="size-3.5" />
-                  Export
-                </button>
-              </div>
-              {reminderTripId === trip.id && (
-                <div className="mt-3 rounded-xl border border-teal-200 bg-teal-50/60 p-3">
-                  <label className="text-xs font-bold text-slate-700">
-                    Remind me at
-                  </label>
-                  <div className="mt-2 flex gap-2">
-                    <input
-                      type="datetime-local"
-                      value={remindAt}
-                      onChange={(event) => setRemindAt(event.target.value)}
-                      className="min-w-0 flex-1 rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs"
-                    />
+            <div className="group h-full rounded-3xl border border-white/10 bg-slate-900/60 p-6 backdrop-blur-xl shadow-xl transition hover:border-teal-400/40 hover:-translate-y-1 hover:shadow-2xl flex flex-col justify-between">
+              <div>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex size-11 items-center justify-center rounded-2xl bg-gradient-to-br from-teal-500 to-sky-500 text-slate-950 shadow-md">
+                    <Plane className="size-5" />
+                  </div>
+                  <div className="flex gap-1">
                     <button
                       type="button"
-                      disabled={!remindAt}
-                      onClick={() => void createReminder(trip)}
-                      className="rounded-lg bg-teal-600 px-3 text-xs font-bold text-white disabled:opacity-50"
+                      onClick={() => void toggleFavorite(trip)}
+                      aria-label={
+                        trip.isFavorite ? "Remove favorite" : "Add favorite"
+                      }
+                      className="rounded-xl p-2 text-rose-400 hover:bg-rose-500/10"
                     >
-                      Save
+                      <Heart
+                        className={`size-4 ${trip.isFavorite ? "fill-current" : ""}`}
+                      />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setReminderTripId((id) =>
+                          id === trip.id ? null : trip.id,
+                        )
+                      }
+                      aria-label="Schedule reminder"
+                      className="rounded-xl p-2 text-teal-400 hover:bg-teal-500/10"
+                    >
+                      <Bell className="size-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (
+                          window.confirm(
+                            `Delete the saved trip to ${trip.destination}?`,
+                          )
+                        )
+                          void deleteTrip(trip.id);
+                      }}
+                      aria-label="Delete trip"
+                      className="rounded-xl p-2 text-slate-400 hover:bg-white/5 hover:text-rose-400"
+                    >
+                      <Trash2 className="size-4" />
                     </button>
                   </div>
                 </div>
-              )}
-            </GlassPanel>
+                <div className="mt-5 text-[11px] font-bold uppercase tracking-wider text-teal-300">
+                  {trip.origin ? `${trip.origin} → ` : ""}
+                  {trip.destination}
+                </div>
+                <h3 className="mt-1 font-display text-2xl font-bold text-white">
+                  {trip.destination}
+                </h3>
+                <div className="mt-5 grid gap-2.5 text-xs text-slate-300">
+                  <TripMeta
+                    icon={<Wallet className="size-3.5" />}
+                    label={`Budget: ${trip.budget || "Flexible"}`}
+                  />
+                  <TripMeta
+                    icon={<CalendarDays className="size-3.5" />}
+                    label={`Duration: ${trip.duration || "Self-paced"}`}
+                  />
+                  <TripMeta
+                    icon={<Users className="size-3.5" />}
+                    label={`Group: ${trip.groupSize || "1 Traveler"}`}
+                  />
+                </div>
+              </div>
+
+              <div className="mt-6 pt-4 border-t border-white/10">
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    disabled={duplicatingId !== null}
+                    onClick={() => void duplicateTrip(trip)}
+                    className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs font-semibold text-slate-200 hover:bg-white/10 disabled:opacity-50"
+                  >
+                    <Copy className="size-3" />
+                    {duplicatingId === trip.id ? "Copying…" : "Duplicate"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => void shareTrip(trip)}
+                    className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs font-semibold text-slate-200 hover:bg-white/10"
+                  >
+                    <Share2 className="size-3" />
+                    Share
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => void exportTrip(trip)}
+                    className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs font-semibold text-slate-200 hover:bg-white/10"
+                  >
+                    <Download className="size-3" />
+                    Export
+                  </button>
+                </div>
+                {reminderTripId === trip.id && (
+                  <div className="mt-3 rounded-2xl border border-teal-500/30 bg-teal-950/40 p-3">
+                    <label className="text-xs font-bold text-teal-300">
+                      Remind me at
+                    </label>
+                    <div className="mt-2 flex gap-2">
+                      <input
+                        type="datetime-local"
+                        value={remindAt}
+                        onChange={(event) => setRemindAt(event.target.value)}
+                        className="min-w-0 flex-1 rounded-xl border border-white/15 bg-slate-900 px-2.5 py-1.5 text-xs text-white"
+                      />
+                      <button
+                        type="button"
+                        disabled={!remindAt}
+                        onClick={() => void createReminder(trip)}
+                        className="rounded-xl bg-teal-500 px-3 text-xs font-bold text-slate-950 disabled:opacity-50"
+                      >
+                        Save
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
           </motion.div>
         ))}
       </div>
       {nextCursor && (
-        <div className="mt-6 text-center">
+        <div className="mt-8 text-center">
           <button
             type="button"
             disabled={loadingMore}
             onClick={() => void fetchTrips(nextCursor)}
-            className="rounded-xl border border-teal-200 bg-white px-5 py-2.5 text-sm font-bold text-teal-700 shadow-sm hover:bg-teal-50 disabled:opacity-50"
+            className="rounded-full border border-teal-400/40 bg-teal-500/10 px-6 py-3 text-xs font-bold uppercase tracking-wider text-teal-300 shadow-md hover:bg-teal-500/20 disabled:opacity-50"
           >
             {loadingMore ? "Loading…" : "Load more trips"}
           </button>
@@ -579,8 +591,8 @@ const UserTrips = () => {
 
 const TripMeta = ({ icon, label }: { icon: ReactNode; label: string }) => (
   <div className="flex items-center gap-2">
-    <span className="text-teal-600">{icon}</span>
-    {label}
+    <span className="text-teal-400">{icon}</span>
+    <span>{label}</span>
   </div>
 );
 

@@ -56,6 +56,7 @@ model User {
   trips           Trip[]
   reminders       Reminder[]
   analyticsEvents AnalyticsEvent[]
+  savedCities     SavedCity[]
 
   @@map("users")
 }
@@ -131,6 +132,41 @@ model AnalyticsEvent {
   @@index([destination, createdAt])
   @@index([userId, createdAt])
   @@map("analytics_events")
+}
+
+model CityGuide {
+  slug      String   @id
+  name      String
+  country   String
+  region    String
+  content   Json
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+
+  savedBy SavedCity[]
+
+  @@index([region, name])
+  @@map("city_guides")
+}
+
+model SavedCity {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  userId    String
+  citySlug  String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  city      CityGuide @relation(fields: [citySlug], references: [slug], onDelete: Cascade)
+
+  @@unique([userId, citySlug])
+  @@index([userId, createdAt(sort: Desc)])
+  @@map("saved_cities")
+}
+
+model SiteDataset {
+  key       String   @id
+  content   Json
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+
+  @@map("site_datasets")
 }
 
 model TripHotel {

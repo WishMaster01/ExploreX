@@ -11,6 +11,10 @@ const nextConfig: NextConfig = {
         hostname: "via.placeholder.com",
         protocol: "https",
       },
+      {
+        hostname: "img.clerk.com",
+        protocol: "https",
+      },
     ],
   },
   reactStrictMode: true,

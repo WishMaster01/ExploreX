@@ -3,183 +3,334 @@
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { SignInButton, UserButton, useUser } from "@clerk/nextjs";
-import { Bot, Compass, Menu, Sparkles, X } from "lucide-react";
-import Image from "next/image";
+import { ArrowRight, ChevronDown, Menu, Search, X } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { ExploreXBrand } from "@/components/travel/ExploreXBrand";
+import { usePathname, useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 
 const Header = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const pathname = usePathname();
+  const router = useRouter();
   const { user } = useUser();
-
-  const menuOptions = [
-    { name: "Explore Cities", path: "/explore-cities" },
-    { name: "AI Features", path: "/ai-features" },
-    { name: "Saved Trips", path: "/saved-trips" },
-    { name: "Planner", path: "/create-new-trip" },
-  ];
-
-  const isActive = (path: string) => {
-    return pathname === path || pathname?.startsWith(`${path}/`);
-  };
+  const isPlannerRoute = pathname.startsWith("/create-new-trip");
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 12);
+    const onScroll = () => setScrolled(window.scrollY > 15);
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   useEffect(() => {
-    // Avoid setState cascading: close menu when pathname changes.
-    // Using microtask defers the update until after the current render.
     queueMicrotask(() => setMenuOpen(false));
   }, [pathname]);
 
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      router.push(
+        `/explore-cities?q=${encodeURIComponent(searchQuery.trim())}`,
+      );
+      setSearchOpen(false);
+    }
+  };
+
+  const closeMenu = () => setMenuOpen(false);
+  const navLinkClass = (href: string) =>
+    cn(
+      "text-xs font-semibold uppercase tracking-wider transition hover:text-teal-300",
+      pathname === href || pathname.startsWith(`${href}/`)
+        ? "text-teal-300"
+        : "text-slate-200",
+    );
+
   return (
-    <header
-      className={cn(
-        "fixed inset-x-0 top-0 z-50 transition-all duration-200",
-        scrolled
-          ? "border-b border-slate-200 bg-white shadow-sm"
-          : "border-b border-slate-200/70 bg-white/95",
-      )}
-    >
-      <div className="mx-auto flex h-[4.25rem] w-full max-w-[1760px] items-center justify-between px-4 sm:px-6 lg:px-10 2xl:px-12">
-        <Link href="/" className="group flex min-w-0 items-center gap-3">
-          <div className="relative h-10 w-40 shrink-0 overflow-hidden rounded-xl border border-slate-200 bg-slate-900 shadow-lg shadow-slate-900/10 transition group-hover:shadow-slate-900/20 sm:w-44">
-            <Image
-              src="/ExploreX_LOGO_header.png"
-              alt="ExploreX"
-              fill
-              priority
-              sizes="176px"
-              className="object-cover"
-            />
-          </div>
-        </Link>
+    <>
+      <header
+        className={cn(
+          "fixed inset-x-0 top-0 z-50 transition-all duration-300",
+          isPlannerRoute
+            ? "border-b border-white/10 bg-[#060a12]/95 shadow-[0_10px_35px_rgba(0,0,0,0.35)] backdrop-blur-2xl"
+            : scrolled
+              ? "border-b border-white/10 bg-[#060a12]/85 backdrop-blur-2xl shadow-[0_10px_35px_rgba(0,0,0,0.6)]"
+              : "border-b border-white/5 bg-transparent backdrop-blur-sm",
+        )}
+      >
+        <div className="mx-auto flex h-[4.75rem] w-full max-w-[1760px] items-center justify-between px-4 sm:px-6 lg:px-10 2xl:px-12">
+          <Link
+            href="/"
+            aria-label="ExploreX home"
+            className="group flex items-center gap-3"
+          >
+            <ExploreXBrand />
+          </Link>
 
-        <nav className="hidden items-center gap-0.5 rounded-full border border-slate-200/80 bg-white/80 p-1 shadow-sm lg:flex">
-          {menuOptions.map((menu) => (
-            <Link
-              key={menu.name}
-              href={menu.path}
-              className={cn(
-                "relative rounded-full px-4 py-2 text-sm font-medium text-slate-600 transition hover:text-slate-900",
-                isActive(menu.path) && "text-white",
-              )}
-            >
-              {isActive(menu.path) && (
-                <motion.span
-                  layoutId="nav-pill"
-                  className="absolute inset-0 rounded-full bg-teal-700"
-                  transition={{ type: "spring", bounce: 0.2, duration: 0.5 }}
-                />
-              )}
-              <span className="relative z-10">{menu.name}</span>
-            </Link>
-          ))}
-        </nav>
-
-        <div className="hidden items-center gap-3 md:flex">
-          <div className="hidden items-center gap-2 rounded-full border border-teal-200/80 bg-teal-50/80 px-3 py-1.5 text-xs font-semibold text-teal-700 xl:flex">
-            <Sparkles className="size-3.5" />
-            Trip planner
-          </div>
-          {!user ? (
-            <SignInButton mode="modal">
-              <Button className="btn-shine rounded-full bg-gradient-to-r from-teal-600 to-teal-500 px-5 text-white shadow-lg shadow-teal-500/20 hover:from-teal-700 hover:to-teal-600">
-                Get Started
-              </Button>
-            </SignInButton>
-          ) : (
-            <>
-              <Link href="/create-new-trip">
-                <Button className="btn-shine rounded-full bg-gradient-to-r from-teal-600 to-teal-500 px-5 text-white shadow-lg shadow-teal-500/20 hover:from-teal-700 hover:to-teal-600">
-                  <Bot className="size-4" />
-                  Create Trip
-                </Button>
+          {/* Center Navigation Links (Matching Image: Destinations ⌵, Experiences ⌵, Trips, About Us, Blog) */}
+          <nav className="hidden items-center gap-8 lg:flex">
+            <div className="relative group">
+              <Link
+                href="/explore-cities"
+                className={cn(
+                  navLinkClass("/explore-cities"),
+                  "flex items-center gap-1.5 py-4",
+                )}
+              >
+                <span>Destinations</span>
+                <ChevronDown className="size-3 text-slate-400 transition group-hover:rotate-180" />
               </Link>
+              <div className="invisible absolute left-0 top-full z-50 w-56 translate-y-2 rounded-2xl border border-white/10 bg-slate-950/95 p-2 opacity-0 shadow-2xl backdrop-blur-xl transition group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100">
+                {[
+                  ["All city guides", "/explore-cities"],
+                  ["Jaipur, India", "/explore-cities/jaipur"],
+                  ["Kyoto, Japan", "/explore-cities/kyoto"],
+                  ["Bangkok, Thailand", "/explore-cities/bangkok"],
+                  ["Hanoi, Vietnam", "/explore-cities/hanoi"],
+                ].map(([label, href]) => (
+                  <Link
+                    key={href}
+                    href={href}
+                    className="block rounded-xl px-3 py-2.5 text-sm text-slate-300 transition hover:bg-white/5 hover:text-teal-300"
+                  >
+                    {label}
+                  </Link>
+                ))}
+              </div>
+            </div>
+
+            <div className="relative group">
+              <Link
+                href="/#ai-features"
+                className="flex items-center gap-1.5 py-4 text-xs font-semibold uppercase tracking-wider text-slate-200 transition hover:text-white"
+              >
+                <span>Experiences</span>
+                <ChevronDown className="size-3 text-slate-400 transition group-hover:rotate-180" />
+              </Link>
+              <div className="invisible absolute left-0 top-full z-50 w-56 translate-y-2 rounded-2xl border border-white/10 bg-slate-950/95 p-2 opacity-0 shadow-2xl backdrop-blur-xl transition group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100">
+                <Link
+                  href="/#ai-features"
+                  className="block rounded-xl px-3 py-2.5 text-sm text-slate-300 hover:bg-white/5 hover:text-teal-300"
+                >
+                  AI trip intelligence
+                </Link>
+                <Link
+                  href="/create-new-trip"
+                  className="block rounded-xl px-3 py-2.5 text-sm text-slate-300 hover:bg-white/5 hover:text-teal-300"
+                >
+                  Build an itinerary
+                </Link>
+                <Link
+                  href="/travel-signals/high-altitude-prep"
+                  className="block rounded-xl px-3 py-2.5 text-sm text-slate-300 hover:bg-white/5 hover:text-teal-300"
+                >
+                  Travel preparation
+                </Link>
+              </div>
+            </div>
+
+            <Link href="/saved-trips" className={navLinkClass("/saved-trips")}>
+              Trips
+            </Link>
+
+            <Link
+              href="/saved-cities"
+              className={navLinkClass("/saved-cities")}
+            >
+              Saved Cities
+            </Link>
+
+            <Link href="/ai-features" className={navLinkClass("/ai-features")}>
+              AI Studio
+            </Link>
+
+            <Link
+              href="/travel-signals/high-altitude-prep"
+              className={navLinkClass("/travel-signals")}
+            >
+              Travel Signals
+            </Link>
+          </nav>
+
+          {/* Right Action Items: Search, EN ⌵, Mint Green "Plan Your Trip ➔" button */}
+          <div className="hidden items-center gap-4 md:flex">
+            {/* Search Icon Button */}
+            <button
+              type="button"
+              onClick={() => setSearchOpen(true)}
+              aria-label="Search destinations"
+              className="flex size-9 items-center justify-center rounded-full text-slate-300 transition hover:bg-white/10 hover:text-white"
+            >
+              <Search className="size-4" />
+            </button>
+
+            {/* Distinctive Mint/Teal Green Button from Image */}
+            <Link
+              href="/create-new-trip"
+              className="inline-flex items-center gap-2 rounded-full bg-[#2dd4bf] hover:bg-[#34d399] px-6 py-2.5 text-xs font-bold uppercase tracking-wider text-slate-950 shadow-[0_0_20px_rgba(45,212,191,0.35)] transition duration-200 hover:scale-[1.03]"
+            >
+              <span>Plan Your Trip</span>
+              <ArrowRight className="size-3.5 stroke-[2.5]" />
+            </Link>
+
+            {user ? (
               <UserButton
                 appearance={{
                   elements: {
-                    avatarBox: "h-9 w-9 rounded-xl ring-2 ring-slate-200",
+                    avatarBox:
+                      "h-9 w-9 rounded-full ring-2 ring-white/20 hover:ring-teal-400 transition",
                   },
                 }}
               />
-            </>
-          )}
+            ) : (
+              <SignInButton mode="modal">
+                <button
+                  type="button"
+                  className="text-xs font-semibold text-slate-300 hover:text-white"
+                >
+                  Sign In
+                </button>
+              </SignInButton>
+            )}
+          </div>
+
+          {/* Mobile Menu Button */}
+          <button
+            type="button"
+            aria-label="Toggle navigation menu"
+            aria-expanded={menuOpen}
+            className="rounded-full border border-white/15 bg-white/5 p-2 text-slate-200 shadow-sm backdrop-blur transition hover:border-teal-400 hover:text-white lg:hidden"
+            onClick={() => setMenuOpen((value) => !value)}
+          >
+            {menuOpen ? <X className="size-5" /> : <Menu className="size-5" />}
+          </button>
         </div>
 
-        <button
-          type="button"
-          aria-label="Toggle navigation menu"
-          aria-expanded={menuOpen}
-          className="rounded-xl border border-slate-200 bg-white p-2.5 text-slate-700 shadow-sm transition hover:border-teal-300 hover:text-teal-600 lg:hidden"
-          onClick={() => setMenuOpen((value) => !value)}
-        >
-          {menuOpen ? <X className="size-5" /> : <Menu className="size-5" />}
-        </button>
-      </div>
-
-      <AnimatePresence>
-        {menuOpen && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.25 }}
-            className="overflow-hidden border-t border-slate-200/80 bg-white/95 backdrop-blur-xl lg:hidden"
-          >
-            <nav className="grid gap-1.5 px-4 py-4">
-              {menuOptions.map((menu, i) => (
-                <motion.div
-                  key={menu.name}
-                  initial={{ opacity: 0, x: -12 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: i * 0.05 }}
+        {/* Mobile Navigation Drawer */}
+        <AnimatePresence>
+          {menuOpen && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.25 }}
+              className="overflow-hidden border-t border-white/10 bg-[#060a12]/95 backdrop-blur-2xl lg:hidden"
+            >
+              <nav className="grid gap-2 px-5 py-5 text-sm">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    setSearchOpen(true);
+                  }}
+                  className="flex items-center gap-3 rounded-xl px-4 py-3 text-left font-semibold text-slate-200 hover:bg-white/5"
                 >
-                  <Link
-                    href={menu.path}
-                    onClick={() => setMenuOpen(false)}
-                    className={cn(
-                      "flex items-center justify-between rounded-xl px-4 py-3 text-sm font-medium transition",
-                      isActive(menu.path)
-                        ? "bg-teal-50 text-teal-700"
-                        : "text-slate-700 hover:bg-slate-50",
-                    )}
-                  >
-                    {menu.name}
-                    <Compass className="size-4 text-slate-400" />
-                  </Link>
-                </motion.div>
-              ))}
-              <div className="pt-2">
-                {!user ? (
-                  <SignInButton mode="modal">
-                    <Button className="w-full rounded-xl bg-gradient-to-r from-teal-600 to-teal-500 text-white">
-                      Get Started
-                    </Button>
-                  </SignInButton>
-                ) : (
+                  <Search className="size-4 text-teal-300" />
+                  Search destinations
+                </button>
+                <Link
+                  href="/explore-cities"
+                  onClick={closeMenu}
+                  className="rounded-xl px-4 py-3 font-semibold text-slate-200 hover:bg-white/5"
+                >
+                  Destinations
+                </Link>
+                <Link
+                  href="/saved-trips"
+                  onClick={closeMenu}
+                  className="rounded-xl px-4 py-3 font-semibold text-slate-200 hover:bg-white/5"
+                >
+                  Trips
+                </Link>
+                <Link
+                  href="/saved-cities"
+                  onClick={closeMenu}
+                  className="rounded-xl px-4 py-3 font-semibold text-slate-200 hover:bg-white/5"
+                >
+                  Saved Cities
+                </Link>
+                <Link
+                  href="/ai-features"
+                  onClick={closeMenu}
+                  className="rounded-xl px-4 py-3 font-semibold text-slate-200 hover:bg-white/5"
+                >
+                  AI Studio
+                </Link>
+                <Link
+                  href="/travel-signals/high-altitude-prep"
+                  onClick={closeMenu}
+                  className="rounded-xl px-4 py-3 font-semibold text-slate-200 hover:bg-white/5"
+                >
+                  Travel Signals
+                </Link>
+
+                <div className="pt-3">
                   <Link
                     href="/create-new-trip"
-                    onClick={() => setMenuOpen(false)}
+                    onClick={closeMenu}
+                    className="flex w-full items-center justify-center gap-2 rounded-full bg-[#2dd4bf] py-3 text-xs font-bold uppercase tracking-wider text-slate-950 shadow-lg"
                   >
-                    <Button className="w-full rounded-xl bg-gradient-to-r from-teal-600 to-teal-500 text-white">
-                      Create New Trip
-                    </Button>
+                    <span>Plan Your Trip</span>
+                    <ArrowRight className="size-3.5" />
                   </Link>
-                )}
+                </div>
+              </nav>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </header>
+
+      {/* Quick Search Modal */}
+      <AnimatePresence>
+        {searchOpen && (
+          <div
+            className="fixed inset-0 z-[60] flex items-start justify-center pt-24 px-4 bg-black/70 backdrop-blur-md"
+            onMouseDown={(event) => {
+              if (event.target === event.currentTarget) setSearchOpen(false);
+            }}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="w-full max-w-lg rounded-3xl border border-white/15 bg-slate-900/90 p-5 shadow-2xl backdrop-blur-2xl"
+            >
+              <div className="flex items-center justify-between pb-3 border-b border-white/10">
+                <span className="text-xs font-bold uppercase tracking-wider text-teal-300">
+                  Search ExploreX Destinations
+                </span>
+                <button
+                  onClick={() => setSearchOpen(false)}
+                  className="p-1 rounded-full text-slate-400 hover:text-white"
+                >
+                  <X className="size-4" />
+                </button>
               </div>
-            </nav>
-          </motion.div>
+              <form onSubmit={handleSearch} className="mt-4 flex gap-2">
+                <input
+                  type="text"
+                  autoFocus
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Where would you like to explore? (e.g. Bali, Rome, Paris)..."
+                  aria-label="Search cities and countries"
+                  className="w-full rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3 text-sm text-white outline-none focus:border-teal-400"
+                />
+                <button
+                  type="submit"
+                  className="rounded-2xl bg-teal-400 px-5 text-sm font-bold text-slate-950 hover:bg-teal-300"
+                >
+                  Search
+                </button>
+              </form>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
-    </header>
+    </>
   );
 };
 

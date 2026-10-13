@@ -3,6 +3,7 @@ import { LruTtlCache } from "@/lib/algorithms/cache/lru-ttl-cache";
 import { fuzzySearch } from "@/lib/algorithms/search/fuzzy-search";
 import { Trie } from "@/lib/algorithms/search/trie";
 import { DESTINATIONS } from "@/lib/data/destinations";
+import { loadSiteDataset } from "@/lib/data/site-datasets";
 import { enforceRateLimit } from "@/lib/rate-limit";
 import { APP_CONFIG } from "@/lib/config";
 import { parseDestinationSearchQuery } from "@/lib/domain/schemas";
@@ -11,15 +12,6 @@ import "server-only";
 const destinationCache = new LruTtlCache<typeof DESTINATIONS>(
   APP_CONFIG.cache.destinationEntries,
   APP_CONFIG.cache.destinationTtlMs,
-);
-
-const labelTrie = new Trie(
-  DESTINATIONS.flatMap((destination) => [
-    destination.label,
-    destination.city,
-    destination.country,
-    ...(destination.state ? [destination.state] : []),
-  ]),
 );
 
 export async function GET(request: Request) {
@@ -54,10 +46,19 @@ export async function GET(request: Request) {
   if (cached) return apiOk({ suggestions: cached });
 
   try {
+    const destinations = await loadSiteDataset("destinations", DESTINATIONS);
+    const labelTrie = new Trie(
+      destinations.flatMap((destination) => [
+        destination.label,
+        destination.city,
+        destination.country,
+        ...(destination.state ? [destination.state] : []),
+      ]),
+    );
     const prefixLabels = new Set(labelTrie.search(query, limit * 2));
     const ranked = fuzzySearch(
       query,
-      DESTINATIONS.map((destination) => ({
+      destinations.map((destination) => ({
         ...destination,
         aliases: [
           ...(destination.aliases ?? []),

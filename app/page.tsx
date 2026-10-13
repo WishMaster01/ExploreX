@@ -1,11 +1,26 @@
 import Hero from "./_components/Hero";
 import { PopularCityList } from "./_components/PopularCityList";
+import { JourneyMap } from "./_components/JourneyMap";
+import { TravelerDiaries } from "./_components/TravelerDiaries";
+import { StorytellingFooterBanner } from "./_components/StorytellingFooterBanner";
 
 export default function Home() {
   return (
-    <div className="min-h-screen">
+    <main className="min-h-screen bg-[#070a12] text-slate-100 overflow-x-hidden">
+      {/* 1. Cinematic Hero with Storytelling Typography & Spatial Booking Copilot (Images 1 & 5) */}
       <Hero />
+
+      {/* 2. Interactive 3D Coverflow City Carousel (Image 3) */}
       <PopularCityList />
-    </div>
+
+      {/* 3. Vintage Journey Map with Connecting Flight Paths & Pins (Image 1) */}
+      <JourneyMap />
+
+      {/* 4. Traveler Diaries with Polaroid Taped Cards & Quotes (Image 1) */}
+      <TravelerDiaries />
+
+      {/* 5. "The World is Waiting" Banner, Gold Travel Categories & Trust Badges (Images 1 & 5) */}
+      <StorytellingFooterBanner />
+    </main>
   );
 }

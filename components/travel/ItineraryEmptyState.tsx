@@ -55,12 +55,12 @@ export function ItineraryEmptyState() {
             )}
           </div>
 
-          <h2 className="mt-6 font-display text-3xl font-bold text-slate-900">
+          <h2 className="mt-6 font-display text-3xl font-bold text-white">
             {tripLoading
               ? "Building your itinerary…"
               : "Your trip dashboard awaits"}
           </h2>
-          <p className="mx-auto mt-3 max-w-md text-sm leading-7 text-slate-600">
+          <p className="mx-auto mt-3 max-w-md text-sm leading-7 text-slate-300">
             {tripLoading
               ? "AI is generating hotels, day-by-day plans, budget estimates, and travel essentials. This panel will update automatically."
               : "Chat with the AI copilot on the left to plan your trip. Your full itinerary, map, budget, packing list, and travel checklist will appear here."}
@@ -81,10 +81,10 @@ export function ItineraryEmptyState() {
                     {step.icon}
                   </div>
                   <div>
-                    <p className="font-heading text-sm font-bold text-slate-900">
+                    <p className="font-heading text-sm font-bold text-white">
                       {i + 1}. {step.title}
                     </p>
-                    <p className="mt-1 text-xs leading-5 text-slate-500">
+                    <p className="mt-1 text-xs leading-5 text-slate-400">
                       {step.desc}
                     </p>
                   </div>
@@ -103,7 +103,7 @@ export function ItineraryEmptyState() {
             {[1, 2, 3].map((i) => (
               <div
                 key={i}
-                className="h-16 animate-pulse rounded-xl bg-white/80 shadow-sm"
+                className="h-16 animate-pulse rounded-xl border border-white/10 bg-white/5 shadow-sm"
               />
             ))}
           </motion.div>

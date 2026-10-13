@@ -12,7 +12,8 @@ import {
   buildFeatureSystemPrompt,
   FEATURE_USER_DATA_PREFIX,
 } from "@/lib/ai/prompts";
-import { getAiFeature } from "@/lib/data/ai-features";
+import { aiFeatures, type AiFeatureDefinition } from "@/lib/data/ai-features";
+import { loadSiteDataset } from "@/lib/data/site-datasets";
 import { apiError, apiOk, readJson } from "@/lib/api";
 import { getOrCreateCurrentUser } from "@/lib/auth-user";
 import { APP_CONFIG } from "@/lib/config";
@@ -27,6 +28,14 @@ function sanitize(value: string) {
     .replace(/\s{3,}/g, "  ")
     .trim()
     .slice(0, APP_CONFIG.ai.maxMessageChars);
+}
+
+export async function GET() {
+  const features = await loadSiteDataset<AiFeatureDefinition[]>(
+    "ai-features",
+    aiFeatures,
+  );
+  return apiOk({ features });
 }
 
 export async function POST(request: Request) {
@@ -52,7 +61,11 @@ export async function POST(request: Request) {
         400,
         "VALIDATION_ERROR",
       );
-    const feature = getAiFeature(parsed.data.feature);
+    const features = await loadSiteDataset<AiFeatureDefinition[]>(
+      "ai-features",
+      aiFeatures,
+    );
+    const feature = features.find((item) => item.key === parsed.data.feature);
     if (!feature) return apiError("Unknown AI feature", 400, "BAD_REQUEST");
 
     const history = parsed.data.messages.map(({ role, content }) => ({
