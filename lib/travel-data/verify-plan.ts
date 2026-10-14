@@ -13,6 +13,7 @@ import type { TravelDataProvider } from "./types";
 const providerQueue = new AsyncRequestQueue(
   APP_CONFIG.queue.travelDataConcurrency,
   APP_CONFIG.queue.travelDataMaxPending,
+  "Travel data",
 );
 
 export async function attachTravelSources(

@@ -5,12 +5,13 @@ export class AsyncRequestQueue {
   constructor(
     private readonly concurrency = 3,
     private readonly maxWaiting = 100,
+    private readonly queueName = "AI",
   ) {}
 
   async run<T>(operation: () => Promise<T>): Promise<T> {
     if (this.active >= this.concurrency) {
       if (this.waiting.length >= this.maxWaiting)
-        throw new Error("AI request queue is full");
+        throw new Error(`${this.queueName} request queue is full`);
       await new Promise<void>((resolve) => this.waiting.push(resolve));
     }
     this.active += 1;

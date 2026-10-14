@@ -93,7 +93,6 @@ export function HeroPanel({
               fill
               className="object-cover"
               sizes="(max-width: 1024px) 100vw, 40vw"
-              unoptimized
             />
 
             <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-slate-900/10 to-transparent" />

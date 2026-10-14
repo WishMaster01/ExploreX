@@ -74,7 +74,6 @@ export function StayAndFoodPanel({ trip }: { trip: DisplayTrip }) {
                       fill
                       className="object-cover transition duration-500 group-hover:scale-105"
                       sizes="40vw"
-                      unoptimized
                     />
                   </div>
 

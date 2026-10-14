@@ -19,6 +19,7 @@ import { getOrCreateCurrentUser } from "@/lib/auth-user";
 import { APP_CONFIG } from "@/lib/config";
 import { recordAiFeatureGeneration } from "@/lib/observability/ai-analytics";
 import { serverLogger } from "@/lib/observability/server-logger";
+import { withRequestMetrics } from "@/lib/observability/request-metrics";
 import { enforceRateLimit } from "@/lib/rate-limit";
 import "server-only";
 
@@ -38,7 +39,7 @@ export async function GET() {
   return apiOk({ features });
 }
 
-export async function POST(request: Request) {
+async function handlePost(request: Request) {
   try {
     const user = await getOrCreateCurrentUser();
     if (!user)
@@ -102,6 +103,10 @@ export async function POST(request: Request) {
       error instanceof Error &&
       error.message === "AI request queue is full"
     ) {
+      serverLogger.warn("ai.queue.rejected", {
+        queue: "ai",
+        errorCode: "QUEUE_FULL",
+      });
       return apiError(
         "AI service is busy; try again shortly",
         503,
@@ -127,4 +132,10 @@ export async function POST(request: Request) {
       "AI_PROVIDER_ERROR",
     );
   }
+}
+
+export function POST(request: Request) {
+  return withRequestMetrics(request, "POST /api/ai-features", () =>
+    handlePost(request),
+  );
 }

@@ -25,6 +25,7 @@ import type { ValidTripInfo } from "@/lib/domain/schemas";
 import { LruTtlCache } from "@/lib/algorithms/cache/lru-ttl-cache";
 import { recordAiGeneration } from "@/lib/observability/ai-analytics";
 import { serverLogger } from "@/lib/observability/server-logger";
+import { withRequestMetrics } from "@/lib/observability/request-metrics";
 import { enforceRateLimit } from "@/lib/rate-limit";
 import { optimizeTripPlan } from "@/lib/trip-optimizer";
 import { attachTravelSources } from "@/lib/travel-data/verify-plan";
@@ -133,7 +134,7 @@ async function finalizeTripPlan(
   });
 }
 
-export async function POST(request: Request) {
+async function handlePost(request: Request) {
   let clerkUserId: string | null = null;
   let isFinal = false;
   try {
@@ -249,6 +250,10 @@ export async function POST(request: Request) {
       error instanceof Error &&
       error.message === "AI request queue is full"
     ) {
+      serverLogger.warn("ai.queue.rejected", {
+        queue: "ai",
+        errorCode: "QUEUE_FULL",
+      });
       return apiError(
         "AI service is busy; try again shortly",
         503,
@@ -274,4 +279,10 @@ export async function POST(request: Request) {
       "AI_PROVIDER_ERROR",
     );
   }
+}
+
+export function POST(request: Request) {
+  return withRequestMetrics(request, "POST /api/aimodel", () =>
+    handlePost(request),
+  );
 }

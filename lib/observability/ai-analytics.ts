@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db";
+import { Prisma } from "@/lib/generated/prisma/client";
 import type { AiGenerationMetrics } from "@/lib/ai/generate";
 import { serverLogger } from "./server-logger";
 import "server-only";
@@ -29,17 +30,17 @@ export function recordAiGeneration(
   promptVersion: string,
   cacheHit = false,
 ) {
-  void prisma.user
-    .findUnique({ where: { clerkUserId }, select: { id: true } })
-    .then((user) =>
-      prisma.analyticsEvent.create({
-        data: {
-          type: "ai_generation",
-          success: metrics.success,
-          userId: user?.id,
-          metadata: safeMetrics(metrics, promptVersion, cacheHit),
-        },
-      }),
+  void prisma
+    .$executeRaw(
+      Prisma.sql`
+      INSERT INTO "analytics_events" ("type", "success", "userId", "metadata")
+      VALUES (
+        'ai_generation',
+        ${metrics.success},
+        (SELECT "id" FROM "users" WHERE "clerkUserId" = ${clerkUserId} LIMIT 1),
+        ${JSON.stringify(safeMetrics(metrics, promptVersion, cacheHit))}::jsonb
+      )
+    `,
     )
     .catch(() =>
       serverLogger.warn("analytics.write_failed", {

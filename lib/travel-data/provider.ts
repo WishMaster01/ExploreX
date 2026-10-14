@@ -6,6 +6,7 @@ import type {
   TravelProviderResult,
 } from "./types";
 import { fetchWithTimeout } from "./fetch-with-timeout";
+import { serverLogger } from "@/lib/observability/server-logger";
 
 type GooglePlaceResult = {
   places?: Array<{
@@ -81,21 +82,23 @@ export class GooglePlacesProvider implements TravelDataProvider {
   ) {}
 
   searchPlaces(query: string) {
-    return this.search(query);
+    return this.search("place", query);
   }
   searchHotels(query: string) {
-    return this.search(`${query} hotel`);
+    return this.search("hotel", `${query} hotel`);
   }
   searchRestaurants(query: string) {
-    return this.search(`${query} restaurant`);
+    return this.search("restaurant", `${query} restaurant`);
   }
   getRoute = async () => unavailableData(this.name);
   getWeather = async () => unavailableData(this.name);
   getCurrencyRate = async () => unavailableData(this.name);
 
   private async search(
+    feature: "place" | "hotel" | "restaurant",
     query: string,
   ): Promise<TravelProviderResult<TravelPlace[]>> {
+    const startedAt = performance.now();
     try {
       const response = await fetchWithTimeout(
         this.fetcher,
@@ -112,7 +115,14 @@ export class GooglePlacesProvider implements TravelDataProvider {
         },
         APP_CONFIG.travelData.timeoutMs,
       );
-      if (!response.ok)
+      if (!response.ok) {
+        serverLogger.warn("travel_data.request.completed", {
+          provider: this.name,
+          feature,
+          latencyMs: Math.round(performance.now() - startedAt),
+          status: response.status,
+          success: false,
+        });
         return {
           status: "error",
           data: [],
@@ -123,7 +133,16 @@ export class GooglePlacesProvider implements TravelDataProvider {
             note: "Places provider request failed.",
           },
         };
+      }
       const places = parsePlaces(await response.json());
+      serverLogger.info("travel_data.request.completed", {
+        provider: this.name,
+        feature,
+        latencyMs: Math.round(performance.now() - startedAt),
+        status: response.status,
+        success: true,
+        resultCount: places.length,
+      });
       return {
         status: "available",
         data: places,
@@ -133,7 +152,13 @@ export class GooglePlacesProvider implements TravelDataProvider {
           retrievedAt: new Date().toISOString(),
         },
       };
-    } catch {
+    } catch (error) {
+      serverLogger.warn("travel_data.request.failed", {
+        provider: this.name,
+        feature,
+        latencyMs: Math.round(performance.now() - startedAt),
+        errorType: error instanceof Error ? error.name : "unknown",
+      });
       return {
         status: "error",
         data: [],

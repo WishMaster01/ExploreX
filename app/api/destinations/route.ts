@@ -8,13 +8,15 @@ import { enforceRateLimit } from "@/lib/rate-limit";
 import { APP_CONFIG } from "@/lib/config";
 import { parseDestinationSearchQuery } from "@/lib/domain/schemas";
 import "server-only";
+import { withRequestMetrics } from "@/lib/observability/request-metrics";
+import { serverLogger } from "@/lib/observability/server-logger";
 
 const destinationCache = new LruTtlCache<typeof DESTINATIONS>(
   APP_CONFIG.cache.destinationEntries,
   APP_CONFIG.cache.destinationTtlMs,
 );
 
-export async function GET(request: Request) {
+async function handleGet(request: Request) {
   const url = new URL(request.url);
   const parsedQuery = parseDestinationSearchQuery(url.searchParams);
   if (!parsedQuery)
@@ -43,7 +45,14 @@ export async function GET(request: Request) {
 
   const cacheKey = `${query.toLocaleLowerCase()}:${limit}`;
   const cached = await destinationCache.get(cacheKey);
-  if (cached) return apiOk({ suggestions: cached });
+  if (cached) {
+    serverLogger.info("cache.destination.hit", {
+      cache: "destinations",
+      resultCount: cached.length,
+    });
+    return apiOk({ suggestions: cached });
+  }
+  serverLogger.info("cache.destination.miss", { cache: "destinations" });
 
   try {
     const destinations = await loadSiteDataset("destinations", DESTINATIONS);
@@ -87,4 +96,10 @@ export async function GET(request: Request) {
       "SERVICE_UNAVAILABLE",
     );
   }
+}
+
+export function GET(request: Request) {
+  return withRequestMetrics(request, "GET /api/destinations", () =>
+    handleGet(request),
+  );
 }

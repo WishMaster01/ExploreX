@@ -6,6 +6,7 @@ import type {
 } from "./types";
 import { normalizePlaceName } from "./provider-name";
 import { sourceMetadata } from "./types";
+import { serverLogger } from "@/lib/observability/server-logger";
 
 export function markCandidateSources(plan: ValidTripInfo): ValidTripInfo {
   return {
@@ -81,7 +82,14 @@ export async function safelySearchPlaces(
 ): Promise<TravelProviderResult<TravelPlace[]>> {
   try {
     return await operation();
-  } catch {
+  } catch (error) {
+    const queueFull =
+      error instanceof Error && error.message.endsWith("request queue is full");
+    serverLogger.warn("travel_data.request.failed", {
+      provider,
+      errorCode: queueFull ? "QUEUE_FULL" : "PROVIDER_ERROR",
+      errorType: error instanceof Error ? error.name : "unknown",
+    });
     return {
       status: "error",
       data: [],

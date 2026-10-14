@@ -14,6 +14,8 @@ UI / App Router
 
 `lib/domain` contains shared schemas and ownership predicates. `lib/algorithms` contains pure search, scheduling, ranking, cache, and rate-limit utilities. `lib/observability` contains redacted structured logging and best-effort analytics. `lib/config.ts` owns queue, cache, pagination, and rate-limit defaults. Prisma and authentication modules are marked server-only.
 
+See [performance and production operations](./PERFORMANCE.md) for cache keys/TTLs, request telemetry, admin AI usage metrics, local queue/cache behavior, and multi-instance deployment requirements.
+
 ## AI and travel facts
 
 `lib/ai` owns versioned prompts, bounded OpenRouter generation, response validation, deterministic cache keys, and request metrics. The flow is: authenticated user preferences → AI candidate → optional travel-data lookup → deterministic optimization → final strict Zod validation. AI prompts treat conversation and provider content as untrusted data; conversation contents are not written to logs or analytics.

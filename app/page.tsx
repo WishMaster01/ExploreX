@@ -1,6 +1,6 @@
 import Hero from "./_components/Hero";
 import { PopularCityList } from "./_components/PopularCityList";
-import { JourneyMap } from "./_components/JourneyMap";
+import { DeferredJourneyMap } from "./_components/DeferredJourneyMap";
 import { TravelerDiaries } from "./_components/TravelerDiaries";
 import { StorytellingFooterBanner } from "./_components/StorytellingFooterBanner";
 
@@ -14,7 +14,7 @@ export default function Home() {
       <PopularCityList />
 
       {/* 3. Vintage Journey Map with Connecting Flight Paths & Pins (Image 1) */}
-      <JourneyMap />
+      <DeferredJourneyMap />
 
       {/* 4. Traveler Diaries with Polaroid Taped Cards & Quotes (Image 1) */}
       <TravelerDiaries />

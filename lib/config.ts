@@ -29,6 +29,8 @@ export const APP_CONFIG = {
     aiTtlMs: 30 * 60_000,
     destinationEntries: 100,
     destinationTtlMs: 10 * 60_000,
+    siteDatasetEntries: 20,
+    siteDatasetTtlMs: 5 * 60_000,
   },
   queue: {
     aiConcurrency: 3,

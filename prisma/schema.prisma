@@ -88,6 +88,7 @@ model Trip {
   reminders      Reminder[]
 
   @@unique([userId, planHash])
+  @@index([createdAt])
   @@index([userId, createdAt(sort: Desc)])
   @@index([userId, isFavorite, createdAt(sort: Desc)])
   @@index([userId, budgetAmount])
@@ -129,6 +130,7 @@ model AnalyticsEvent {
   user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([type, createdAt])
+  @@index([createdAt])
   @@index([destination, createdAt])
   @@index([userId, createdAt])
   @@map("analytics_events")

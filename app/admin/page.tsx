@@ -14,6 +14,17 @@ type Analytics = {
   windowDays: number;
   activeUsers: number;
   totalTrips: number;
+  aiUsage: {
+    requests: number;
+    successes: number;
+    failures: number;
+    successRate: number;
+    promptTokens: number;
+    completionTokens: number;
+    estimatedCostUsd: number | null;
+    averageLatencyMs: number;
+    cacheHits: number;
+  };
   events: Array<{ type: string; success: boolean; count: number }>;
   popularDestinations: Array<{ destination: string; count: number }>;
 };
@@ -72,7 +83,7 @@ export default function AdminAnalyticsPage() {
 
         {data && (
           <>
-            <div className="mt-8 grid gap-4 sm:grid-cols-3">
+            <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
               <Metric
                 icon={<Users />}
                 label="Active travelers"
@@ -85,12 +96,43 @@ export default function AdminAnalyticsPage() {
               />
               <Metric
                 icon={<WandSparkles />}
-                label="AI anomalies"
-                value={data.events
-                  .filter(
-                    (event) => event.type === "ai_generation" && !event.success,
-                  )
-                  .reduce((sum, event) => sum + event.count, 0)}
+                label="AI requests"
+                value={data.aiUsage.requests}
+              />
+              <Metric
+                icon={<ShieldCheck />}
+                label="AI success rate"
+                value={Math.round(data.aiUsage.successRate * 100)}
+                suffix="%"
+              />
+              <Metric
+                icon={<Activity />}
+                label="Average AI latency"
+                value={Math.round(data.aiUsage.averageLatencyMs)}
+                suffix=" ms"
+              />
+              <Metric
+                icon={<BarChart3 />}
+                label="Estimated AI cost"
+                value={
+                  data.aiUsage.estimatedCostUsd === null
+                    ? "Not configured"
+                    : data.aiUsage.estimatedCostUsd
+                }
+                prefix={data.aiUsage.estimatedCostUsd === null ? "" : "$"}
+                decimals={4}
+              />
+              <Metric
+                icon={<BarChart3 />}
+                label="AI tokens"
+                value={
+                  data.aiUsage.promptTokens + data.aiUsage.completionTokens
+                }
+              />
+              <Metric
+                icon={<Activity />}
+                label="AI cache hits"
+                value={data.aiUsage.cacheHits}
               />
             </div>
 
@@ -149,10 +191,16 @@ function Metric({
   icon,
   label,
   value,
+  suffix = "",
+  prefix = "",
+  decimals = 0,
 }: {
   icon: React.ReactNode;
   label: string;
-  value: number;
+  value: number | string;
+  suffix?: string;
+  prefix?: string;
+  decimals?: number;
 }) {
   return (
     <div className="rounded-3xl border border-white/10 bg-slate-900/60 p-6 backdrop-blur-xl shadow-xl">
@@ -163,7 +211,11 @@ function Metric({
         {label}
       </p>
       <p className="mt-1 font-display text-3xl sm:text-4xl font-bold text-white">
-        {value}
+        {prefix}
+        {typeof value === "number"
+          ? value.toLocaleString(undefined, { maximumFractionDigits: decimals })
+          : value}
+        {suffix}
       </p>
     </div>
   );
