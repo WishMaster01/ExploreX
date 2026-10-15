@@ -4,6 +4,7 @@ export const metadata = {
   title: "Saved Trips | ExploreX Travel Intelligence",
   description:
     "Search, sort, favorite, revisit, and manage saved ExploreX itineraries.",
+  robots: { index: false, follow: false },
 };
 
 export default function SavedTripsPage() {

@@ -1,5 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
-import { withExponentialBackoff } from "@/lib/async-request-queue";
+import {
+  AsyncRequestQueue,
+  withExponentialBackoff,
+} from "@/lib/async-request-queue";
 import { createTripPlanCacheKey } from "./cache-key";
 import { parseAiOutput } from "./validation";
 import { chatResponseSchema } from "@/lib/ai-schemas";
@@ -23,6 +26,19 @@ import { sanitizeSavedPlanSources } from "@/lib/travel-data/sanitize-saved-plan"
 import { attachTravelSources } from "@/lib/travel-data/verify-plan";
 
 describe("AI generation hardening", () => {
+  it("rejects work when the bounded queue is full", async () => {
+    const queue = new AsyncRequestQueue(1, 0);
+    let release!: () => void;
+    const active = queue.run(
+      () => new Promise<void>((resolve) => (release = resolve)),
+    );
+    await expect(queue.run(async () => undefined)).rejects.toThrow(
+      "AI request queue is full",
+    );
+    release();
+    await active;
+  });
+
   it("rejects malformed or schema-invalid AI JSON", () => {
     expect(() => parseAiOutput("not json", chatResponseSchema, true)).toThrow(
       MalformedAiOutputError,

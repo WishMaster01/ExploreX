@@ -52,6 +52,7 @@ export const APP_CONFIG = {
     aiChat: { capacity: 30, interval: 3_600, refillRate: 15 },
     aiFinal: { capacity: 5, interval: 3_600, refillRate: 2 },
     destination: { capacity: 90, interval: 60, refillRate: 60 },
+    weather: { capacity: 30, interval: 60, refillRate: 20 },
     reminderRead: { capacity: 120, interval: 3_600, refillRate: 60 },
     reminderWrite: { capacity: 30, interval: 3_600, refillRate: 15 },
   },

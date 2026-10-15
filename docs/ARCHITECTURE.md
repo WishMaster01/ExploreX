@@ -16,6 +16,8 @@ UI / App Router
 
 See [performance and production operations](./PERFORMANCE.md) for cache keys/TTLs, request telemetry, admin AI usage metrics, local queue/cache behavior, and multi-instance deployment requirements.
 
+See [the security audit](./SECURITY-AUDIT.md) for current access-control findings, regression coverage, and remaining production checks.
+
 ## AI and travel facts
 
 `lib/ai` owns versioned prompts, bounded OpenRouter generation, response validation, deterministic cache keys, and request metrics. The flow is: authenticated user preferences → AI candidate → optional travel-data lookup → deterministic optimization → final strict Zod validation. AI prompts treat conversation and provider content as untrusted data; conversation contents are not written to logs or analytics.

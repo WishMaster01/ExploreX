@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { CityDetailHUD } from "./CityDetailHUD";
 import { prisma } from "@/lib/db";
+import { getPublicSiteUrl } from "@/lib/site-url";
 import "server-only";
 
 export const dynamic = "force-dynamic";
@@ -40,6 +41,15 @@ export async function generateMetadata({
     ? {
         title: `${city.name} Travel Guide | ExploreX`,
         description: `${city.tagline} — ${city.summary}`,
+        alternates: { canonical: `/explore-cities/${city.slug}` },
+        openGraph: {
+          type: "article",
+          title: `${city.name} Travel Guide | ExploreX`,
+          description: city.summary,
+          ...(city.image && getPublicSiteUrl()
+            ? { images: [{ url: city.image, alt: city.name }] }
+            : {}),
+        },
       }
     : {};
 }

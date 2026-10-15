@@ -3,10 +3,31 @@ import { PopularCityList } from "./_components/PopularCityList";
 import { DeferredJourneyMap } from "./_components/DeferredJourneyMap";
 import { TravelerDiaries } from "./_components/TravelerDiaries";
 import { StorytellingFooterBanner } from "./_components/StorytellingFooterBanner";
+import type { Metadata } from "next";
+import { getPublicSiteUrl } from "@/lib/site-url";
+
+const publicSiteUrl = getPublicSiteUrl()?.toString();
+
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+};
 
 export default function Home() {
   return (
     <main className="min-h-screen bg-[#070a12] text-slate-100 overflow-x-hidden">
+      {publicSiteUrl && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebSite",
+              name: "ExploreX",
+              url: publicSiteUrl,
+            }).replace(/</g, "\\u003c"),
+          }}
+        />
+      )}
       {/* 1. Cinematic Hero with Storytelling Typography & Spatial Booking Copilot (Images 1 & 5) */}
       <Hero />
 

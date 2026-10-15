@@ -1,6 +1,21 @@
-import { NextResponse } from "next/server";
+import { z } from "zod";
+import { apiError, apiOk } from "@/lib/api";
+import { APP_CONFIG } from "@/lib/config";
+import { parseWeatherQueryParams } from "@/lib/domain/schemas";
+import { enforceRateLimit } from "@/lib/rate-limit";
+import { withRequestMetrics } from "@/lib/observability/request-metrics";
+import { serverLogger } from "@/lib/observability/server-logger";
+import { fetchWithTimeout } from "@/lib/travel-data/fetch-with-timeout";
 import { exploreCities } from "@/lib/data/cities";
 import { DESTINATIONS } from "@/lib/data/destinations";
+
+const weatherResponseSchema = z.object({
+  current: z.object({
+    temperature_2m: z.number().finite(),
+    weather_code: z.number().int().min(0).max(99),
+  }),
+  timezone: z.string().min(1).max(80),
+});
 
 function decodeWeatherCode(code: number): string {
   if (code === 0) return "Clear Sky";
@@ -16,78 +31,126 @@ function decodeWeatherCode(code: number): string {
   return "Mild";
 }
 
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  let lat = searchParams.get("lat");
-  let lon = searchParams.get("lon");
-  const cityQuery = searchParams.get("city");
-
-  if ((!lat || !lon) && cityQuery) {
-    const matchedCity = exploreCities.find(
-      (c) =>
-        c.name.toLowerCase() === cityQuery.toLowerCase() ||
-        c.slug === cityQuery.toLowerCase(),
-    );
-    if (matchedCity?.coordinates) {
-      const parts = matchedCity.coordinates.split(",");
-      if (parts.length === 2) {
-        lat = parseFloat(parts[0]).toString();
-        lon = parseFloat(parts[1]).toString();
-      }
-    } else {
-      const dest = DESTINATIONS.find(
-        (d) =>
-          d.city.toLowerCase() === cityQuery.toLowerCase() ||
-          d.label.toLowerCase().includes(cityQuery.toLowerCase()),
-      );
-      if (dest) {
-        lat = dest.latitude.toString();
-        lon = dest.longitude.toString();
-      }
-    }
+function coordinatesForCity(cityQuery: string) {
+  const normalized = cityQuery.trim().toLocaleLowerCase();
+  const city = exploreCities.find(
+    (item) =>
+      item.name.toLocaleLowerCase() === normalized ||
+      item.slug.toLocaleLowerCase() === normalized,
+  );
+  if (city?.coordinates) {
+    const [latitude, longitude] = city.coordinates.split(",").map(Number);
+    if (Number.isFinite(latitude) && Number.isFinite(longitude))
+      return { latitude, longitude };
   }
+  const destination = DESTINATIONS.find(
+    (item) =>
+      item.city.toLocaleLowerCase() === normalized ||
+      item.label.toLocaleLowerCase() === normalized,
+  );
+  return destination
+    ? { latitude: destination.latitude, longitude: destination.longitude }
+    : null;
+}
 
-  if (!lat || !lon) {
-    return NextResponse.json(
-      { error: "Latitude and Longitude or a valid city name are required" },
-      { status: 400 },
+async function handleGet(request: Request) {
+  const params = parseWeatherQueryParams(new URL(request.url).searchParams);
+  if (!params)
+    return apiError(
+      "Weather query parameters are invalid",
+      400,
+      "VALIDATION_ERROR",
     );
-  }
 
+  const policy = APP_CONFIG.rateLimits.weather;
+  const denied = await enforceRateLimit(request, {
+    ...policy,
+    userId: "weather:public",
+    keyByIp: true,
+  });
+  if (denied) return denied;
+
+  const coordinates = params.city
+    ? coordinatesForCity(params.city)
+    : { latitude: params.lat!, longitude: params.lon! };
+  if (!coordinates)
+    return apiError("A known destination is required", 400, "VALIDATION_ERROR");
+
+  const providerUrl = new URL("https://api.open-meteo.com/v1/forecast");
+  providerUrl.search = new URLSearchParams({
+    latitude: String(coordinates.latitude),
+    longitude: String(coordinates.longitude),
+    current: "temperature_2m,weather_code",
+    timezone: "auto",
+  }).toString();
+  const startedAt = performance.now();
   try {
-    const res = await fetch(
-      `https://api.open-meteo.com/v1/forecast?latitude=${encodeURIComponent(
-        lat,
-      )}&longitude=${encodeURIComponent(
-        lon,
-      )}&current=temperature_2m,weather_code&timezone=auto`,
-      { next: { revalidate: 1800 } }, // Cache for 30 minutes
+    const response = await fetchWithTimeout(
+      fetch,
+      providerUrl,
+      { cache: "no-store" },
+      APP_CONFIG.travelData.timeoutMs,
     );
-
-    if (!res.ok) {
-      throw new Error("Weather provider returned error");
+    if (!response.ok) {
+      serverLogger.warn("travel_data.request.completed", {
+        provider: "open_meteo",
+        feature: "weather",
+        latencyMs: Math.round(performance.now() - startedAt),
+        status: response.status,
+        success: false,
+      });
+      return apiError(
+        "Weather data is unavailable",
+        502,
+        "SERVICE_UNAVAILABLE",
+      );
     }
 
-    const data = await res.json();
-    const current = data.current;
-    const tempC = Math.round(current.temperature_2m);
-    const condition = decodeWeatherCode(current.weather_code);
-
-    return NextResponse.json({
+    const parsed = weatherResponseSchema.safeParse(await response.json());
+    if (!parsed.success) {
+      serverLogger.warn("travel_data.response.invalid", {
+        provider: "open_meteo",
+        feature: "weather",
+      });
+      return apiError(
+        "Weather data is unavailable",
+        502,
+        "SERVICE_UNAVAILABLE",
+      );
+    }
+    serverLogger.info("travel_data.request.completed", {
+      provider: "open_meteo",
+      feature: "weather",
+      latencyMs: Math.round(performance.now() - startedAt),
+      status: response.status,
       success: true,
-      temp: `${tempC}°C`,
-      condition,
-      rawTemp: tempC,
-      timezone: data.timezone,
+    });
+    const temperature = Math.round(parsed.data.current.temperature_2m);
+    return apiOk({
+      success: true,
+      temp: `${temperature}°C`,
+      condition: decodeWeatherCode(parsed.data.current.weather_code),
+      rawTemp: temperature,
+      timezone: parsed.data.timezone,
       source: "Open-Meteo Live API",
     });
   } catch (error) {
-    return NextResponse.json(
-      {
-        success: false,
-        error: "Unable to retrieve real-time weather",
-      },
-      { status: 502 },
-    );
+    const timedOut = error instanceof Error && error.name === "AbortError";
+    serverLogger.warn("travel_data.request.failed", {
+      provider: "open_meteo",
+      feature: "weather",
+      latencyMs: Math.round(performance.now() - startedAt),
+      errorCode: timedOut ? "PROVIDER_TIMEOUT" : "PROVIDER_ERROR",
+      errorType: error instanceof Error ? error.name : "unknown",
+    });
+    return timedOut
+      ? apiError("Weather provider timed out", 504, "PROVIDER_TIMEOUT")
+      : apiError("Weather data is unavailable", 502, "SERVICE_UNAVAILABLE");
   }
+}
+
+export function GET(request: Request) {
+  return withRequestMetrics(request, "GET /api/weather", () =>
+    handleGet(request),
+  );
 }

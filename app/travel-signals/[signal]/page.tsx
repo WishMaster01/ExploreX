@@ -9,6 +9,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { loadSiteDataset } from "@/lib/data/site-datasets";
 import type { TravelSignal } from "@/lib/data/travel-signals";
+import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
 
@@ -16,6 +17,26 @@ type SignalPageProps = { params: Promise<{ signal: string }> };
 
 export function generateStaticParams() {
   return travelSignals.map((signal) => ({ signal: signal.slug }));
+}
+
+export async function generateMetadata({
+  params,
+}: SignalPageProps): Promise<Metadata> {
+  const { signal: slug } = await params;
+  const signals = await loadSiteDataset<TravelSignal[]>(
+    "travel-signals",
+    travelSignals,
+  );
+  const signal =
+    signals.find((item) => item.slug === slug) ?? getTravelSignal(slug);
+  if (!signal) return {};
+  return {
+    title: `${signal.title} | ExploreX Travel Signals`,
+    description: signal.summary,
+    alternates: {
+      canonical: `/travel-signals/${encodeURIComponent(signal.slug)}`,
+    },
+  };
 }
 
 export default async function TravelSignalPage({ params }: SignalPageProps) {

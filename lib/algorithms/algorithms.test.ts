@@ -17,6 +17,7 @@ import { isValidCoordinates } from "./graph/haversine";
 import {
   parseDestinationSearchQuery,
   parseTripListQuery,
+  parseWeatherQueryParams,
   tripPreferenceSchema,
 } from "../domain/schemas";
 import {
@@ -527,6 +528,32 @@ describe("shared domain validation", () => {
     ).toBeNull();
     expect(
       parseDestinationSearchQuery(new URLSearchParams("q=Tokyo&q=Paris")),
+    ).toBeNull();
+  });
+
+  it("bounds weather coordinates and rejects ambiguous or duplicate parameters", () => {
+    expect(
+      parseWeatherQueryParams(new URLSearchParams("lat=40.7&lon=-74")),
+    ).toEqual({
+      lat: 40.7,
+      lon: -74,
+    });
+    expect(parseWeatherQueryParams(new URLSearchParams("city=Tokyo"))).toEqual({
+      city: "Tokyo",
+    });
+    expect(
+      parseWeatherQueryParams(new URLSearchParams("lat=91&lon=0")),
+    ).toBeNull();
+    expect(
+      parseWeatherQueryParams(new URLSearchParams("lat=1&lon=2&city=Tokyo")),
+    ).toBeNull();
+    expect(
+      parseWeatherQueryParams(new URLSearchParams("lat=1&lat=2&lon=2")),
+    ).toBeNull();
+    expect(
+      parseWeatherQueryParams(
+        new URLSearchParams("lat=1&lon=2&url=http://evil"),
+      ),
     ).toBeNull();
   });
 });

@@ -161,6 +161,43 @@ export const tripDeleteQuerySchema = z
   .object({ id: z.string().trim().min(1).max(100) })
   .strict();
 
+export const weatherQuerySchema = z
+  .object({
+    lat: z
+      .string()
+      .regex(/^-?\d{1,3}(?:\.\d{1,8})?$/)
+      .transform(Number)
+      .pipe(z.number().finite().min(-90).max(90))
+      .optional(),
+    lon: z
+      .string()
+      .regex(/^-?\d{1,3}(?:\.\d{1,8})?$/)
+      .transform(Number)
+      .pipe(z.number().finite().min(-180).max(180))
+      .optional(),
+    city: z.string().trim().min(1).max(100).optional(),
+  })
+  .strict()
+  .superRefine((value, context) => {
+    const hasCoordinates = value.lat !== undefined && value.lon !== undefined;
+    const hasPartialCoordinates =
+      (value.lat === undefined) !== (value.lon === undefined);
+    if (hasPartialCoordinates || hasCoordinates === Boolean(value.city)) {
+      context.addIssue({ code: "custom", message: "Choose one weather query" });
+    }
+  });
+
+export function parseWeatherQueryParams(params: URLSearchParams) {
+  if ([...params.keys()].some((key) => !["lat", "lon", "city"].includes(key)))
+    return null;
+  if (["lat", "lon", "city"].some((key) => params.getAll(key).length > 1))
+    return null;
+  const parsed = weatherQuerySchema.safeParse(
+    Object.fromEntries(params.entries()),
+  );
+  return parsed.success ? parsed.data : null;
+}
+
 export const userDtoSchema = z.object({
   id: z.string(),
   email: z.string().email(),
