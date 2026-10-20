@@ -8,7 +8,7 @@ ExploreX is a full-stack travel planning application built with Next.js. It uses
 
 - Conversational collection of origin, destination, group size, budget, duration, interests, and special requirements
 - Zod-validated structured AI responses with safe JSON extraction
-- Exponential retry, bounded request queue, rate limiting, and fallback responses
+- Exponential retry, bounded request queue, rate limiting, and structured provider failure responses
 - Per-user TTL/LRU caching for generated trip plans
 
 ### Intelligent planning
@@ -53,7 +53,7 @@ Before running the project, install or create:
 - npm
 - PostgreSQL database, either local or hosted
 - Clerk application
-- OpenRouter API key
+- OpenRouter API key when AI planning is enabled
 
 ## Environment Variables
 
@@ -74,25 +74,26 @@ ADMIN_USERS=admin@example.com,clerk_user_id
 CRON_SECRET=replace_with_a_long_random_secret
 ```
 
-### Required Variables
+### Environment variable reference
 
-| Variable                                          | Purpose                                                                  |
-| ------------------------------------------------- | ------------------------------------------------------------------------ |
-| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`               | Public Clerk key used by the frontend.                                   |
-| `CLERK_SECRET_KEY`                                | Server-side Clerk key used for authentication.                           |
-| `NEXT_PUBLIC_CLERK_SIGN_IN_URL`                   | Sign-in route used by Clerk.                                             |
-| `NEXT_PUBLIC_CLERK_SIGN_UP_URL`                   | Sign-up route used by Clerk.                                             |
-| `NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL` | Redirect after sign-in fallback.                                         |
-| `NEXT_PUBLIC_CLERK_SIGN_UP_FALLBACK_REDIRECT_URL` | Redirect after sign-up fallback.                                         |
-| `DATABASE_URL`                                    | Prisma database connection string.                                       |
-| `DIRECT_URL`                                      | Direct PostgreSQL connection string for Prisma operations.               |
-| `OPENROUTER_API_KEY`                              | API key used by `/api/aimodel` to generate trip plans.                   |
-| `GOOGLE_MAPS_API_KEY`                             | Optional server key for Google Places exact-name listing checks.         |
-| `OPENROUTER_INPUT_COST_PER_MILLION`               | Optional account-specific input token price for cost estimates.          |
-| `OPENROUTER_OUTPUT_COST_PER_MILLION`              | Optional account-specific output token price for cost estimates.         |
-| `ARCJET_KEY`                                      | Arcjet key used for production API rate limiting.                        |
-| `ADMIN_USERS`                                     | Comma-separated admin emails or Clerk user IDs allowed to view `/admin`. |
-| `CRON_SECRET`                                     | Bearer secret used by a scheduler to read due reminders.                 |
+| Variable                                          | Purpose                                                                               |
+| ------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`               | Public Clerk key used by the frontend.                                                |
+| `CLERK_SECRET_KEY`                                | Server-side Clerk key used for authentication.                                        |
+| `NEXT_PUBLIC_CLERK_SIGN_IN_URL`                   | Sign-in route used by Clerk.                                                          |
+| `NEXT_PUBLIC_CLERK_SIGN_UP_URL`                   | Sign-up route used by Clerk.                                                          |
+| `NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL` | Redirect after sign-in fallback.                                                      |
+| `NEXT_PUBLIC_CLERK_SIGN_UP_FALLBACK_REDIRECT_URL` | Redirect after sign-up fallback.                                                      |
+| `DATABASE_URL`                                    | Prisma database connection string.                                                    |
+| `DIRECT_URL`                                      | Direct PostgreSQL connection string for Prisma operations.                            |
+| `OPENROUTER_API_KEY`                              | Optional for browsing and saved-trip features; required for AI generation.            |
+| `NEXT_PUBLIC_APP_URL`                             | Recommended production HTTPS origin for canonical URLs, sitemap, and Open Graph URLs. |
+| `GOOGLE_MAPS_API_KEY`                             | Optional server key for Google Places exact-name listing checks.                      |
+| `OPENROUTER_INPUT_COST_PER_MILLION`               | Optional account-specific input token price for cost estimates.                       |
+| `OPENROUTER_OUTPUT_COST_PER_MILLION`              | Optional account-specific output token price for cost estimates.                      |
+| `ARCJET_KEY`                                      | Arcjet key used for production API rate limiting.                                     |
+| `ADMIN_USERS`                                     | Comma-separated admin emails or Clerk user IDs allowed to view `/admin`.              |
+| `CRON_SECRET`                                     | Bearer secret used by a scheduler to read due reminders.                              |
 
 Do not commit real `.env` files. This repository keeps `.env` ignored and allows `.env.example` to be committed.
 
@@ -343,7 +344,7 @@ npm run prisma:validate
 npm run build
 ```
 
-The Vitest suite covers destination search, fuzzy matching, provider/straight-line route labeling, budget allocation and selection, constraint-aware scheduling, hotel and restaurant ranking, trip duration/date limits, rate limiting, cache eviction, and safe AI JSON parsing.
+The Vitest suite covers destination search, fuzzy matching, provider/straight-line route labeling, budget allocation and selection, constraint-aware scheduling, hotel and restaurant ranking, trip duration/date limits, rate limiting and queue overflow, cache eviction, safe AI JSON parsing, and mocked route-boundary security cases. These route tests do not connect to PostgreSQL or Clerk. There is no dedicated Playwright E2E setup or live database integration suite; see [the security audit](docs/SECURITY-AUDIT.md) for coverage limits and staging checks.
 
 ## Reminder Worker
 

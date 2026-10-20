@@ -9,13 +9,11 @@ import {
   Footprints,
   HeartHandshake,
   Landmark,
-  ShieldCheck,
   Sparkles,
   TreePine,
   Utensils,
-  Headphones,
-  CalendarCheck,
   Lock,
+  CalendarDays,
 } from "lucide-react";
 
 export function StorytellingFooterBanner() {
@@ -40,37 +38,37 @@ export function StorytellingFooterBanner() {
     },
     {
       name: "Food",
-      tagline: "Taste the stories",
+      tagline: "Explore local cuisine",
       icon: <Utensils className="size-6 text-amber-400" />,
-      query: "culinary",
+      query: "food",
     },
     {
-      name: "People",
-      tagline: "Connect deeply",
+      name: "History",
+      tagline: "Explore the past",
       icon: <HeartHandshake className="size-6 text-amber-400" />,
-      query: "community",
+      query: "history",
     },
   ];
 
   const trustBadges = [
     {
-      title: "Best Price Guarantee",
-      desc: "Transparent estimates & no hidden surcharges",
-      icon: <ShieldCheck className="size-5 text-teal-400" />,
+      title: "Planning estimates",
+      desc: "Budget suggestions are estimates, not booking quotes.",
+      icon: <Sparkles className="size-5 text-teal-400" />,
     },
     {
-      title: "24/7 AI Copilot Support",
-      desc: "Instant live guidance anywhere you land",
-      icon: <Headphones className="size-5 text-teal-400" />,
+      title: "AI trip planning",
+      desc: "Create itinerary suggestions from your preferences.",
+      icon: <Compass className="size-5 text-teal-400" />,
     },
     {
-      title: "Flexible Bookings",
-      desc: "Dynamic itinerary adjustments on the fly",
-      icon: <CalendarCheck className="size-5 text-teal-400" />,
+      title: "Editable itineraries",
+      desc: "Review and adjust your schedule before saving.",
+      icon: <CalendarDays className="size-5 text-teal-400" />,
     },
     {
-      title: "Secure Planning",
-      desc: "Privacy-first architecture & verified credentials",
+      title: "Private saved trips",
+      desc: "Saved itineraries are available only to their owner.",
       icon: <Lock className="size-5 text-teal-400" />,
     },
   ];
@@ -130,7 +128,7 @@ export function StorytellingFooterBanner() {
           {categories.map((cat) => (
             <Link
               key={cat.name}
-              href={`/explore-cities?category=${cat.query}`}
+              href={`/explore-cities?q=${encodeURIComponent(cat.query)}`}
               className="group flex flex-col items-center p-3 rounded-2xl transition hover:bg-white/5"
             >
               <div className="mb-3 flex size-14 items-center justify-center rounded-2xl border border-amber-400/30 bg-amber-500/10 transition group-hover:scale-110 group-hover:border-amber-400 group-hover:bg-amber-500/20 shadow-lg shadow-amber-500/10">
@@ -145,7 +143,7 @@ export function StorytellingFooterBanner() {
         </div>
       </div>
 
-      {/* Trust Badges Ribbon (Image 5 style) */}
+      {/* Product capabilities */}
       <div className="py-10 px-4 sm:px-6 lg:px-8 bg-[#070a12]">
         <div className="mx-auto max-w-7xl grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {trustBadges.map((badge) => (

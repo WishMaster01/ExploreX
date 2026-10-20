@@ -478,16 +478,12 @@ export function TravelFooter() {
           </div>
         </div>
 
-        <div className="mt-14 flex flex-col items-center justify-between gap-4 border-t border-white/10 pt-7 sm:flex-row">
+        <div className="mt-14 flex flex-col items-center gap-3 border-t border-white/10 pt-7 text-center">
           <p className="text-xs tracking-wide text-slate-500">
-            &copy; {new Date().getFullYear()} ExploreX. Crafted for intelligent
+            &copy; {new Date().getFullYear()} ExploreX. AI suggestions and venue
+            details may be estimates; verify time-sensitive information before
             travel.
           </p>
-          <div className="flex gap-5 text-xs text-slate-500">
-            <span className="transition hover:text-slate-300">Privacy</span>
-            <span className="transition hover:text-slate-300">Terms</span>
-            <span className="transition hover:text-slate-300">Support</span>
-          </div>
         </div>
       </div>
     </footer>

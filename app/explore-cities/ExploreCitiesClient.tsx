@@ -50,7 +50,20 @@ export function ExploreCitiesClient({
       search === "" ||
       city.name.toLowerCase().includes(search.toLowerCase()) ||
       city.country.toLowerCase().includes(search.toLowerCase()) ||
-      city.tagline.toLowerCase().includes(search.toLowerCase());
+      city.tagline.toLowerCase().includes(search.toLowerCase()) ||
+      city.summary.toLowerCase().includes(search.toLowerCase()) ||
+      city.places.some((place) =>
+        [place.name, place.category, place.description]
+          .join(" ")
+          .toLowerCase()
+          .includes(search.toLowerCase()),
+      ) ||
+      city.activities?.some((activity) =>
+        activity.toLowerCase().includes(search.toLowerCase()),
+      ) ||
+      city.foodHighlights.some((food) =>
+        food.toLowerCase().includes(search.toLowerCase()),
+      );
     return matchesRegion && matchesSearch;
   });
 
@@ -84,6 +97,7 @@ export function ExploreCitiesClient({
               <button
                 key={region}
                 type="button"
+                aria-pressed={selectedRegion === region}
                 onClick={() => setSelectedRegion(region)}
                 className={`rounded-full px-4 py-2 text-xs font-semibold tracking-wide transition ${
                   selectedRegion === region

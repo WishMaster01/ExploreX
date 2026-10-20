@@ -7,15 +7,15 @@
 - Trip-planner AI analytics inserts its event and resolves optional Clerk-to-database user attribution in one SQL statement, avoiding a separate lookup round trip.
 - The route optimizer map is an embedded map loaded only after the user opens the map view. The homepage Journey Map's interactive client module is deferred until it is within 320px of the viewport. Neither map bundles a client-side mapping SDK; directions are opened externally.
 - Hero and hotel images use the Next image optimizer for the configured Unsplash, placeholder, and Clerk hosts. Use the `sizes` attribute on new responsive images so the optimizer can select an appropriate source width.
-- Font files are self-hosted by `next/font`; the handwriting face remains because signup and the storytelling banner use it.
+- The app uses system font stacks to avoid a network dependency during production builds. Custom font assets are not bundled.
 
 ## Cache inventory
 
-| Cache | Contents and key | TTL / capacity | Invalidation and privacy |
-| --- | --- | --- | --- |
+| Cache                              | Contents and key                                                                                                                  | TTL / capacity                                             | Invalidation and privacy                                                                                                                                                                                  |
+| ---------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | AI trip candidate (`/api/aimodel`) | Validated candidate and generation metadata; key hashes authenticated user ID, prompt version, model, and normalized conversation | 30 minutes / 100 entries (configurable in `lib/config.ts`) | Expires or is evicted by LRU; prompt version changes create a new key. User ID in the key prevents cross-account reuse. Finalization still performs current travel-data lookup and optimization on a hit. |
-| Destination suggestions | Public dataset result; normalized query and result limit | 10 minutes / 100 entries | Expires or LRU eviction; dataset edits may remain stale for at most the TTL. Results contain public destinations only. |
-| Site datasets | Curated public dataset contents keyed by dataset name | 5 minutes / 20 entries | Expires or LRU eviction; edits may remain stale for at most the TTL. A process restart clears it. |
+| Destination suggestions            | Public dataset result; normalized query and result limit                                                                          | 10 minutes / 100 entries                                   | Expires or LRU eviction; dataset edits may remain stale for at most the TTL. Results contain public destinations only.                                                                                    |
+| Site datasets                      | Curated public dataset contents keyed by dataset name                                                                             | 5 minutes / 20 entries                                     | Expires or LRU eviction; edits may remain stale for at most the TTL. A process restart clears it.                                                                                                         |
 
 These caches live in one Node.js process. They are best-effort performance hints, not persistent state; different instances can independently miss, populate, or expire entries. There is no shared cache invalidation today.
 

@@ -72,7 +72,7 @@ export function HeroPanel({
                 className="btn-shine rounded-xl bg-gradient-to-r from-teal-600 to-teal-500 text-white shadow-md hover:from-teal-700 hover:to-teal-600"
               >
                 <MessageSquareShare className="size-4" />
-                Share Trip
+                Share Summary
               </Button>
 
               <Button

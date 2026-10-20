@@ -10,7 +10,7 @@ import {
   Globe2,
   HeartHandshake,
   Languages,
-  MessageSquareShare,
+  LockKeyhole,
   Phone,
   Plane,
   Route,
@@ -179,8 +179,8 @@ export function SharingPanel({ onExport }: { onExport: () => void }) {
     >
       <GlassPanel className="p-5">
         <PanelTitle
-          icon={<MessageSquareShare className="size-5" />}
-          title="Trip Sharing"
+          icon={<LockKeyhole className="size-5" />}
+          title="Trip privacy & export"
         />
 
         <div className="mt-5 space-y-2.5">

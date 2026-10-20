@@ -148,7 +148,7 @@ function ItineraryDashboard({
                 <Save className="size-4" />
               )}
               {saveState === "saving"
-                ? "Savingâ€¦"
+                ? "Saving..."
                 : saveState === "saved"
                   ? "Saved"
                   : "Save Trip"}
@@ -174,7 +174,7 @@ function ItineraryDashboard({
 
         {loading && (
           <div className="fixed bottom-24 right-6 z-40 rounded-xl border border-teal-200 bg-white px-4 py-2 text-xs font-medium text-teal-700 shadow-lg">
-            Updating itineraryâ€¦
+            Updating itinerary...
           </div>
         )}
       </div>

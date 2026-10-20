@@ -8,25 +8,25 @@ import {
   ChevronLeft,
   ChevronRight,
   Compass,
-  Headphones,
   Lock,
   MapPin,
   Plane,
-  Play,
   RotateCw,
   Search,
-  ShieldCheck,
   Sparkles,
-  Star,
   Users,
-  X,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import React, { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "motion/react";
-import { exploreCities } from "@/lib/data/cities";
+import React, { useState } from "react";
+import { motion } from "motion/react";
+
+export type HeroCatalogCounts = {
+  destinations: number;
+  cityGuides: number;
+  travelSignals: number;
+};
 export type Suggestion = {
   title: string;
   icon: React.ReactNode;
@@ -51,21 +51,12 @@ export const suggestions: Suggestion[] = [
   },
 ];
 
-type ServerStats = {
-  destinationsIndexed: number;
-  curatedCityGuides: number;
-  travelSignalsMonitored: number;
-  itinerariesPlanned: number;
-  registeredTravelers: number;
-};
-
 // Popular destinations featured in the image
 const popularDestinations = [
   {
     name: "Santorini",
     region: "Greece",
     slug: "santorini",
-    rating: 4.8,
     image:
       "https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?w=600&auto=format&fit=crop&q=80",
   },
@@ -73,7 +64,6 @@ const popularDestinations = [
     name: "Maldives",
     region: "Indian Ocean",
     slug: "maldives",
-    rating: 4.9,
     image:
       "https://images.unsplash.com/photo-1514282401047-d79a71a590e8?w=600&auto=format&fit=crop&q=80",
   },
@@ -81,7 +71,6 @@ const popularDestinations = [
     name: "Swiss Alps",
     region: "Switzerland",
     slug: "swiss-alps",
-    rating: 4.7,
     image:
       "https://images.unsplash.com/photo-1530122037265-a5f1f91d3b99?w=600&auto=format&fit=crop&q=80",
   },
@@ -89,53 +78,35 @@ const popularDestinations = [
     name: "Bali",
     region: "Indonesia",
     slug: "bali",
-    rating: 4.8,
     image:
       "https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=600&auto=format&fit=crop&q=80",
   },
 ];
 
-const Hero = () => {
+const Hero = ({ catalogCounts }: { catalogCounts: HeroCatalogCounts }) => {
   const { user } = useUser();
   const router = useRouter();
 
-  const [origin, setOrigin] = useState("New York (JFK)");
-  const [destination, setDestination] = useState("Bali, Indonesia");
+  const [origin, setOrigin] = useState("");
+  const [destination, setDestination] = useState("");
   const [activeTab, setActiveTab] = useState<
     "flights" | "hotels" | "experiences"
   >("flights");
-  const [dates, setDates] = useState("May 20 – May 30");
-  const [travelers, setTravelers] = useState("2 Adults");
+  const [dates, setDates] = useState("");
+  const [travelers, setTravelers] = useState("2");
   const [hotelType, setHotelType] = useState("Any stay");
   const [experienceType, setExperienceType] = useState("Culture & sightseeing");
-  const [isVideoOpen, setIsVideoOpen] = useState(false);
-  const [serverStats, setServerStats] = useState<ServerStats | null>(null);
-
-  useEffect(() => {
-    fetch("/api/stats")
-      .then((res) => (res.ok ? res.json() : null))
-      .then((json) => {
-        if (json?.data) setServerStats(json.data);
-      })
-      .catch(() => {});
-  }, []);
 
   const handleLaunchTrip = () => {
     const query = new URLSearchParams();
     const selectedPlace = destination.trim();
-    const tabLabel =
-      activeTab === "flights"
-        ? "flight"
-        : activeTab === "hotels"
-          ? "hotel stay"
-          : "travel experience";
     const details =
       activeTab === "hotels"
-        ? ` I prefer ${hotelType.toLowerCase()}.`
+        ? ` Include ${hotelType.toLowerCase()} accommodation ideas.`
         : activeTab === "experiences"
-          ? ` I am interested in ${experienceType.toLowerCase()}.`
+          ? ` Prioritize ${experienceType.toLowerCase()} activities.`
           : "";
-    const prompt = `Help me find ${tabLabel} options${selectedPlace ? ` in ${selectedPlace}` : ""}${activeTab === "flights" && origin.trim() ? ` departing from ${origin.trim()}` : ""}.${details} I am traveling ${dates.trim() || "on flexible dates"} with ${travelers.trim() || "my group"}.`;
+    const prompt = `Plan a trip itinerary${selectedPlace ? ` for ${selectedPlace}` : ""}${activeTab === "flights" && origin.trim() ? ` starting from ${origin.trim()}` : ""}.${details} Dates: ${dates.trim() || "flexible"}. Travelers: ${travelers.trim() || "not specified"}. Treat prices and venue details as estimates unless verified.`;
     if (selectedPlace) query.set("destination", selectedPlace);
     query.set("idea", prompt);
     query.set("autostart", "1");
@@ -219,7 +190,7 @@ const Hero = () => {
             transition={{ duration: 0.6 }}
             className="max-w-2xl lg:max-w-none"
           >
-            {/* Eyebrow: — THE WORLD IS WAITING */}
+            {/* Hero eyebrow */}
             <div className="flex items-center gap-2.5 text-xs font-bold uppercase tracking-[0.22em] text-[#2dd4bf]">
               <span className="w-8 h-[2px] bg-[#2dd4bf]" />
               <span>THE WORLD IS WAITING</span>
@@ -247,25 +218,6 @@ const Hero = () => {
                 <span>Explore Destinations</span>
                 <ArrowRight className="size-4 stroke-[2.5]" />
               </Link>
-
-              {/* Watch Video button matching image */}
-              <button
-                type="button"
-                onClick={() => setIsVideoOpen(true)}
-                className="group flex items-center gap-3.5 transition"
-              >
-                <div className="flex size-12 items-center justify-center rounded-full border border-white/20 bg-slate-950/60 backdrop-blur-xl shadow-lg transition group-hover:scale-110 group-hover:border-teal-400 group-hover:bg-slate-900">
-                  <Play className="size-4 fill-white text-white ml-0.5" />
-                </div>
-                <div className="text-left">
-                  <span className="block text-xs font-bold tracking-wide text-white group-hover:text-teal-300 transition">
-                    Watch Video
-                  </span>
-                  <span className="block text-[11px] text-slate-300">
-                    See ExploreX in action
-                  </span>
-                </div>
-              </button>
             </div>
           </motion.div>
 
@@ -280,30 +232,30 @@ const Hero = () => {
               {/* Header */}
               <div>
                 <h3 className="font-heading text-2xl font-bold text-white tracking-tight">
-                  Where to next?
+                  Start a trip plan
                 </h3>
                 <p className="mt-1 text-xs text-slate-300">
-                  Find your perfect escape
+                  Personalized itinerary ideas. No live booking search.
                 </p>
               </div>
 
-              {/* 3 Tabs: Flights, Hotels, Experiences */}
+              {/* Trip focus tabs */}
               <div className="mt-5 grid grid-cols-3 gap-2 rounded-2xl border border-white/10 bg-slate-900/60 p-1">
                 {(
                   [
                     {
                       id: "flights",
-                      label: "Flights",
+                      label: "Trip",
                       icon: <Plane className="size-3.5" />,
                     },
                     {
                       id: "hotels",
-                      label: "Hotels",
+                      label: "Stay",
                       icon: <MapPin className="size-3.5" />,
                     },
                     {
                       id: "experiences",
-                      label: "Experiences",
+                      label: "Activities",
                       icon: <Sparkles className="size-3.5" />,
                     },
                   ] as const
@@ -311,8 +263,9 @@ const Hero = () => {
                   <button
                     key={tab.id}
                     type="button"
+                    aria-pressed={activeTab === tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`flex items-center justify-center gap-1.5 rounded-xl py-2 text-xs font-semibold transition ${
+                    className={`flex items-center justify-center gap-1.5 rounded-xl py-2 text-xs font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400 ${
                       activeTab === tab.id
                         ? "bg-white/15 text-white shadow-sm"
                         : "text-slate-400 hover:text-white"
@@ -338,6 +291,8 @@ const Hero = () => {
                           type="text"
                           value={origin}
                           onChange={(e) => setOrigin(e.target.value)}
+                          placeholder="City or airport (optional)"
+                          aria-label="Starting city or airport"
                           className="w-full bg-transparent text-sm font-semibold text-white outline-none"
                         />
                       </div>
@@ -365,9 +320,9 @@ const Hero = () => {
                       type="text"
                       value={destination}
                       onChange={(e) => setDestination(e.target.value)}
-                      placeholder="City or destination"
+                      placeholder="e.g. Bali, Indonesia"
                       aria-label="Destination"
-                      className="w-full bg-transparent text-sm font-semibold text-white outline-none"
+                      className="w-full bg-transparent text-sm font-semibold text-white outline-none placeholder:text-slate-500"
                     />
                   </div>
                 </div>
@@ -429,7 +384,9 @@ const Hero = () => {
                       type="text"
                       value={dates}
                       onChange={(e) => setDates(e.target.value)}
-                      className="w-full bg-transparent text-xs font-semibold text-white outline-none"
+                      placeholder="Flexible"
+                      aria-label="Travel dates"
+                      className="w-full bg-transparent text-xs font-semibold text-white outline-none placeholder:text-slate-500"
                     />
                   </div>
                 </div>
@@ -444,7 +401,9 @@ const Hero = () => {
                       type="text"
                       value={travelers}
                       onChange={(e) => setTravelers(e.target.value)}
-                      className="w-full bg-transparent text-xs font-semibold text-white outline-none"
+                      placeholder="e.g. 2"
+                      aria-label="Number of travelers"
+                      className="w-full bg-transparent text-xs font-semibold text-white outline-none placeholder:text-slate-500"
                     />
                   </div>
                 </div>
@@ -455,15 +414,10 @@ const Hero = () => {
                 <button
                   type="button"
                   onClick={handleLaunchTrip}
-                  className="w-full flex items-center justify-center gap-2 rounded-2xl bg-[#2dd4bf] hover:bg-[#34d399] py-4 text-xs font-bold uppercase tracking-wider text-slate-950 shadow-[0_0_25px_rgba(45,212,191,0.4)] transition hover:scale-[1.01]"
+                  disabled={!destination.trim()}
+                  className="w-full flex items-center justify-center gap-2 rounded-2xl bg-[#2dd4bf] hover:bg-[#34d399] py-4 text-xs font-bold uppercase tracking-wider text-slate-950 shadow-[0_0_25px_rgba(45,212,191,0.4)] transition hover:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  <span>
-                    {activeTab === "flights"
-                      ? "Search Flights"
-                      : activeTab === "hotels"
-                        ? "Find Stays"
-                        : "Explore Experiences"}
-                  </span>
+                  <span>Plan This Trip</span>
                   <ArrowRight className="size-4 stroke-[2.5]" />
                 </button>
               </div>
@@ -532,53 +486,48 @@ const Hero = () => {
                         {dest.region}
                       </p>
                     </div>
-
-                    <div className="flex items-center gap-1 text-[10px] font-bold text-amber-300">
-                      <Star className="size-2.5 fill-amber-400 text-amber-400" />
-                      <span>{dest.rating}</span>
-                    </div>
                   </div>
                 </Link>
               ))}
             </div>
           </div>
 
-          {/* Right Trust Badges (Image exact frosted bar) */}
+          {/* Product capabilities */}
           <div className="rounded-2xl border border-white/15 bg-slate-950/60 backdrop-blur-2xl p-4 shadow-xl">
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
               <div className="flex flex-col items-center">
-                <ShieldCheck className="size-5 text-[#2dd4bf] mb-1.5" />
+                <Sparkles className="size-5 text-[#2dd4bf] mb-1.5" />
                 <span className="text-[11px] font-bold text-white leading-tight">
-                  Best Price Guarantee
-                </span>
-              </div>
-              <div className="flex flex-col items-center">
-                <Headphones className="size-5 text-[#2dd4bf] mb-1.5" />
-                <span className="text-[11px] font-bold text-white leading-tight">
-                  24/7 Travel Support
+                  AI trip planning
                 </span>
               </div>
               <div className="flex flex-col items-center">
                 <Calendar className="size-5 text-[#2dd4bf] mb-1.5" />
                 <span className="text-[11px] font-bold text-white leading-tight">
-                  Flexible Bookings
+                  Editable itineraries
                 </span>
               </div>
               <div className="flex flex-col items-center">
                 <Lock className="size-5 text-[#2dd4bf] mb-1.5" />
                 <span className="text-[11px] font-bold text-white leading-tight">
-                  Secure Payments
+                  Private saved trips
+                </span>
+              </div>
+              <div className="flex flex-col items-center">
+                <MapPin className="size-5 text-[#2dd4bf] mb-1.5" />
+                <span className="text-[11px] font-bold text-white leading-tight">
+                  Curated destinations
                 </span>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Bottom Real Server Stats Ribbon */}
+        {/* Counts from public curated catalogs */}
         <div className="mt-14 pt-8 border-t border-white/10 flex flex-wrap items-center justify-between gap-6 text-center sm:text-left">
           <div className="flex items-center gap-3">
             <span className="font-heading text-2xl sm:text-3xl font-bold text-white">
-              {serverStats ? `${serverStats.destinationsIndexed}+` : "500+"}
+              {catalogCounts.destinations}
             </span>
             <span className="text-xs uppercase tracking-wider text-slate-400">
               Destinations
@@ -587,74 +536,23 @@ const Hero = () => {
 
           <div className="flex items-center gap-3">
             <span className="font-heading text-2xl sm:text-3xl font-bold text-white">
-              {serverStats && serverStats.registeredTravelers > 0
-                ? `${serverStats.registeredTravelers}+`
-                : "10K+"}
+              {catalogCounts.cityGuides}
             </span>
             <span className="text-xs uppercase tracking-wider text-slate-400">
-              Happy Travelers
+              City guides
             </span>
           </div>
 
           <div className="flex items-center gap-3">
             <span className="font-heading text-2xl sm:text-3xl font-bold text-white">
-              {serverStats ? `${serverStats.curatedCityGuides * 15}+` : "150+"}
+              {catalogCounts.travelSignals}
             </span>
             <span className="text-xs uppercase tracking-wider text-slate-400">
-              Travel Experts
+              Travel signal guides
             </span>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <span className="font-heading text-2xl sm:text-3xl font-bold text-white">
-              4.9
-            </span>
-            <div>
-              <div className="flex items-center gap-0.5 text-amber-400">
-                <Star className="size-3 fill-amber-400" />
-                <Star className="size-3 fill-amber-400" />
-                <Star className="size-3 fill-amber-400" />
-                <Star className="size-3 fill-amber-400" />
-                <Star className="size-3 fill-amber-400" />
-              </div>
-              <span className="text-[10px] uppercase tracking-wider text-slate-400">
-                Average Rating
-              </span>
-            </div>
           </div>
         </div>
       </section>
-
-      {/* Interactive Video Modal */}
-      <AnimatePresence>
-        {isVideoOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xl">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              className="relative w-full max-w-4xl rounded-3xl border border-white/20 bg-slate-950 p-2 shadow-2xl overflow-hidden"
-            >
-              <button
-                type="button"
-                onClick={() => setIsVideoOpen(false)}
-                className="absolute top-4 right-4 z-20 p-2 rounded-full bg-slate-900/80 text-white hover:bg-white hover:text-black transition"
-              >
-                <X className="size-5" />
-              </button>
-              <div className="relative aspect-video w-full rounded-2xl overflow-hidden">
-                <iframe
-                  src="https://www.youtube.com/embed/2eLqU5Z1v6I?autoplay=1"
-                  title="ExploreX Travel Video"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                  className="size-full"
-                />
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
     </div>
   );
 };

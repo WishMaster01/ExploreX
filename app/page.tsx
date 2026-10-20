@@ -5,6 +5,9 @@ import { TravelerDiaries } from "./_components/TravelerDiaries";
 import { StorytellingFooterBanner } from "./_components/StorytellingFooterBanner";
 import type { Metadata } from "next";
 import { getPublicSiteUrl } from "@/lib/site-url";
+import { DESTINATIONS } from "@/lib/data/destinations";
+import { exploreCities } from "@/lib/data/cities";
+import { travelSignals } from "@/lib/data/travel-signals";
 
 const publicSiteUrl = getPublicSiteUrl()?.toString();
 
@@ -29,7 +32,13 @@ export default function Home() {
         />
       )}
       {/* 1. Cinematic Hero with Storytelling Typography & Spatial Booking Copilot (Images 1 & 5) */}
-      <Hero />
+      <Hero
+        catalogCounts={{
+          destinations: DESTINATIONS.length,
+          cityGuides: exploreCities.length,
+          travelSignals: travelSignals.length,
+        }}
+      />
 
       {/* 2. Interactive 3D Coverflow City Carousel (Image 3) */}
       <PopularCityList />
