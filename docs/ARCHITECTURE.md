@@ -1,50 +1,95 @@
-# ExploreX architecture
+# ExploreX architecture (repository audit)
 
-## Request and persistence flow
+Audit snapshot: 2026-10-27. This document describes the checked-in application. Provider availability and production deployment state are not inferred from local configuration.
 
-Next.js App Router pages and route handlers are the web boundary. Route handlers authenticate with Clerk, validate query/body input with shared Zod schemas, apply rate limits, then call server-only application modules. Prisma is the persistence boundary for PostgreSQL. External AI requests go through the OpenRouter client, bounded queues, timeouts/retries, and response schemas before data reaches the UI or database.
+## System map
 
-```text
-UI / App Router
-  -> route handlers and domain validation
-  -> application logic and algorithms
-  -> server-only services (Prisma, AI, rate limits, cache, logging)
-  -> PostgreSQL / OpenRouter / Arcjet
+```mermaid
+flowchart TD
+  Browser[Next.js App Router pages and client components]
+  Clerk[Clerk session and provider]
+  Proxy[proxy.ts middleware]
+  Routes[App Router API handlers]
+  Validation[Zod request and response schemas]
+  Services[Application services and domain logic]
+  AI[OpenRouter via OpenAI SDK]
+  Places[Google Places API New, optional]
+  Weather[Open-Meteo]
+  Cache[Process-local LRU TTL caches]
+  Queue[Process-local bounded queues]
+  Limits[Arcjet, production; local sliding window fallback]
+  DB[PostgreSQL via Prisma 7 and pg adapter]
+
+  Browser --> Proxy
+  Proxy -->|protects non-public pages; API excluded| Clerk
+  Browser --> Routes
+  Routes --> Clerk
+  Routes --> Validation
+  Routes --> Limits
+  Routes --> Services
+  Services --> Cache
+  Services --> Queue
+  Services --> AI
+  Services --> Places
+  Routes --> Weather
+  Services --> DB
+  Routes --> DB
 ```
 
-`lib/domain` contains shared schemas and ownership predicates. `lib/algorithms` contains pure search, scheduling, ranking, cache, and rate-limit utilities. `lib/observability` contains redacted structured logging and best-effort analytics. `lib/config.ts` owns queue, cache, pagination, and rate-limit defaults. Prisma and authentication modules are marked server-only.
+Middleware intentionally leaves `/api(.*)` public at the middleware boundary. API handlers are responsible for authentication, public access validation, ownership, and rate limiting. `/api/reminders/due` instead uses a cron bearer secret.
 
-See [performance and production operations](./PERFORMANCE.md) for cache keys/TTLs, request telemetry, admin AI usage metrics, local queue/cache behavior, and multi-instance deployment requirements.
+## Repository boundaries
 
-See [the security audit](./SECURITY-AUDIT.md) for current access-control findings, regression coverage, and remaining production checks.
+- `app/`: Next.js App Router pages, layouts, route handlers, planner interface, city pages, saved trips/cities, admin and travel signals.
+- `app/api/`: handlers for users, trips, AI, destinations, weather, city guides, saved cities, stories, reminders, site datasets, statistics and admin analytics.
+- `app/create-new-trip/_components/`: preference/chat collection, generated-plan dashboard, itinerary panels and export.
+- `components/`, `context/`, `hooks/`: shared visual components, client state and UI hooks.
+- `lib/ai/`: versioned prompts, OpenRouter client calls, response parsing, retry/timeout errors and cache keys.
+- `lib/travel-data/`: provider contract, optional Google Places exact-name matching, source labels and saved-plan source sanitization.
+- `lib/algorithms/`, `lib/trip-optimizer.ts`: pure search, Haversine/route ordering, scheduling, budget allocation/knapsack, ranking, cache and local rate limiting.
+- `lib/domain/`: Zod schemas, types and ownership predicates.
+- `lib/data/`: curated destinations, city guides, travel signals, AI feature prompts and site datasets.
+- `lib/observability/`: redacted structured request/provider logs and best-effort AI analytics.
+- `prisma/`: PostgreSQL Prisma schema and five committed migrations. `lib/generated/prisma/` is generated and ignored.
+- `scripts/`: legacy DB seed and city-guide/site-dataset seed scripts.
+- `docs/`: architecture, security, performance, earlier audits and quality report.
 
-## AI and travel facts
+## Trip-generation path
 
-`lib/ai` owns versioned prompts, bounded OpenRouter generation, response validation, deterministic cache keys, and request metrics. The flow is: authenticated user preferences → AI candidate → optional travel-data lookup → deterministic optimization → final strict Zod validation. AI prompts treat conversation and provider content as untrusted data; conversation contents are not written to logs or analytics.
+1. The landing hero builds a natural-language idea and routes signed-in users to `/create-new-trip`; unauthenticated users go through Clerk sign-in. The planner also has a structured preferences form and conversational UI in `ChatBox`.
+2. `ChatBox` sends client-held message history to `POST /api/aimodel`. The handler requires Clerk auth, bounds and validates JSON/message history, applies chat/final rate limits, and wraps the request in HTTP metrics.
+3. For intermediate chat, the handler constructs a prompt and sends the request to `generateAiResponse`. For final requests, it checks the process-local LRU cache keyed by user, prompt version, model and normalized messages, then calls OpenRouter via the OpenAI SDK when there is a miss. Requests use a bounded local queue, timeout, exponential retry, safe JSON extraction and Zod schemas.
+4. Final AI candidates pass through optional `attachTravelSources`: when `GOOGLE_MAPS_API_KEY` is configured, a bounded number of hotel/activity/restaurant names are searched against Google Places and exact normalized names can be marked matched. Only name/listing identity and a generated Google Maps place link are retained; coordinates, ratings, hours, prices, photos, availability, and booking are not validated. With no key candidates are labeled AI-generated/unavailable.
+5. `optimizeTripPlan` ranks hotels/restaurants, orders stops with nearest-neighbor plus 2-opt, schedules feasible activities, allocates a modeled budget and scores heuristic quality. No route adapter is configured, so distance is Haversine straight-line estimate and travel times are not road/transit routing. The final schema is validated again.
+6. The response returns to the browser and is transformed for display in `lib/trip-transform.ts`; the UI may assign category-based Unsplash images. Generated plans remain in client context until the user explicitly saves.
+7. `POST /api/trips` re-authenticates and validates a bounded plan, sanitizes source claims, computes a per-user hash, then transactionally creates the trip, hotel rows, normalized day/activity rows and analytics event. The full plan JSON remains on `Trip`. Saved-trip list/detail APIs use owner-scoped queries; rendering uses the saved JSON.
 
-`lib/travel-data` defines provider capabilities and source metadata. `GOOGLE_MAPS_API_KEY` enables bounded Google Places checks for up to three hotels, five restaurant candidates, and five activity candidates. A candidate is marked `VERIFIED` only when the provider returns an exact normalized name match. This verifies the name/listing match only; provider addresses, coordinates, ratings, hours, prices, images, and availability are not used. Only place IDs are retained from Google responses, and Google Maps attribution links are generated from those IDs. Provider errors/timeouts preserve the candidate as `AI_GENERATED`. Without credentials, the unavailable adapter labels all place candidates accordingly. Google Places results are not cached. The travel provider contract supports routing, but no actual route adapter is configured; route optimization therefore reports Haversine straight-line estimates and does not present generated travel times as road/transit times. A caller with route distances and durations can pass them to the optimizer, which distinguishes provider-backed, straight-line, mixed, and unavailable route distances and uses provider durations for hard travel-time caps.
+AI feature answers use a separate `/api/ai-features` path with bounded request schema, specialized local prompts, queue/rate limits and output from OpenRouter. They are not grounded in retrieval sources.
 
-The optimizer retains nearest-neighbor and 2-opt ordering, then applies schedule feasibility checks for stated opening/closing windows, reservations, unavailable periods, per-stop travel caps, and trip date boundaries. Missing/infeasible stops are removed with a short reason. Because the configured Places adapter does not return business hours, candidate hours remain estimates and must be checked. Budget allocation uses trip length, party size, and travel style to split accommodation, food, transport, activities, emergency reserve, and miscellaneous categories. Hotel and restaurant ranking weights are configurable and include concise reasons. Restaurant candidates are separate from attractions and rank on cuisine, dietary needs, meal type, price, rating, distance, and source reliability. A 0–100 quality score aggregates measurable schedule feasibility, route distance per stop, modeled budget fit, preference matches, and schedule density; it is a heuristic, not an AI judgment.
+## Existing capabilities to preserve
 
-AI analytics store model/provider, prompt version, feature, latency, token counts, optional account-priced cost estimate, retry count, success, request ID, and cache-hit status. They exclude conversation text. Cache keys include the authenticated user, prompt version, model, and normalized conversation, so private trip plans are never shared between users.
+- Clerk sign-in/sign-up and per-handler authorization; owner-scoped saved trip/reminder/city APIs; role/allowlist admin analytics.
+- Trip preference form/chat, validated structured itinerary generation, explicit save, per-user duplicate detection, saved trip filtering/pagination/favorites/duplicate/delete/export, city guide browsing/bookmarks, public curated content, weather lookup for recognized catalog destinations, reminders as stored records, and admin analytics.
+- Pure algorithm modules for fuzzy/trie destination search, route ordering, feasibility scheduling, budget split/knapsack and candidate ranking.
+- PostgreSQL persistence with migration history, normalized queryable itinerary rows, timestamps with time zone, money projection fields and supporting indexes.
+- Input size/schema limits, AI/provider timeouts and retries, bounded process-local queues, rate limiting, source labels, safe external-link handling in reviewed flows, security headers, structured logs and route-level mocked security regression tests.
 
-## Source of truth
+## Trust and data boundaries
 
-PostgreSQL is authoritative for saved trips, trip days, activities, hotels, reminders, users, and analytics. A trip is saved in one transaction with its relational days, activities, hotels, and analytics event. The `(userId, planHash)` unique constraint prevents duplicate saves. User-owned API operations constrain reads and writes by the authenticated database user; administrator analytics requires server-side role/allowlist authorization.
+- Model-generated venue identities, coordinates, ratings, addresses, prices, hours, and availability are estimates. Google Places exact-name matching does not make those other attributes verified. Weather is live from Open-Meteo only when the weather API is used.
+- Destination suggestions and city guide catalogs are local editorial/static content; DB guide rows are seeded copies, not a live travel inventory. The public stories endpoint maps the first three curated guides into a diary-shaped response; the visible component still calls them real itineraries/live database/server intel. This is a content/provenance mismatch.
+- Maps link out to Google Maps; embedded coordinates can be model-generated. Maps are not an authoritative route provider. Unsplash images can be category-based illustrations unrelated to named places.
+- Request-controlled external fetch URLs were not found in the inspected weather/Places routes: they use fixed provider origins. Saved-plan image URLs are sanitized to allowed hosts. Future outbound URL fields need explicit scheme/host rules.
+- No cross-user IDOR was found in the inspected trip, reminder, city-save, or admin paths. Middleware's public API matcher means new handlers must keep their own authorization and validation. Tests mock auth/database and do not exercise a real deployment.
 
-`Trip.plan` remains JSON to preserve the complete validated AI response and fields without a stable relational query use. Queryable trip/day/activity/hotel facts are separately normalized. Money estimates use optional integer minor units and ISO currency codes where the plan provides a currency; old display strings remain for compatibility and presentation. Unknown-currency estimates are not converted to minor units.
+## Persistence, deployment and migration concerns
 
-`ItineraryItem` remains as a legacy table/model. New saves populate `TripDay` and `TripActivity`. Restaurant candidates and optional trip dates/time zone are part of the validated JSON plan but do not yet have separate relational models. Expenses and trip preferences also have no dedicated persistence models. Reminder timestamps are UTC instants with the originating IANA time zone stored separately.
+- Prisma 7 uses the `prisma-client` generator into `lib/generated/prisma`; runtime uses `@prisma/adapter-pg` with `DATABASE_URL`. Prisma CLI uses `DIRECT_URL` from `prisma.config.ts`. README calls for pooled runtime and direct migration URLs.
+- `Trip.plan` JSON is the full validated snapshot; `TripDay`/`TripActivity` and `TripHotel` overlap as queryable projections; legacy `ItineraryItem` remains. New saves use relational days/activities, while renderer/API details currently read JSON. Define which representation is authoritative before new edits.
+- Money is partly text and partly integer minor-unit projections; currency code is optional. No exchange-rate provider or trip start/end persistence exists in relational models. Reminder dates store a UTC instant and IANA timezone.
+- Five migrations include additive tables/columns, enum conversions and a JSON backfill. The persistence-hardening migration aborts on unsupported user/reminder enum values and interprets legacy timestamp-without-time-zone values as UTC. Production rollout needs backup/restore verification, data preflight and migration rehearsal.
+- There is no PostGIS extension, geography column, geospatial index, or geographic SQL query. Coordinates are optional floats with range validation only.
+- AI/provider queues and caches are in-process, not durable/shared. There is no background job service; due-reminder endpoint only returns up to 100 due rows and does not claim/deliver/advance them. Arcjet is required for production rate limiting as documented; no external APM, Web Vitals collector, CI workflow, Docker config or scheduler manifest was found in the scanned repository files.
+- No dependency additions are recommended solely for this audit. A shared cache/queue, PostGIS, booking/travel inventory or observability vendor requires a measured/product requirement and separate decision.
 
-## Trust boundaries
-
-- Clerk identity is taken from the authenticated session and Clerk profile, never request-body identity fields.
-- API query strings and JSON payloads have schema and size limits. Trip and reminder queries include owner predicates. Admin analytics checks authorization before querying.
-- `/api/reminders/due` requires the cron bearer secret. Public destination suggestions use Arcjet's detected source IP in production; the development fallback does not trust forwarded IP headers.
-- AI output is treated as untrusted input and strictly validated before persistence. Unmatched hotel/activity candidates and all generated restaurants, prices, hours, budget estimates, and advice are labeled as AI-generated or estimated. Presentation code must escape any content inserted into HTML.
-- Production rate limiting requires `ARCJET_KEY`; the local in-memory fallback is development-only and is not distributed across instances. Queues and caches are also process-local.
-- Share visibility/revocation is not implemented. Saved trips remain private to their owner.
-
-## Migration operations
-
-Apply committed migrations with `npm run db:deploy` after a verified backup. The persistence-hardening migration preserves `Trip.plan`, backfills normalized itinerary records, adds enum constraints and money/time-zone columns, and converts existing timestamp values by interpreting them as UTC. It aborts on unsupported enum values rather than silently coercing them. Review [the migration requirements in README](../README.md#prisma-schema) before applying it to production.
+For prioritized findings and phase dependencies, see [IMPLEMENTATION_ROADMAP.md](./IMPLEMENTATION_ROADMAP.md). For route-level risks and actual baseline commands, see [EXISTING_SYSTEM_AUDIT.md](./EXISTING_SYSTEM_AUDIT.md).
