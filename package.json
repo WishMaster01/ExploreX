@@ -19,6 +19,8 @@
     "db:seed": "prisma generate && node scripts/init-db.js",
     "db:seed-content": "prisma generate && node --experimental-strip-types scripts/seed-city-guides.mjs",
     "db:seed-cities": "npm run db:seed-content",
+    "data:validate": "node --experimental-strip-types scripts/import-india-catalog.mjs",
+    "data:import:jaipur": "node --experimental-strip-types scripts/import-india-catalog.mjs --apply",
     "db:studio": "prisma studio",
     "prisma:validate": "prisma validate"
   },

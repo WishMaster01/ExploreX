@@ -1,0 +1,52 @@
+{
+  "id": "jaipur-in",
+  "name": "Jaipur",
+  "countryCode": "IN",
+  "stateCode": "RJ",
+  "region": "Rajasthan",
+  "coordinates": { "latitude": 26.9124, "longitude": 75.7873 },
+  "timeZone": "Asia/Kolkata",
+  "aliases": ["Pink City"],
+  "categories": [
+    "heritage-forts-palaces",
+    "culture-arts-festivals",
+    "food-street-food",
+    "weekend-getaway",
+    "photography",
+    "backpacking-budget",
+    "family-friendly",
+    "romantic",
+    "workation"
+  ],
+  "categorySource": {
+    "status": "CURATED",
+    "provider": "ExploreX taxonomy",
+    "retrievedAt": null,
+    "note": "Editorial trip-theme tags; not verified facts or a claim that every traveler will prefer these categories."
+  },
+  "source": {
+    "status": "PROVIDER_SOURCED",
+    "provider": "Jaipur Municipal Corporation Heritage Cell",
+    "retrievedAt": null,
+    "note": "City profile supplies Jaipur city coordinates; these identify the city, not an attraction or point of interest."
+  },
+  "verificationStatus": "PROVIDER_SOURCED",
+  "lastCheckedAt": "2026-10-28",
+  "evidence": [
+    {
+      "url": "https://pinkcity.jaipurmcheritage.org/Cityexplorepage/CityProfile.aspx",
+      "attribution": "Jaipur Municipal Corporation Heritage Cell, City Profile",
+      "permittedUse": "Coordinates and factual names may be reproduced accurately with prominent source attribution under the Rajasthan Tourism website copyright policy. No third-party text or images copied."
+    },
+    {
+      "url": "https://www.tourism.rajasthan.gov.in/jaipur.html",
+      "attribution": "Department of Tourism, Government of Rajasthan, Jaipur destination page",
+      "permittedUse": "Factual destination naming/category context; reproduce accurately and attribute. Do not copy page images or third-party material."
+    },
+    {
+      "url": "https://www.tourism.rajasthan.gov.in/circulars-and-policies/privacy-policy.html",
+      "attribution": "Department of Tourism, Government of Rajasthan, Website Policies — Copyright Policy",
+      "permittedUse": "The policy permits accurate reproduction with prominent source acknowledgement; third-party material is excluded."
+    }
+  ]
+}

@@ -6,6 +6,8 @@ Roadmap prepared from the repository audit dated 2026-10-27. It is an ordered ba
 
 **Phase 1 checks (2026-10-27):** `npm run lint`, sequential `npm run typecheck`, and `npm run prisma:validate` passed. `npm test` failed during Vitest/Vite config startup with Windows `spawn EPERM`, before test execution. `npm run build` compiled in 13.3s, then failed starting Next's TypeScript worker with `spawn EPERM`; standalone typecheck passed. A concurrent initial check briefly caused Prisma generation `ENOENT`; sequential rerun passed. No code-level assertion failure was reported.
 
+**Phase 2 implementation status:** Jaipur-only structured catalog, 20-category taxonomy, per-record Zod validation, attribution/license manifest, validate/quarantine/report/import script, destination-search coordinate source, and public catalog API are implemented. Schemas enforce provenance/verification consistency; importer verifies manifest destination, counts and evidence URL coverage. `npm run data:validate` passes with 6 accepted records and zero quarantined records. Lint, typecheck, all 59 Vitest tests and the production build pass (the test/build commands required elevated child-process permissions in this Windows sandbox). Database apply is intentionally not run; it writes a connected database. No other Indian destinations are added.
+
 ## Guiding constraints
 
 - Prefer additive migrations and reversible UI/data changes; do not delete existing features or records.

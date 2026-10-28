@@ -2,6 +2,14 @@ import { z } from "zod";
 
 const text = z.string().trim().min(1).max(500);
 
+function isHttpsUrl(value: string): boolean {
+  try {
+    return new URL(value).protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
 export const provenanceStatusSchema = z.enum([
   "VERIFIED",
   "PROVIDER_SOURCED",
@@ -11,6 +19,7 @@ export const provenanceStatusSchema = z.enum([
   "STALE",
   "UNAVAILABLE",
   "REJECTED",
+  "CURATED",
 ]);
 
 export const sourceMetadataSchema = z
@@ -28,7 +37,7 @@ export const sourceMetadataSchema = z
     if (
       source.validUntil &&
       source.retrievedAt &&
-      source.validUntil < source.retrievedAt
+      Date.parse(source.validUntil) < Date.parse(source.retrievedAt)
     ) {
       context.addIssue({
         code: "custom",
@@ -87,11 +96,7 @@ const placeCoreSchema = z
     destinationId: z.string().trim().min(1).max(160),
     address: z.string().trim().max(500).optional(),
     coordinates: coordinatesSchema.optional(),
-    imageUrl: z
-      .string()
-      .url()
-      .refine((url) => new URL(url).protocol === "https:")
-      .optional(),
+    imageUrl: z.string().url().refine(isHttpsUrl).optional(),
     source: sourceMetadataSchema,
   })
   .strict();

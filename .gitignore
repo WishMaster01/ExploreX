@@ -12,6 +12,7 @@
 
 # testing
 /coverage
+/data/manifests/generated/
 
 # next.js
 /.next/

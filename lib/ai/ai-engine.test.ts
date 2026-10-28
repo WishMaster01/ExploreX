@@ -210,7 +210,7 @@ describe("travel data source safety", () => {
     };
     const result = await attachTravelSources(candidate, provider);
     expect(result.plan.restaurants?.[0].source_metadata).toMatchObject({
-      source: "VERIFIED",
+      source: "PROVIDER_SOURCED",
       placeId: "id-Example Cafe",
     });
     expect(result.verifiedCount).toBe(2);
@@ -333,7 +333,7 @@ describe("travel data source safety", () => {
       name: "Example Museum",
       id: "place-id",
     });
-    expect(result.source.source).toBe("VERIFIED");
+    expect(result.source.source).toBe("PROVIDER_SOURCED");
 
     vi.useFakeTimers();
     const fetcher = vi.fn(

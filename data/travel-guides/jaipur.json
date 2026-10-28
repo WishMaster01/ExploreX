@@ -1,0 +1,34 @@
+{
+  "id": "jaipur-starter-guide",
+  "destinationId": "jaipur-in",
+  "title": "Jaipur starter guide",
+  "summary": "Starter catalog only. Attraction names are sourced from Rajasthan Tourism; restaurant recommendations, prices, opening hours, attraction coordinates and current availability have not yet been verified.",
+  "languageCode": "en-IN",
+  "updatedAt": null,
+  "categories": [
+    "heritage-forts-palaces",
+    "culture-arts-festivals",
+    "weekend-getaway"
+  ],
+  "categorySource": {
+    "status": "CURATED",
+    "provider": "ExploreX taxonomy",
+    "retrievedAt": null,
+    "note": "Guide theme tags are editorial classifications."
+  },
+  "source": {
+    "status": "CURATED",
+    "provider": "ExploreX editorial",
+    "retrievedAt": null,
+    "note": "Editorial status summary; not an official travel advisory."
+  },
+  "verificationStatus": "CURATED",
+  "lastCheckedAt": "2026-10-28",
+  "evidence": [
+    {
+      "url": "https://www.tourism.rajasthan.gov.in/jaipur.html",
+      "attribution": "Department of Tourism, Government of Rajasthan, Jaipur page",
+      "permittedUse": "Used to identify the official source supporting records in the starter catalog; not a source for the editorial uncertainty statement."
+    }
+  ]
+}

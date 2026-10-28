@@ -1,0 +1,142 @@
+[
+  {
+    "id": "amber-palace-jaipur",
+    "name": "Amber Palace",
+    "destinationId": "jaipur-in",
+    "category": "heritage fort and palace",
+    "description": "",
+    "categories": [
+      "heritage-forts-palaces",
+      "culture-arts-festivals",
+      "photography",
+      "family-friendly"
+    ],
+    "categorySource": {
+      "status": "CURATED",
+      "provider": "ExploreX taxonomy",
+      "retrievedAt": null,
+      "note": "Editorial category mapping, separate from the sourced attraction name."
+    },
+    "source": {
+      "status": "PROVIDER_SOURCED",
+      "provider": "Department of Tourism, Government of Rajasthan",
+      "retrievedAt": null,
+      "note": "Official destination page lists the attraction. Coordinates, hours, admission, current access and amenities are not included."
+    },
+    "verificationStatus": "PROVIDER_SOURCED",
+    "lastCheckedAt": "2026-10-28",
+    "evidence": [
+      {
+        "url": "https://www.tourism.rajasthan.gov.in/amber-palace.html",
+        "attribution": "Department of Tourism, Government of Rajasthan, Amber Palace page",
+        "permittedUse": "Attraction name and factual identification only, accurately reproduced with attribution under the Rajasthan Tourism copyright policy; no images or third-party text copied."
+      }
+    ],
+    "stateCode": "RJ"
+  },
+  {
+    "id": "city-palace-jaipur",
+    "name": "City Palace",
+    "destinationId": "jaipur-in",
+    "category": "heritage palace",
+    "description": "",
+    "categories": [
+      "heritage-forts-palaces",
+      "culture-arts-festivals",
+      "photography",
+      "family-friendly"
+    ],
+    "categorySource": {
+      "status": "CURATED",
+      "provider": "ExploreX taxonomy",
+      "retrievedAt": null,
+      "note": "Editorial category mapping, separate from the sourced attraction name."
+    },
+    "source": {
+      "status": "PROVIDER_SOURCED",
+      "provider": "Department of Tourism, Government of Rajasthan",
+      "retrievedAt": null,
+      "note": "Official Jaipur destination page lists the attraction. Coordinates, hours, admission, current access and amenities are not included."
+    },
+    "verificationStatus": "PROVIDER_SOURCED",
+    "lastCheckedAt": "2026-10-28",
+    "evidence": [
+      {
+        "url": "https://www.tourism.rajasthan.gov.in/jaipur.html",
+        "attribution": "Department of Tourism, Government of Rajasthan, Jaipur page",
+        "permittedUse": "Attraction name and factual identification only, accurately reproduced with attribution under the Rajasthan Tourism copyright policy; no images or third-party text copied."
+      }
+    ],
+    "stateCode": "RJ"
+  },
+  {
+    "id": "jantar-mantar-jaipur",
+    "name": "Jantar Mantar",
+    "destinationId": "jaipur-in",
+    "category": "heritage observatory",
+    "description": "",
+    "categories": [
+      "heritage-forts-palaces",
+      "culture-arts-festivals",
+      "photography",
+      "family-friendly"
+    ],
+    "categorySource": {
+      "status": "CURATED",
+      "provider": "ExploreX taxonomy",
+      "retrievedAt": null,
+      "note": "Editorial category mapping, separate from the sourced attraction name."
+    },
+    "source": {
+      "status": "PROVIDER_SOURCED",
+      "provider": "Department of Tourism, Government of Rajasthan",
+      "retrievedAt": null,
+      "note": "Official Jaipur destination page lists the attraction. Coordinates, hours, admission, current access and amenities are not included."
+    },
+    "verificationStatus": "PROVIDER_SOURCED",
+    "lastCheckedAt": "2026-10-28",
+    "evidence": [
+      {
+        "url": "https://www.tourism.rajasthan.gov.in/jaipur.html",
+        "attribution": "Department of Tourism, Government of Rajasthan, Jaipur page",
+        "permittedUse": "Attraction name and factual identification only, accurately reproduced with attribution under the Rajasthan Tourism copyright policy; no images or third-party text copied."
+      }
+    ],
+    "stateCode": "RJ"
+  },
+  {
+    "id": "hawa-mahal-jaipur",
+    "name": "Hawa Mahal",
+    "destinationId": "jaipur-in",
+    "category": "heritage palace",
+    "description": "",
+    "categories": [
+      "heritage-forts-palaces",
+      "culture-arts-festivals",
+      "photography",
+      "family-friendly"
+    ],
+    "categorySource": {
+      "status": "CURATED",
+      "provider": "ExploreX taxonomy",
+      "retrievedAt": null,
+      "note": "Editorial category mapping, separate from the sourced attraction name."
+    },
+    "source": {
+      "status": "PROVIDER_SOURCED",
+      "provider": "Department of Tourism, Government of Rajasthan",
+      "retrievedAt": null,
+      "note": "Official attraction page lists the landmark. Coordinates, hours, admission, current access and amenities are not included."
+    },
+    "verificationStatus": "PROVIDER_SOURCED",
+    "lastCheckedAt": "2026-10-28",
+    "evidence": [
+      {
+        "url": "https://www.tourism.rajasthan.gov.in/hawa-mahal.html",
+        "attribution": "Department of Tourism, Government of Rajasthan, Hawa Mahal page",
+        "permittedUse": "Attraction name and factual identification only, accurately reproduced with attribution under the Rajasthan Tourism copyright policy; no images or third-party text copied."
+      }
+    ],
+    "stateCode": "RJ"
+  }
+]

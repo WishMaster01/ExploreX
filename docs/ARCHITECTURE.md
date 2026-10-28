@@ -60,6 +60,10 @@ Middleware intentionally leaves `/api(.*)` public at the middleware boundary. AP
 
 `lib/travel-data/ports.ts` defines provider inputs and canonical outputs. Implementations translate vendor structures inside adapters. Existing saved-trip AI JSON and routes remain compatible; `TravelDataProvider` no longer returns `unknown` for unavailable route/weather/currency capabilities. New typed application errors live in `lib/domain/errors.ts`; `lib/env.ts` parses optional server settings at DB, AI, Places, admin and cron feature boundaries, and request correlation parsing is exported from request metrics. See [ADR 0002](./DECISIONS/0002-application-boundaries.md) for dependency direction and gradual migration rules.
 
+## Phase 2 destination catalog
+
+`data/` owns structured destination files, multi-label taxonomy, per-record evidence and source/license manifests. Zod contracts are defined in `lib/domain/dataset-schemas.ts`; application search takes Jaipur's city coordinate and alias from the validated catalog. `GET /api/catalog/jaipur` reads the imported `site_datasets` records only when catalog, taxonomy and manifest validate, then falls back to the checked-in catalog. `npm run data:validate` validates and quarantines without database writes; `npm run data:import:jaipur` applies via transactional upserts. The starter set does not claim complete Jaipur or India coverage. See [data update and source policy](../data/README.md).
+
 ## Trip-generation path
 
 1. The landing hero builds a natural-language idea and routes signed-in users to `/create-new-trip`; unauthenticated users go through Clerk sign-in. The planner also has a structured preferences form and conversational UI in `ChatBox`.

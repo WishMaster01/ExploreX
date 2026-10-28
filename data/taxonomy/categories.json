@@ -1,0 +1,145 @@
+{
+  "version": "1.0.0",
+  "categories": [
+    {
+      "id": "spiritual-pilgrimage",
+      "label": "Spiritual and pilgrimage",
+      "parentId": null,
+      "description": "Journeys centered on spiritual practice, places of worship or pilgrimage.",
+      "aliases": ["pilgrimage", "spiritual"]
+    },
+    {
+      "id": "mountains-himalayan",
+      "label": "Mountains and Himalayan escapes",
+      "parentId": null,
+      "description": "Mountain destinations and highland escapes.",
+      "aliases": ["mountains", "himalaya"]
+    },
+    {
+      "id": "beaches-coastal",
+      "label": "Beaches and coastal travel",
+      "parentId": null,
+      "description": "Coastal destinations and beach activities.",
+      "aliases": ["beach", "coast"]
+    },
+    {
+      "id": "heritage-forts-palaces",
+      "label": "Heritage, forts and palaces",
+      "parentId": null,
+      "description": "Historic places, forts, palaces and built heritage.",
+      "aliases": ["heritage", "fort", "palace"]
+    },
+    {
+      "id": "culture-arts-festivals",
+      "label": "Culture, arts and festivals",
+      "parentId": null,
+      "description": "Arts, cultural practice, performances and festivals.",
+      "aliases": ["culture", "arts", "festival"]
+    },
+    {
+      "id": "wildlife-national-parks",
+      "label": "Wildlife and national parks",
+      "parentId": null,
+      "description": "Wildlife observation and protected natural areas.",
+      "aliases": ["wildlife", "national park"]
+    },
+    {
+      "id": "adventure-outdoors",
+      "label": "Adventure and outdoor experiences",
+      "parentId": null,
+      "description": "Outdoor recreation and adventure activities.",
+      "aliases": ["adventure", "outdoors"]
+    },
+    {
+      "id": "food-street-food",
+      "label": "Food trails and street food",
+      "parentId": null,
+      "description": "Food-focused visits and culinary trails.",
+      "aliases": ["food trail", "street food"]
+    },
+    {
+      "id": "hidden-local",
+      "label": "Hidden gems and local experiences",
+      "parentId": null,
+      "description": "Locally grounded experiences and less prominent places, subject to verification.",
+      "aliases": ["hidden gem", "local experience"]
+    },
+    {
+      "id": "weekend-getaway",
+      "label": "Weekend getaways",
+      "parentId": null,
+      "description": "Trips suited to a short weekend itinerary; duration suitability is editorial.",
+      "aliases": ["weekend"]
+    },
+    {
+      "id": "lakes-rivers-waterfalls",
+      "label": "Lakes, rivers and waterfalls",
+      "parentId": null,
+      "description": "Freshwater landscapes and related activities.",
+      "aliases": ["lake", "river", "waterfall"]
+    },
+    {
+      "id": "deserts-stargazing",
+      "label": "Deserts and stargazing",
+      "parentId": null,
+      "description": "Desert landscapes and night-sky experiences.",
+      "aliases": ["desert", "stargazing"]
+    },
+    {
+      "id": "nature-ecotourism",
+      "label": "Nature and eco-tourism",
+      "parentId": null,
+      "description": "Nature experiences emphasizing environmental care.",
+      "aliases": ["nature", "eco-tourism"]
+    },
+    {
+      "id": "romantic",
+      "label": "Romantic travel",
+      "parentId": null,
+      "description": "Experiences commonly selected for romantic trips; subjective editorial classification.",
+      "aliases": ["romantic"]
+    },
+    {
+      "id": "family-friendly",
+      "label": "Family-friendly travel",
+      "parentId": null,
+      "description": "Experiences with family suitability established by editorial review, not assumed from category.",
+      "aliases": ["family"]
+    },
+    {
+      "id": "backpacking-budget",
+      "label": "Backpacking and budget travel",
+      "parentId": null,
+      "description": "Budget-oriented and backpacking trip styles; price claims need separate sourced estimates.",
+      "aliases": ["backpacking", "budget"]
+    },
+    {
+      "id": "wellness-yoga-ayurveda",
+      "label": "Wellness, yoga and Ayurveda",
+      "parentId": null,
+      "description": "Wellness experiences, yoga and Ayurveda-related travel.",
+      "aliases": ["wellness", "yoga", "ayurveda"]
+    },
+    {
+      "id": "photography",
+      "label": "Photography",
+      "parentId": null,
+      "description": "Places or activities selected for photography interest.",
+      "aliases": ["photography"]
+    },
+    {
+      "id": "village-tourism",
+      "label": "Village tourism",
+      "parentId": null,
+      "description": "Community-led village visits with consent and benefit-sharing requirements.",
+      "aliases": ["village"]
+    },
+    {
+      "id": "workation",
+      "label": "Workations",
+      "parentId": null,
+      "description": "Travel combining remote work and leisure; connectivity details require verification.",
+      "aliases": ["workation", "remote work"]
+    }
+  ]
+}

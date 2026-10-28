@@ -1,0 +1,52 @@
+{
+  "datasetId": "india-jaipur-v1",
+  "destinationId": "jaipur-in",
+  "version": "1.0.0",
+  "lastCheckedAt": "2026-10-28",
+  "recordCounts": {
+    "destinations": 1,
+    "places": 4,
+    "restaurants": 0,
+    "hotels": 0,
+    "experiences": 0,
+    "travelGuides": 1
+  },
+  "coverageNote": "Small sourced starter catalog. Zero records in restaurants/hotels/experiences means no entries were accepted yet; it does not mean none exist.",
+  "sources": [
+    {
+      "url": "https://pinkcity.jaipurmcheritage.org/Cityexplorepage/CityProfile.aspx",
+      "owner": "Jaipur Municipal Corporation Heritage Cell",
+      "attribution": "Jaipur Municipal Corporation Heritage Cell, City Profile",
+      "licenseOrPolicy": "Government city profile; no explicit reuse license identified. Store only the city-center coordinates and attribution; reconfirm terms before expanding stored content.",
+      "storagePolicy": "Factual coordinate only; no page text or images copied."
+    },
+    {
+      "url": "https://www.tourism.rajasthan.gov.in/jaipur.html",
+      "owner": "Department of Tourism, Government of Rajasthan",
+      "attribution": "Department of Tourism, Government of Rajasthan, Jaipur page",
+      "licenseOrPolicy": "Rajasthan Tourism copyright policy allows accurate reproduction with prominent source acknowledgement, excluding third-party material.",
+      "storagePolicy": "Store factual names and identifiers only; do not store page images or third-party content. Verify each fact again before adding volatile details."
+    },
+    {
+      "url": "https://www.tourism.rajasthan.gov.in/amber-palace.html",
+      "owner": "Department of Tourism, Government of Rajasthan",
+      "attribution": "Department of Tourism, Government of Rajasthan, Amber Palace page",
+      "licenseOrPolicy": "Rajasthan Tourism copyright policy; factual name only, prominent attribution, no third-party assets.",
+      "storagePolicy": "Name and stable identifier only."
+    },
+    {
+      "url": "https://www.tourism.rajasthan.gov.in/hawa-mahal.html",
+      "owner": "Department of Tourism, Government of Rajasthan",
+      "attribution": "Department of Tourism, Government of Rajasthan, Hawa Mahal page",
+      "licenseOrPolicy": "Rajasthan Tourism copyright policy; factual name only, prominent attribution, no third-party assets.",
+      "storagePolicy": "Name and stable identifier only."
+    },
+    {
+      "url": "https://www.tourism.rajasthan.gov.in/circulars-and-policies/privacy-policy.html",
+      "owner": "Department of Tourism, Government of Rajasthan",
+      "attribution": "Department of Tourism, Government of Rajasthan, Website Policies — Copyright Policy",
+      "licenseOrPolicy": "Accurate reproduction in any medium with prominent acknowledgement; permission does not extend to third-party material.",
+      "storagePolicy": "Policy reference only."
+    }
+  ]
+}
