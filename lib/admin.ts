@@ -1,4 +1,5 @@
 import "server-only";
+import { getServerEnvironment } from "@/lib/env";
 import { isAdminIdentity } from "./domain/ownership";
 
 type AdminCandidate = {
@@ -8,5 +9,8 @@ type AdminCandidate = {
 };
 
 export function isAdmin(user: AdminCandidate): boolean {
-  return isAdminIdentity(user, (process.env.ADMIN_USERS ?? "").split(","));
+  return isAdminIdentity(
+    user,
+    (getServerEnvironment().ADMIN_USERS ?? "").split(","),
+  );
 }

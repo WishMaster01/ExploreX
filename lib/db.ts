@@ -2,8 +2,9 @@
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@/lib/generated/prisma/client";
 import "server-only";
+import { getServerEnvironment } from "@/lib/env";
 
-const connectionString = process.env.DATABASE_URL;
+const connectionString = getServerEnvironment().DATABASE_URL;
 
 if (!connectionString) {
   throw new Error("DATABASE_URL must be configured to connect to PostgreSQL.");

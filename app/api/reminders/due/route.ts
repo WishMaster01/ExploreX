@@ -2,14 +2,19 @@ import { apiError, apiOk, serverError } from "@/lib/api";
 import { ReminderStatus } from "@/lib/generated/prisma/client";
 import { prisma } from "@/lib/db";
 import "server-only";
+import { getServerEnvironment } from "@/lib/env";
 
 export async function GET(request: Request) {
   try {
-    const secret = process.env.CRON_SECRET;
-    if (
-      !secret ||
-      request.headers.get("authorization") !== `Bearer ${secret}`
-    ) {
+    const secret = getServerEnvironment().CRON_SECRET;
+    if (!secret) {
+      return apiError(
+        "Reminder processing is not configured",
+        503,
+        "SERVICE_UNAVAILABLE",
+      );
+    }
+    if (request.headers.get("authorization") !== `Bearer ${secret}`) {
       return apiError("Unauthorized", 401, "UNAUTHORIZED");
     }
     const reminders = await prisma.reminder.findMany({

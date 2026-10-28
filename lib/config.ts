@@ -1,3 +1,5 @@
+import { getServerEnvironment } from "@/lib/env";
+
 export const APP_CONFIG = {
   api: {
     maxJsonBodyBytes: 256_000,
@@ -12,10 +14,10 @@ export const APP_CONFIG = {
     featureMaxMessages: 16,
     maxMessageChars: 4_000,
     inputCostPerMillionUsd: optionalPositiveNumber(
-      process.env.OPENROUTER_INPUT_COST_PER_MILLION,
+      getServerEnvironment().OPENROUTER_INPUT_COST_PER_MILLION?.toString(),
     ),
     outputCostPerMillionUsd: optionalPositiveNumber(
-      process.env.OPENROUTER_OUTPUT_COST_PER_MILLION,
+      getServerEnvironment().OPENROUTER_OUTPUT_COST_PER_MILLION?.toString(),
     ),
   },
   travelData: {

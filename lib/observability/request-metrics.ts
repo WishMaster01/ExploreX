@@ -4,7 +4,7 @@ import "server-only";
 
 type RouteHandler = () => Promise<Response>;
 
-function requestIdFrom(request: Request) {
+export function requestIdFrom(request: Request) {
   const supplied = request.headers.get("x-request-id");
   return supplied && /^[A-Za-z0-9._-]{1,80}$/.test(supplied)
     ? supplied

@@ -9,6 +9,8 @@ import {
 import { serverLogger } from "@/lib/observability/server-logger";
 import { parseAiOutput } from "./validation";
 import { MalformedAiOutputError } from "./errors";
+import { getServerEnvironment } from "@/lib/env";
+import { DomainError } from "@/lib/domain/errors";
 import "server-only";
 
 const aiQueue = new AsyncRequestQueue(
@@ -98,7 +100,7 @@ export async function generateAiResponse<T>(options: {
   jsonMode: boolean;
   onMetrics?: (metrics: AiGenerationMetrics) => void;
 }): Promise<{ data: T; metrics: AiGenerationMetrics }> {
-  const apiKey = process.env.OPENROUTER_API_KEY;
+  const apiKey = getServerEnvironment().OPENROUTER_API_KEY;
   if (!apiKey) throw new AiProviderConfigurationError();
   const client = new OpenAI({
     apiKey,

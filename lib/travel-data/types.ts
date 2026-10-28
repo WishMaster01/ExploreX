@@ -1,9 +1,13 @@
 export const travelSourceTypes = [
   "VERIFIED",
+  "PROVIDER_SOURCED",
+  "COMMUNITY_SUBMITTED",
   "ESTIMATED",
   "AI_GENERATED",
+  "STALE",
   "USER_PROVIDED",
   "UNAVAILABLE",
+  "REJECTED",
 ] as const;
 
 export type TravelSourceType = (typeof travelSourceTypes)[number];
@@ -40,18 +44,9 @@ export interface TravelDataProvider {
   searchRestaurants(
     query: string,
   ): Promise<TravelProviderResult<TravelPlace[]>>;
-  getRoute(
-    origin: string,
-    destination: string,
-  ): Promise<TravelProviderResult<unknown>>;
-  getWeather(
-    latitude: number,
-    longitude: number,
-  ): Promise<TravelProviderResult<unknown>>;
-  getCurrencyRate(
-    from: string,
-    to: string,
-  ): Promise<TravelProviderResult<unknown>>;
+  getRoute(): Promise<TravelProviderResult<null>>;
+  getWeather(): Promise<TravelProviderResult<null>>;
+  getCurrencyRate(): Promise<TravelProviderResult<null>>;
 }
 
 export function sourceMetadata(

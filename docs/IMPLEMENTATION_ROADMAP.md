@@ -2,6 +2,10 @@
 
 Roadmap prepared from the repository audit dated 2026-10-27. It is an ordered backlog, not authorization to perform a product refactor. Preserve current saved data, global destination support and working planner flows while India-specific capabilities are added.
 
+**Phase 1 status:** Canonical contracts, typed provider ports (including non-`unknown` unavailable capability results), a no-invention legacy-plan adapter, domain errors, shared environment parsing at feature composition points, request correlation helper reuse, provenance correction for exact Google listing matches, tests and architecture decisions are implemented additively. Existing API/persistence/UI wire DTO migration and full live provider adapters remain future work. See [ADR 0001](./DECISIONS/0001-domain-contracts.md) and [ADR 0002](./DECISIONS/0002-application-boundaries.md).
+
+**Phase 1 checks (2026-10-27):** `npm run lint`, sequential `npm run typecheck`, and `npm run prisma:validate` passed. `npm test` failed during Vitest/Vite config startup with Windows `spawn EPERM`, before test execution. `npm run build` compiled in 13.3s, then failed starting Next's TypeScript worker with `spawn EPERM`; standalone typecheck passed. A concurrent initial check briefly caused Prisma generation `ENOENT`; sequential rerun passed. No code-level assertion failure was reported.
+
 ## Guiding constraints
 
 - Prefer additive migrations and reversible UI/data changes; do not delete existing features or records.

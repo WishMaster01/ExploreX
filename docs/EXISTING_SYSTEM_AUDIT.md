@@ -4,6 +4,8 @@
 **Scope:** Repository inspection, code-level risk review and available local baseline commands. This is not a penetration test, live database migration rehearsal, production configuration review, browser accessibility audit, or runtime load test.  
 **Change scope:** Documentation only; no application code or data was changed.
 
+> **Follow-up:** Phase 1 added canonical travel contracts, typed provider ports, a legacy-plan adapter, shared environment parsing at selected feature boundaries, and ADRs. Its changed files and current validation/migration implications are recorded in [DECISIONS/0001](./DECISIONS/0001-domain-contracts.md), [DECISIONS/0002](./DECISIONS/0002-application-boundaries.md), and the Phase 1 status in [IMPLEMENTATION_ROADMAP.md](./IMPLEMENTATION_ROADMAP.md). This original audit's change-scope statement applies to the Phase 0 audit commit only.
+
 ## Summary
 
 ExploreX is an India-relevant but currently global-first travel planner built with Next.js 16 App Router, React 19 and TypeScript. Clerk authenticates the web app; route handlers use Prisma 7/PostgreSQL, OpenRouter produces AI trip candidates, and deterministic TypeScript modules optimize itinerary order, scheduling, modeled costs and ranking. Static destination/city catalogs and optional Open-Meteo/Google Places calls supplement the experience.

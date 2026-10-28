@@ -7,13 +7,8 @@ import type {
 } from "./types";
 import { fetchWithTimeout } from "./fetch-with-timeout";
 import { serverLogger } from "@/lib/observability/server-logger";
-
-type GooglePlaceResult = {
-  places?: Array<{
-    id?: string;
-    displayName?: { text?: string };
-  }>;
-};
+import { getServerEnvironment } from "@/lib/env";
+import { DomainError } from "@/lib/domain/errors";
 
 const EMPTY_RESULT = (
   provider: string,
@@ -39,7 +34,13 @@ function parsePlaces(value: unknown): TravelPlace[] {
     const name = isRecord(place.displayName)
       ? place.displayName.text
       : undefined;
-    if (typeof place.id !== "string" || typeof name !== "string") return [];
+    if (
+      typeof place.id !== "string" ||
+      typeof name !== "string" ||
+      !place.id.trim() ||
+      !name.trim()
+    )
+      return [];
     return [
       {
         id: place.id,
@@ -135,6 +136,22 @@ export class GooglePlacesProvider implements TravelDataProvider {
         };
       }
       const places = parsePlaces(await response.json());
+      if (!places.length) {
+        serverLogger.warn("travel_data.response.invalid", {
+          provider: this.name,
+          feature,
+        });
+        return {
+          status: "error",
+          data: [],
+          source: {
+            source: "UNAVAILABLE",
+            provider: this.name,
+            retrievedAt: new Date().toISOString(),
+            note: "Places provider returned no usable place records.",
+          },
+        };
+      }
       serverLogger.info("travel_data.request.completed", {
         provider: this.name,
         feature,
@@ -147,7 +164,7 @@ export class GooglePlacesProvider implements TravelDataProvider {
         status: "available",
         data: places,
         source: {
-          source: "VERIFIED",
+          source: "PROVIDER_SOURCED",
           provider: this.name,
           retrievedAt: new Date().toISOString(),
         },
@@ -174,7 +191,7 @@ export class GooglePlacesProvider implements TravelDataProvider {
 }
 
 export function getTravelDataProvider(): TravelDataProvider {
-  const key = process.env.GOOGLE_MAPS_API_KEY;
+  const key = getServerEnvironment().GOOGLE_MAPS_API_KEY;
   return key
     ? new GooglePlacesProvider(key)
     : new UnavailableTravelDataProvider();
@@ -184,5 +201,11 @@ export function createGooglePlacesProvider(
   apiKey: string,
   fetcher: typeof fetch = fetch,
 ) {
+  if (!apiKey.trim()) {
+    throw new DomainError(
+      "CONFIGURATION_ERROR",
+      "Google Places provider requires an API key",
+    );
+  }
   return new GooglePlacesProvider(apiKey, fetcher);
 }

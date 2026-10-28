@@ -1,6 +1,6 @@
 # ExploreX architecture (repository audit)
 
-Audit snapshot: 2026-10-27. This document describes the checked-in application. Provider availability and production deployment state are not inferred from local configuration.
+Audit snapshot: 2026-10-27. This document describes the checked-in application. Provider availability and production deployment state are not inferred from local configuration. Phase 1 contracts are summarized below; see `docs/DECISIONS/` for the accepted decisions.
 
 ## System map
 
@@ -53,6 +53,12 @@ Middleware intentionally leaves `/api(.*)` public at the middleware boundary. AP
 - `prisma/`: PostgreSQL Prisma schema and five committed migrations. `lib/generated/prisma/` is generated and ignored.
 - `scripts/`: legacy DB seed and city-guide/site-dataset seed scripts.
 - `docs/`: architecture, security, performance, earlier audits and quality report.
+
+## Phase 1 domain boundaries
+
+`lib/domain/travel.ts` is the canonical provider-neutral contract layer. It models destinations, places (shared by experiences/restaurants/hotels), route legs, weather observations, guides, discoveries and itinerary activities. Money estimates carry ISO currency and a unit; source metadata can differ at entity and price level. `lib/travel-data/legacy-trip-adapter.ts` maps existing AI trip data into these contracts without guessing unresolved country or currency values. Source states and freshness fields are defined in [ADR 0001](./DECISIONS/0001-domain-contracts.md).
+
+`lib/travel-data/ports.ts` defines provider inputs and canonical outputs. Implementations translate vendor structures inside adapters. Existing saved-trip AI JSON and routes remain compatible; `TravelDataProvider` no longer returns `unknown` for unavailable route/weather/currency capabilities. New typed application errors live in `lib/domain/errors.ts`; `lib/env.ts` parses optional server settings at DB, AI, Places, admin and cron feature boundaries, and request correlation parsing is exported from request metrics. See [ADR 0002](./DECISIONS/0002-application-boundaries.md) for dependency direction and gradual migration rules.
 
 ## Trip-generation path
 

@@ -67,12 +67,12 @@ export function verifiedPlaceMetadata(
   retrievedAt: string | null,
 ): TravelSourceMetadata {
   return {
-    source: "VERIFIED",
+    source: "PROVIDER_SOURCED",
     provider: "google_places",
     retrievedAt,
     placeId: place.id,
     ...(place.mapsUrl ? { mapsUrl: place.mapsUrl } : {}),
-    note: "The exact place name was matched to a Google Maps listing. Address, coordinates, hours, prices, images, and availability are not verified.",
+    note: "The exact place name matched a Google Maps listing. Only provider listing identity is sourced; address, coordinates, hours, prices, images, and availability are not independently verified.",
   };
 }
 
