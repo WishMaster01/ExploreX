@@ -1,0 +1,37 @@
+{
+  "id": "bali-indonesia",
+  "label": "Bali, Indonesia",
+  "name": "Bali",
+  "destinationType": "island",
+  "city": null,
+  "state": null,
+  "country": "Indonesia",
+  "parentDestinationId": null,
+  "aliases": [
+    "Denpasar"
+  ],
+  "coordinates": {
+    "latitude": -8.3405,
+    "longitude": 115.092
+  },
+  "popularity": 99,
+  "categoryIds": [],
+  "sourceRefs": [],
+  "status": "NEEDS_REVIEW",
+  "lastVerifiedAt": null,
+  "provenance": {
+    "status": "NEEDS_REVIEW",
+    "provider": null,
+    "providerRecordId": null,
+    "sourceUrl": null,
+    "license": null,
+    "attribution": null,
+    "fetchedAt": null,
+    "lastVerifiedAt": null,
+    "verificationNotes": [
+      "Preserved from the legacy hardcoded destination list; original source citation and verification date were not recorded."
+    ]
+  },
+  "countryCode": "ID",
+  "timeZone": null
+}

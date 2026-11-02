@@ -1,0 +1,35 @@
+{
+  "id": "melbourne-australia",
+  "label": "Melbourne, Victoria, Australia",
+  "name": "Melbourne",
+  "destinationType": "city",
+  "city": "Melbourne",
+  "state": "Victoria",
+  "country": "Australia",
+  "parentDestinationId": null,
+  "aliases": [],
+  "coordinates": {
+    "latitude": -37.8136,
+    "longitude": 144.9631
+  },
+  "popularity": 94,
+  "categoryIds": [],
+  "sourceRefs": [],
+  "status": "NEEDS_REVIEW",
+  "lastVerifiedAt": null,
+  "provenance": {
+    "status": "NEEDS_REVIEW",
+    "provider": null,
+    "providerRecordId": null,
+    "sourceUrl": null,
+    "license": null,
+    "attribution": null,
+    "fetchedAt": null,
+    "lastVerifiedAt": null,
+    "verificationNotes": [
+      "Preserved from the legacy hardcoded destination list; original source citation and verification date were not recorded."
+    ]
+  },
+  "countryCode": "AU",
+  "timeZone": null
+}

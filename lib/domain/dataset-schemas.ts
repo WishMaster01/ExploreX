@@ -179,9 +179,12 @@ export const datasetGuideSchema = withConsistentProvenance(
 
 export const taxonomyCategorySchema = z
   .object({
-    id: idSchema,
+    id: z.string().regex(/^[a-z][a-z0-9_-]*$/),
     label: z.string().trim().min(2).max(120),
-    parentId: idSchema.nullable(),
+    parentId: z
+      .string()
+      .regex(/^[a-z][a-z0-9_-]*$/)
+      .nullable(),
     description: z.string().trim().min(3).max(500),
     aliases: z.array(z.string().trim().min(1).max(100)).max(20).default([]),
   })

@@ -1,0 +1,51 @@
+{
+  "id": "jaipur-in",
+  "label": "Jaipur, Rajasthan, India",
+  "name": "Jaipur",
+  "destinationType": "city",
+  "city": "Jaipur",
+  "state": "Rajasthan",
+  "country": "India",
+  "parentDestinationId": null,
+  "aliases": [
+    "Pink City"
+  ],
+  "coordinates": {
+    "latitude": 26.9124,
+    "longitude": 75.7873
+  },
+  "popularity": 93,
+  "categoryIds": [
+    "heritage-forts-palaces",
+    "culture-arts-festivals",
+    "food-street-food",
+    "weekend-getaway",
+    "photography",
+    "backpacking-budget",
+    "family-friendly",
+    "romantic",
+    "workation"
+  ],
+  "sourceRefs": [
+    "jaipur-municipal-city-profile",
+    "rajasthan-tourism-jaipur",
+    "rajasthan-tourism-copyright-policy"
+  ],
+  "status": "VERIFIED",
+  "lastVerifiedAt": "2026-10-28",
+  "provenance": {
+    "status": "VERIFIED",
+    "provider": "Jaipur Municipal Corporation Heritage Cell",
+    "providerRecordId": null,
+    "sourceUrl": "https://pinkcity.jaipurmcheritage.org/Cityexplorepage/CityProfile.aspx",
+    "license": "Factual city coordinate only; reuse terms should be reconfirmed before expanding stored content.",
+    "attribution": "Jaipur Municipal Corporation Heritage Cell, City Profile",
+    "fetchedAt": null,
+    "lastVerifiedAt": "2026-10-28",
+    "verificationNotes": [
+      "Coordinates identify the city center, not a point of interest."
+    ]
+  },
+  "countryCode": "IN",
+  "timeZone": "Asia/Kolkata"
+}

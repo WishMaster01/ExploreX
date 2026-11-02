@@ -83,9 +83,9 @@ export function ExploreCitiesClient({
           </h1>
 
           <p className="mt-4 text-base text-slate-300">
-            Every destination is loaded with daily budgets, top attractions,
-            seasons, transit, and local culture structured for seamless
-            itinerary planning.
+            Browse starter editorial guides. Costs, opening details, locations,
+            and seasonal advice may be unverified; confirm them with official
+            sources before you travel.
           </p>
         </div>
 
@@ -145,7 +145,7 @@ export function ExploreCitiesClient({
                   {/* Weather Tag */}
                   <div className="absolute top-3.5 right-3.5 flex items-center gap-1.5 rounded-full border border-white/20 bg-slate-950/70 px-3 py-1 text-[11px] font-semibold text-white backdrop-blur-md">
                     <CloudSun className="size-3.5 text-amber-400" />
-                    <span>{city.weather.temp}</span>
+                    <span>Weather unavailable</span>
                   </div>
 
                   {/* City & Country */}
@@ -168,7 +168,7 @@ export function ExploreCitiesClient({
                     <div className="flex items-center gap-2">
                       <Wallet2 className="size-4 text-amber-400 shrink-0" />
                       <span className="text-white font-medium">
-                        {city.estimatedDailyCost}
+                        Cost not verified
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
@@ -177,7 +177,9 @@ export function ExploreCitiesClient({
                     </div>
                     <div className="flex items-center gap-2">
                       <MapPin className="size-4 text-sky-400 shrink-0" />
-                      <span>{city.places.length} curated destinations</span>
+                      <span>
+                        {city.places.length} guide entries · review pending
+                      </span>
                     </div>
                   </div>
                 </div>

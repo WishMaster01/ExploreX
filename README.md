@@ -360,7 +360,7 @@ Results are ordered by due time and limited to 100 reminders per call. Polling d
 ## Architecture boundaries
 
 - `lib/domain/` contains shared domain types and Zod validation.
-- `lib/data/` contains curated destination and travel guidance; these are not live provider results.
+- `lib/data/` adapts the canonical destination catalog in `data/catalogs/`; see [travel data model, source policy and commands](docs/TRAVEL_DATA.md) and [generated destination coverage](docs/TRAVEL_DATA_COVERAGE.md).
 - `lib/algorithms/` contains provider-independent ranking, route approximation, scheduling, and cache primitives.
 - `lib/config.ts` centralizes model, cache, queue, and pagination defaults.
 - `lib/observability/` provides structured, redacted application logs.

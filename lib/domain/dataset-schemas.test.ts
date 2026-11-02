@@ -5,7 +5,7 @@ import restaurants from "../../data/restaurants/jaipur.json";
 import hotels from "../../data/hotels/jaipur.json";
 import experiences from "../../data/experiences/jaipur.json";
 import guide from "../../data/travel-guides/jaipur.json";
-import taxonomyData from "../../data/taxonomy/categories.json";
+import taxonomyData from "../../data/catalogs/travel-taxonomy.json";
 import manifest from "../../data/manifests/jaipur.json";
 import {
   datasetDestinationSchema,
@@ -20,6 +20,7 @@ import {
   unmanifestedEvidenceReferences,
   unknownCategoryReferences,
 } from "./dataset-schemas";
+import { flattenTravelTaxonomy } from "./travel-data-schemas";
 
 describe("Jaipur travel catalog", () => {
   it("validates all checked-in data records and the licensing manifest", () => {
@@ -45,8 +46,8 @@ describe("Jaipur travel catalog", () => {
   });
 
   it("supports the requested category range and valid multi-category references", () => {
-    const taxonomy = taxonomySchema.parse(taxonomyData);
-    expect(taxonomy.categories.length).toBeGreaterThanOrEqual(18);
+    const taxonomy = taxonomySchema.parse(flattenTravelTaxonomy(taxonomyData));
+    expect(taxonomy.categories.length).toBeGreaterThanOrEqual(30);
     const catalog = jaipurCatalogSchema.parse({
       destination,
       places,

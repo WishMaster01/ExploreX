@@ -1,5 +1,7 @@
-# Dataset schema ownership
+# Dataset schemas
 
-Runtime source of truth is the Zod schema module [`lib/domain/dataset-schemas.ts`](../../lib/domain/dataset-schemas.ts), built on canonical domain schemas in [`lib/domain/travel.ts`](../../lib/domain/travel.ts). JSON files in sibling dataset directories are parsed against these schemas by `scripts/import-india-catalog.mjs` and validated in tests. Do not create parallel handwritten JSON Schema definitions; generate/publish JSON Schema only if a consumer requires it.
+The canonical Zod runtime schemas are in [`lib/domain/travel-data-schemas.ts`](../../lib/domain/travel-data-schemas.ts). `lib/domain/dataset-schemas.ts` remains the compatibility contract for the earlier Jaipur API payload.
 
-Records use stable kebab-case IDs, ISO country/state codes, IANA timezones, optional coordinates, explicit multi-category IDs, provenance status and `lastCheckedAt`. Each record includes evidence URLs, attribution and a permitted-use note. Missing values are omitted, not replaced with estimates. `verificationStatus` describes record review state; nested `source.status` is scoped to the fact represented by that field.
+Destination records use stable IDs, a geographic type, ISO country code, optional coordinates and IANA timezone, parent links, aliases, popularity score, category IDs, source references, status, and provenance. Popularity is a product rank rather than a verified tourism statistic. Entity records share stable IDs, destination/category/source references, verification status, provenance, and last-verification timestamps. Event dates, route measurements, timezones, prices, and verified-source requirements have explicit validation rules.
+
+The travel guide schema separates source-backed factual claims with freshness limits from editorial advice. Empty arrays are allowed; unverified facts must stay absent. Provider responses should be mapped to these ExploreX contracts before reaching UI components.

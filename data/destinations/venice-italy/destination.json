@@ -1,0 +1,35 @@
+{
+  "id": "venice-italy",
+  "label": "Venice, Italy",
+  "name": "Venice",
+  "destinationType": "city",
+  "city": "Venice",
+  "state": null,
+  "country": "Italy",
+  "parentDestinationId": null,
+  "aliases": [],
+  "coordinates": {
+    "latitude": 45.4408,
+    "longitude": 12.3155
+  },
+  "popularity": 96,
+  "categoryIds": [],
+  "sourceRefs": [],
+  "status": "NEEDS_REVIEW",
+  "lastVerifiedAt": null,
+  "provenance": {
+    "status": "NEEDS_REVIEW",
+    "provider": null,
+    "providerRecordId": null,
+    "sourceUrl": null,
+    "license": null,
+    "attribution": null,
+    "fetchedAt": null,
+    "lastVerifiedAt": null,
+    "verificationNotes": [
+      "Preserved from the legacy hardcoded destination list; original source citation and verification date were not recorded."
+    ]
+  },
+  "countryCode": "IT",
+  "timeZone": null
+}

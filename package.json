@@ -21,6 +21,10 @@
     "db:seed-cities": "npm run db:seed-content",
     "data:validate": "node --experimental-strip-types scripts/import-india-catalog.mjs",
     "data:import:jaipur": "node --experimental-strip-types scripts/import-india-catalog.mjs --apply",
+    "travel-data:validate": "node --experimental-strip-types scripts/travel-data.mjs validate",
+    "travel-data:manifest": "node --experimental-strip-types scripts/travel-data.mjs manifest",
+    "travel-data:report": "node --experimental-strip-types scripts/travel-data.mjs report",
+    "travel-data:import": "node --experimental-strip-types scripts/travel-data.mjs import",
     "db:studio": "prisma studio",
     "prisma:validate": "prisma validate"
   },

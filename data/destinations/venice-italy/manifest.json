@@ -1,0 +1,78 @@
+{
+  "schemaVersion": "1.0.0",
+  "destinationId": "venice-italy",
+  "generatedAt": "2026-10-28T17:03:52.749Z",
+  "datasets": {
+    "destination": {
+      "filePath": "data/destinations/venice-italy/destination.json",
+      "recordCount": 1,
+      "sourceCoverage": "none",
+      "validationStatus": "valid",
+      "freshnessDays": null
+    },
+    "places": {
+      "filePath": "data/destinations/venice-italy/places.json",
+      "recordCount": 0,
+      "sourceCoverage": "none",
+      "validationStatus": "valid",
+      "freshnessDays": null
+    },
+    "restaurants": {
+      "filePath": "data/destinations/venice-italy/restaurants.json",
+      "recordCount": 0,
+      "sourceCoverage": "none",
+      "validationStatus": "valid",
+      "freshnessDays": null
+    },
+    "hotels": {
+      "filePath": "data/destinations/venice-italy/hotels.json",
+      "recordCount": 0,
+      "sourceCoverage": "none",
+      "validationStatus": "valid",
+      "freshnessDays": null
+    },
+    "experiences": {
+      "filePath": "data/destinations/venice-italy/experiences.json",
+      "recordCount": 0,
+      "sourceCoverage": "none",
+      "validationStatus": "valid",
+      "freshnessDays": null
+    },
+    "events": {
+      "filePath": "data/destinations/venice-italy/events.json",
+      "recordCount": 0,
+      "sourceCoverage": "none",
+      "validationStatus": "valid",
+      "freshnessDays": null
+    },
+    "routes": {
+      "filePath": "data/destinations/venice-italy/routes.json",
+      "recordCount": 0,
+      "sourceCoverage": "none",
+      "validationStatus": "valid",
+      "freshnessDays": null
+    },
+    "travelGuide": {
+      "filePath": "data/destinations/venice-italy/travel-guide.json",
+      "recordCount": 0,
+      "sourceCoverage": "none",
+      "validationStatus": "valid",
+      "freshnessDays": null
+    }
+  },
+  "recordCounts": {
+    "destination": 1,
+    "places": 0,
+    "restaurants": 0,
+    "hotels": 0,
+    "experiences": 0,
+    "events": 0,
+    "routes": 0,
+    "travelGuide": 0
+  },
+  "sourceRefs": [],
+  "coverageStatus": "not_started",
+  "validationStatus": "valid",
+  "issues": [],
+  "lastSuccessfulImportAt": null
+}

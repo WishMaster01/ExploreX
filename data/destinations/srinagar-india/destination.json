@@ -1,0 +1,35 @@
+{
+  "id": "srinagar-india",
+  "label": "Srinagar, Jammu and Kashmir, India",
+  "name": "Srinagar",
+  "destinationType": "city",
+  "city": "Srinagar",
+  "state": "Jammu and Kashmir",
+  "country": "India",
+  "parentDestinationId": null,
+  "aliases": [],
+  "coordinates": {
+    "latitude": 34.0837,
+    "longitude": 74.7973
+  },
+  "popularity": 89,
+  "categoryIds": [],
+  "sourceRefs": [],
+  "status": "NEEDS_REVIEW",
+  "lastVerifiedAt": null,
+  "provenance": {
+    "status": "NEEDS_REVIEW",
+    "provider": null,
+    "providerRecordId": null,
+    "sourceUrl": null,
+    "license": null,
+    "attribution": null,
+    "fetchedAt": null,
+    "lastVerifiedAt": null,
+    "verificationNotes": [
+      "Preserved from the legacy hardcoded destination list; original source citation and verification date were not recorded."
+    ]
+  },
+  "countryCode": "IN",
+  "timeZone": null
+}

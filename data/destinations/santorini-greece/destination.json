@@ -1,0 +1,35 @@
+{
+  "id": "santorini-greece",
+  "label": "Santorini, Greece",
+  "name": "Santorini",
+  "destinationType": "city",
+  "city": "Santorini",
+  "state": null,
+  "country": "Greece",
+  "parentDestinationId": null,
+  "aliases": [],
+  "coordinates": {
+    "latitude": 36.3932,
+    "longitude": 25.4615
+  },
+  "popularity": 96,
+  "categoryIds": [],
+  "sourceRefs": [],
+  "status": "NEEDS_REVIEW",
+  "lastVerifiedAt": null,
+  "provenance": {
+    "status": "NEEDS_REVIEW",
+    "provider": null,
+    "providerRecordId": null,
+    "sourceUrl": null,
+    "license": null,
+    "attribution": null,
+    "fetchedAt": null,
+    "lastVerifiedAt": null,
+    "verificationNotes": [
+      "Preserved from the legacy hardcoded destination list; original source citation and verification date were not recorded."
+    ]
+  },
+  "countryCode": "GR",
+  "timeZone": null
+}

@@ -1,0 +1,35 @@
+{
+  "id": "paris-france",
+  "label": "Paris, France",
+  "name": "Paris",
+  "destinationType": "city",
+  "city": "Paris",
+  "state": null,
+  "country": "France",
+  "parentDestinationId": null,
+  "aliases": [],
+  "coordinates": {
+    "latitude": 48.8566,
+    "longitude": 2.3522
+  },
+  "popularity": 100,
+  "categoryIds": [],
+  "sourceRefs": [],
+  "status": "NEEDS_REVIEW",
+  "lastVerifiedAt": null,
+  "provenance": {
+    "status": "NEEDS_REVIEW",
+    "provider": null,
+    "providerRecordId": null,
+    "sourceUrl": null,
+    "license": null,
+    "attribution": null,
+    "fetchedAt": null,
+    "lastVerifiedAt": null,
+    "verificationNotes": [
+      "Preserved from the legacy hardcoded destination list; original source citation and verification date were not recorded."
+    ]
+  },
+  "countryCode": "FR",
+  "timeZone": null
+}

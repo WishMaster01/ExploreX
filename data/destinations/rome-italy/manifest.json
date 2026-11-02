@@ -1,0 +1,78 @@
+{
+  "schemaVersion": "1.0.0",
+  "destinationId": "rome-italy",
+  "generatedAt": "2026-10-28T17:03:52.749Z",
+  "datasets": {
+    "destination": {
+      "filePath": "data/destinations/rome-italy/destination.json",
+      "recordCount": 1,
+      "sourceCoverage": "none",
+      "validationStatus": "valid",
+      "freshnessDays": null
+    },
+    "places": {
+      "filePath": "data/destinations/rome-italy/places.json",
+      "recordCount": 0,
+      "sourceCoverage": "none",
+      "validationStatus": "valid",
+      "freshnessDays": null
+    },
+    "restaurants": {
+      "filePath": "data/destinations/rome-italy/restaurants.json",
+      "recordCount": 0,
+      "sourceCoverage": "none",
+      "validationStatus": "valid",
+      "freshnessDays": null
+    },
+    "hotels": {
+      "filePath": "data/destinations/rome-italy/hotels.json",
+      "recordCount": 0,
+      "sourceCoverage": "none",
+      "validationStatus": "valid",
+      "freshnessDays": null
+    },
+    "experiences": {
+      "filePath": "data/destinations/rome-italy/experiences.json",
+      "recordCount": 0,
+      "sourceCoverage": "none",
+      "validationStatus": "valid",
+      "freshnessDays": null
+    },
+    "events": {
+      "filePath": "data/destinations/rome-italy/events.json",
+      "recordCount": 0,
+      "sourceCoverage": "none",
+      "validationStatus": "valid",
+      "freshnessDays": null
+    },
+    "routes": {
+      "filePath": "data/destinations/rome-italy/routes.json",
+      "recordCount": 0,
+      "sourceCoverage": "none",
+      "validationStatus": "valid",
+      "freshnessDays": null
+    },
+    "travelGuide": {
+      "filePath": "data/destinations/rome-italy/travel-guide.json",
+      "recordCount": 0,
+      "sourceCoverage": "none",
+      "validationStatus": "valid",
+      "freshnessDays": null
+    }
+  },
+  "recordCounts": {
+    "destination": 1,
+    "places": 0,
+    "restaurants": 0,
+    "hotels": 0,
+    "experiences": 0,
+    "events": 0,
+    "routes": 0,
+    "travelGuide": 0
+  },
+  "sourceRefs": [],
+  "coverageStatus": "not_started",
+  "validationStatus": "valid",
+  "issues": [],
+  "lastSuccessfulImportAt": null
+}

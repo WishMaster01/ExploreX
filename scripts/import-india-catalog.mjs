@@ -15,6 +15,7 @@ import {
   unmanifestedEvidenceReferences,
   unknownCategoryReferences,
 } from "../lib/domain/dataset-schemas.ts";
+import { flattenTravelTaxonomy } from "../lib/domain/travel-data-schemas.ts";
 
 const root = path.resolve(import.meta.dirname, "..");
 const generatedDir = path.join(root, "data", "manifests", "generated");
@@ -89,8 +90,10 @@ let manifest;
 let destination;
 let catalog;
 try {
-  const rawTaxonomy = await readDataset("data/taxonomy/categories.json");
-  const parsedTaxonomy = taxonomySchema.safeParse(rawTaxonomy);
+  const rawTaxonomy = await readDataset("data/catalogs/travel-taxonomy.json");
+  const parsedTaxonomy = taxonomySchema.safeParse(
+    flattenTravelTaxonomy(rawTaxonomy),
+  );
   if (!parsedTaxonomy.success)
     noteIssues("taxonomy", rawTaxonomy, parsedTaxonomy.error.issues);
   else taxonomy = parsedTaxonomy.data;

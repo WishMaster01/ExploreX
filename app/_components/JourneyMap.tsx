@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, Compass, Database, MapPin, Sparkles } from "lucide-react";
+import { ArrowRight, Compass } from "lucide-react";
 import { DESTINATIONS } from "@/lib/data/destinations";
 import { exploreCities } from "@/lib/data/cities";
 
@@ -19,7 +19,7 @@ type Waypoint = {
   popularity: number;
 };
 
-// Map real server destinations with exact geographic coordinates
+// Show directory coordinates as location hints; this component does not calculate routes.
 const realWaypoints: Waypoint[] = [
   "Bali",
   "Dubai",
@@ -37,7 +37,13 @@ const realWaypoints: Waypoint[] = [
     const city = exploreCities.find(
       (c) => c.name.toLowerCase() === cityName.toLowerCase(),
     );
-    if (!dest || !city) return null;
+    if (
+      !dest ||
+      !city ||
+      dest.latitude === undefined ||
+      dest.longitude === undefined
+    )
+      return null;
 
     // Standard equirectangular projection onto 100% canvas
     const x = Math.min(
@@ -93,7 +99,12 @@ export function JourneyMap() {
             const city = cityRows.find(
               (item) => item.name.toLowerCase() === dest.city.toLowerCase(),
             );
-            if (!city) return [];
+            if (
+              !city ||
+              dest.latitude === undefined ||
+              dest.longitude === undefined
+            )
+              return [];
             const x = Math.min(
               94,
               Math.max(6, Math.round(((dest.longitude + 180) / 360) * 100)),
@@ -128,10 +139,10 @@ export function JourneyMap() {
 
   return (
     <section className="relative overflow-hidden py-20 px-4 sm:px-6 lg:px-8 border-t border-white/10 bg-[#090d16]">
-      {/* Real Geographic Data Indicator */}
+      {/* Destination coordinate provenance indicator */}
       <div className="pointer-events-none absolute left-6 top-8 opacity-25 select-none">
         <div className="w-28 h-28 rounded-full border border-teal-500/40 flex items-center justify-center text-[10px] font-mono text-teal-300 uppercase text-center p-2">
-          GEOGRAPHIC COORDINATES · SERVER SYNCED
+          DIRECTORY COORDINATES · REVIEW STATUS
         </div>
       </div>
 
@@ -141,15 +152,15 @@ export function JourneyMap() {
           <div>
             <div className="inline-flex items-center gap-2 rounded-full border border-teal-500/30 bg-teal-500/10 px-3.5 py-1 text-xs font-semibold uppercase tracking-widest text-teal-300">
               <Compass className="size-3.5" />
-              Real Geographic Routing
+              Destination Coordinates
             </div>
             <h2 className="mt-4 font-display text-4xl sm:text-5xl font-bold tracking-tight text-white">
               Journey Map
             </h2>
             <p className="mt-4 text-base leading-relaxed text-slate-300">
-              Plotted from exact server coordinates across Europe, Asia, Africa,
-              and the Americas. Select any waypoint to view its destination
-              dossier.
+              Pins use the existing destination directory coordinates. Most
+              legacy coordinates still need source verification; these are
+              location hints, not navigation or route data.
             </p>
 
             {/* Selected Waypoint Preview Card */}
@@ -196,38 +207,10 @@ export function JourneyMap() {
             </div>
           </div>
 
-          {/* Right Visual Map Canvas with Interactive Geocoded Pins */}
+          {/* Right visual map canvas with directory-coordinate pins */}
           <div className="relative aspect-[16/10] w-full rounded-3xl border border-white/10 bg-[#0c121e] overflow-hidden shadow-2xl">
             {/* Dark Stylized World Map Grid */}
             <div className="absolute inset-0 opacity-20 bg-[radial-gradient(#38bdf8_1px,transparent_1px)] [background-size:24px_24px]" />
-
-            {/* Flight Trail Connecting Real Waypoints */}
-            <svg
-              className="absolute inset-0 size-full pointer-events-none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <defs>
-                <linearGradient
-                  id="realFlightPath"
-                  x1="0%"
-                  y1="0%"
-                  x2="100%"
-                  y2="100%"
-                >
-                  <stop offset="0%" stopColor="#2dd4bf" stopOpacity="0.8" />
-                  <stop offset="50%" stopColor="#38bdf8" stopOpacity="0.8" />
-                  <stop offset="100%" stopColor="#fbbf24" stopOpacity="0.8" />
-                </linearGradient>
-              </defs>
-              <path
-                d="M 280 180 Q 490 140, 560 210 T 780 200 T 750 350"
-                fill="none"
-                stroke="url(#realFlightPath)"
-                strokeWidth="2"
-                strokeDasharray="6 6"
-                className="animate-pulse"
-              />
-            </svg>
 
             {/* Interactive Location Pins */}
             {waypoints.map((point) => {

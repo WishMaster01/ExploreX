@@ -1,0 +1,37 @@
+{
+  "id": "kochi-india",
+  "label": "Kochi, Kerala, India",
+  "name": "Kochi",
+  "destinationType": "city",
+  "city": "Kochi",
+  "state": "Kerala",
+  "country": "India",
+  "parentDestinationId": null,
+  "aliases": [
+    "Cochin"
+  ],
+  "coordinates": {
+    "latitude": 9.9312,
+    "longitude": 76.2673
+  },
+  "popularity": 88,
+  "categoryIds": [],
+  "sourceRefs": [],
+  "status": "NEEDS_REVIEW",
+  "lastVerifiedAt": null,
+  "provenance": {
+    "status": "NEEDS_REVIEW",
+    "provider": null,
+    "providerRecordId": null,
+    "sourceUrl": null,
+    "license": null,
+    "attribution": null,
+    "fetchedAt": null,
+    "lastVerifiedAt": null,
+    "verificationNotes": [
+      "Preserved from the legacy hardcoded destination list; original source citation and verification date were not recorded."
+    ]
+  },
+  "countryCode": "IN",
+  "timeZone": null
+}

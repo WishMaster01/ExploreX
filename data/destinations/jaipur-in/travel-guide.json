@@ -1,0 +1,36 @@
+{
+  "id": "jaipur-starter-guide",
+  "destinationId": "jaipur-in",
+  "overview": "",
+  "bestTimeToVisit": [],
+  "transportAdvice": [],
+  "localEtiquette": [],
+  "safetyGuidance": [],
+  "accessibilityNotes": [],
+  "budgetGuidance": [],
+  "categoryIds": [
+    "heritage-forts-palaces",
+    "culture-arts-festivals",
+    "weekend-getaway"
+  ],
+  "sourceRefs": [],
+  "verificationStatus": "NEEDS_REVIEW",
+  "provenance": {
+    "status": "NEEDS_REVIEW",
+    "provider": null,
+    "providerRecordId": null,
+    "sourceUrl": null,
+    "license": null,
+    "attribution": null,
+    "fetchedAt": null,
+    "lastVerifiedAt": null,
+    "verificationNotes": [
+      "No destination guide claims have been independently sourced for this record."
+    ]
+  },
+  "lastVerifiedAt": null,
+  "factualClaims": [],
+  "editorialAdvice": [
+    "Starter catalog only. Attraction names are sourced from Rajasthan Tourism; restaurant recommendations, prices, opening hours, attraction coordinates and current availability have not yet been verified."
+  ]
+}

@@ -147,6 +147,11 @@ export function CityDetailHUD({ city }: { city: ExploreCity }) {
       </div>
 
       <div className="relative mx-auto max-w-[1440px]">
+        <p className="mb-5 rounded-xl border border-amber-400/30 bg-amber-400/10 px-4 py-3 text-sm text-amber-100">
+          Legacy editorial guide. Places and practical details have not been
+          source-verified; costs, addresses, schedules, safety, and seasonal
+          advice may be outdated. Confirm details with official sources.
+        </p>
         {/* Top Spatial VisionOS Navigation Bar (Image 2 exact style) */}
         <div className="mb-8 flex flex-wrap items-center justify-between gap-4 rounded-3xl border border-white/15 bg-slate-900/70 p-3.5 backdrop-blur-2xl shadow-2xl">
           {/* Left: City Explorer Title & Back button */}
@@ -309,16 +314,16 @@ export function CityDetailHUD({ city }: { city: ExploreCity }) {
                   {city.tagline} {city.summary}
                 </p>
 
-                {/* Weather Pill (Image 2 exact pill with live API feed) */}
+                {/* Show weather only when the live provider returned data. */}
                 <div className="mt-5 inline-flex items-center gap-2 rounded-full border border-white/20 bg-slate-900/70 px-4 py-2 text-xs font-semibold text-white backdrop-blur-xl shadow-lg">
                   <CloudSun className="size-4 text-amber-400" />
                   <span>
                     {liveWeather
                       ? `${liveWeather.temp} ${liveWeather.condition}`
-                      : `${city.weather.temp} ${city.weather.condition}`}
+                      : "Weather unavailable"}
                   </span>
                   <span className="text-[10px] text-teal-400 font-mono pl-1">
-                    {liveWeather ? "· Live Weather" : "· Regional Average"}
+                    {liveWeather ? "· Live weather" : "· No current data"}
                   </span>
                 </div>
               </div>
@@ -334,7 +339,7 @@ export function CityDetailHUD({ city }: { city: ExploreCity }) {
                       {selectedPlace.name}
                     </h4>
                     <p className="text-xs text-slate-400 truncate">
-                      {selectedPlace.address || city.featuredLandmark.address}
+                      Location details not verified
                     </p>
                   </div>
                 </div>
@@ -418,7 +423,7 @@ export function CityDetailHUD({ city }: { city: ExploreCity }) {
                             <span className="mt-1 flex items-center gap-1 text-[10px] text-slate-500 truncate">
                               <MapPin className="size-3 text-amber-400 shrink-0" />
                               <span className="truncate">
-                                {place.address || city.name}
+                                Location details not verified
                               </span>
                             </span>
                           </div>
@@ -445,10 +450,8 @@ export function CityDetailHUD({ city }: { city: ExploreCity }) {
               {/* Bottom Quick Action */}
               <div className="mt-5 pt-4 border-t border-white/10 flex items-center justify-between">
                 <span className="text-xs text-slate-400">
-                  Estimated daily cost:{" "}
-                  <strong className="text-white">
-                    {city.estimatedDailyCost}
-                  </strong>
+                  Daily cost:{" "}
+                  <strong className="text-white">Not source-verified</strong>
                 </span>
                 <Link
                   href={`/create-new-trip?destination=${encodeURIComponent(
@@ -468,7 +471,7 @@ export function CityDetailHUD({ city }: { city: ExploreCity }) {
           <Fact
             icon={<Wallet2 />}
             label="Daily estimate"
-            value={city.estimatedDailyCost}
+            value="Not source-verified"
           />
           <Fact
             icon={<CalendarDays />}
@@ -530,7 +533,7 @@ export function CityDetailHUD({ city }: { city: ExploreCity }) {
                         Cost
                       </span>
                       <strong className="text-xs text-amber-300">
-                        {place.estimatedCost}
+                        Not source-verified
                       </strong>
                     </div>
                     <div className="rounded-xl bg-white/5 p-2">

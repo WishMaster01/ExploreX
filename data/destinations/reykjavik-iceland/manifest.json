@@ -1,0 +1,78 @@
+{
+  "schemaVersion": "1.0.0",
+  "destinationId": "reykjavik-iceland",
+  "generatedAt": "2026-10-28T17:03:52.749Z",
+  "datasets": {
+    "destination": {
+      "filePath": "data/destinations/reykjavik-iceland/destination.json",
+      "recordCount": 1,
+      "sourceCoverage": "none",
+      "validationStatus": "valid",
+      "freshnessDays": null
+    },
+    "places": {
+      "filePath": "data/destinations/reykjavik-iceland/places.json",
+      "recordCount": 0,
+      "sourceCoverage": "none",
+      "validationStatus": "valid",
+      "freshnessDays": null
+    },
+    "restaurants": {
+      "filePath": "data/destinations/reykjavik-iceland/restaurants.json",
+      "recordCount": 0,
+      "sourceCoverage": "none",
+      "validationStatus": "valid",
+      "freshnessDays": null
+    },
+    "hotels": {
+      "filePath": "data/destinations/reykjavik-iceland/hotels.json",
+      "recordCount": 0,
+      "sourceCoverage": "none",
+      "validationStatus": "valid",
+      "freshnessDays": null
+    },
+    "experiences": {
+      "filePath": "data/destinations/reykjavik-iceland/experiences.json",
+      "recordCount": 0,
+      "sourceCoverage": "none",
+      "validationStatus": "valid",
+      "freshnessDays": null
+    },
+    "events": {
+      "filePath": "data/destinations/reykjavik-iceland/events.json",
+      "recordCount": 0,
+      "sourceCoverage": "none",
+      "validationStatus": "valid",
+      "freshnessDays": null
+    },
+    "routes": {
+      "filePath": "data/destinations/reykjavik-iceland/routes.json",
+      "recordCount": 0,
+      "sourceCoverage": "none",
+      "validationStatus": "valid",
+      "freshnessDays": null
+    },
+    "travelGuide": {
+      "filePath": "data/destinations/reykjavik-iceland/travel-guide.json",
+      "recordCount": 0,
+      "sourceCoverage": "none",
+      "validationStatus": "valid",
+      "freshnessDays": null
+    }
+  },
+  "recordCounts": {
+    "destination": 1,
+    "places": 0,
+    "restaurants": 0,
+    "hotels": 0,
+    "experiences": 0,
+    "events": 0,
+    "routes": 0,
+    "travelGuide": 0
+  },
+  "sourceRefs": [],
+  "coverageStatus": "not_started",
+  "validationStatus": "valid",
+  "issues": [],
+  "lastSuccessfulImportAt": null
+}

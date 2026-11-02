@@ -1,0 +1,35 @@
+{
+  "id": "sydney-australia",
+  "label": "Sydney, New South Wales, Australia",
+  "name": "Sydney",
+  "destinationType": "city",
+  "city": "Sydney",
+  "state": "New South Wales",
+  "country": "Australia",
+  "parentDestinationId": null,
+  "aliases": [],
+  "coordinates": {
+    "latitude": -33.8688,
+    "longitude": 151.2093
+  },
+  "popularity": 98,
+  "categoryIds": [],
+  "sourceRefs": [],
+  "status": "NEEDS_REVIEW",
+  "lastVerifiedAt": null,
+  "provenance": {
+    "status": "NEEDS_REVIEW",
+    "provider": null,
+    "providerRecordId": null,
+    "sourceUrl": null,
+    "license": null,
+    "attribution": null,
+    "fetchedAt": null,
+    "lastVerifiedAt": null,
+    "verificationNotes": [
+      "Preserved from the legacy hardcoded destination list; original source citation and verification date were not recorded."
+    ]
+  },
+  "countryCode": "AU",
+  "timeZone": null
+}

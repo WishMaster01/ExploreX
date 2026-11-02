@@ -1,0 +1,35 @@
+{
+  "id": "rome-italy",
+  "label": "Rome, Italy",
+  "name": "Rome",
+  "destinationType": "city",
+  "city": "Rome",
+  "state": null,
+  "country": "Italy",
+  "parentDestinationId": null,
+  "aliases": [],
+  "coordinates": {
+    "latitude": 41.9028,
+    "longitude": 12.4964
+  },
+  "popularity": 98,
+  "categoryIds": [],
+  "sourceRefs": [],
+  "status": "NEEDS_REVIEW",
+  "lastVerifiedAt": null,
+  "provenance": {
+    "status": "NEEDS_REVIEW",
+    "provider": null,
+    "providerRecordId": null,
+    "sourceUrl": null,
+    "license": null,
+    "attribution": null,
+    "fetchedAt": null,
+    "lastVerifiedAt": null,
+    "verificationNotes": [
+      "Preserved from the legacy hardcoded destination list; original source citation and verification date were not recorded."
+    ]
+  },
+  "countryCode": "IT",
+  "timeZone": null
+}

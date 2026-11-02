@@ -48,7 +48,9 @@ function coordinatesForCity(cityQuery: string) {
       item.city.toLocaleLowerCase() === normalized ||
       item.label.toLocaleLowerCase() === normalized,
   );
-  return destination
+  return destination &&
+    destination.latitude !== undefined &&
+    destination.longitude !== undefined
     ? { latitude: destination.latitude, longitude: destination.longitude }
     : null;
 }

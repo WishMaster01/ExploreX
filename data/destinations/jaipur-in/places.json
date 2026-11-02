@@ -1,0 +1,122 @@
+[
+  {
+    "id": "amber-palace-jaipur",
+    "destinationId": "jaipur-in",
+    "categoryIds": [
+      "heritage-forts-palaces",
+      "culture-arts-festivals",
+      "photography",
+      "family-friendly"
+    ],
+    "sourceRefs": [
+      "rajasthan-tourism-amber-palace"
+    ],
+    "verificationStatus": "VERIFIED",
+    "provenance": {
+      "status": "VERIFIED",
+      "provider": "Department of Tourism, Government of Rajasthan",
+      "providerRecordId": null,
+      "sourceUrl": "https://www.tourism.rajasthan.gov.in/amber-palace.html",
+      "license": "Rajasthan Tourism copyright policy; factual name only, prominent attribution, no third-party assets.",
+      "attribution": "Department of Tourism, Government of Rajasthan, Amber Palace page",
+      "fetchedAt": null,
+      "lastVerifiedAt": "2026-10-28",
+      "verificationNotes": [
+        "Only factual identity/name is represented; omitted coordinates and volatile visit details are not verified by this record."
+      ]
+    },
+    "lastVerifiedAt": "2026-10-28",
+    "name": "Amber Palace",
+    "placeType": "attraction"
+  },
+  {
+    "id": "city-palace-jaipur",
+    "destinationId": "jaipur-in",
+    "categoryIds": [
+      "heritage-forts-palaces",
+      "culture-arts-festivals",
+      "photography",
+      "family-friendly"
+    ],
+    "sourceRefs": [
+      "rajasthan-tourism-jaipur"
+    ],
+    "verificationStatus": "VERIFIED",
+    "provenance": {
+      "status": "VERIFIED",
+      "provider": "Department of Tourism, Government of Rajasthan",
+      "providerRecordId": null,
+      "sourceUrl": "https://www.tourism.rajasthan.gov.in/jaipur.html",
+      "license": "Rajasthan Tourism copyright policy permits accurate reproduction with prominent acknowledgement; third-party material is excluded.",
+      "attribution": "Department of Tourism, Government of Rajasthan, Jaipur page",
+      "fetchedAt": null,
+      "lastVerifiedAt": "2026-10-28",
+      "verificationNotes": [
+        "Only factual identity/name is represented; omitted coordinates and volatile visit details are not verified by this record."
+      ]
+    },
+    "lastVerifiedAt": "2026-10-28",
+    "name": "City Palace",
+    "placeType": "attraction"
+  },
+  {
+    "id": "jantar-mantar-jaipur",
+    "destinationId": "jaipur-in",
+    "categoryIds": [
+      "heritage-forts-palaces",
+      "culture-arts-festivals",
+      "photography",
+      "family-friendly"
+    ],
+    "sourceRefs": [
+      "rajasthan-tourism-jaipur"
+    ],
+    "verificationStatus": "VERIFIED",
+    "provenance": {
+      "status": "VERIFIED",
+      "provider": "Department of Tourism, Government of Rajasthan",
+      "providerRecordId": null,
+      "sourceUrl": "https://www.tourism.rajasthan.gov.in/jaipur.html",
+      "license": "Rajasthan Tourism copyright policy permits accurate reproduction with prominent acknowledgement; third-party material is excluded.",
+      "attribution": "Department of Tourism, Government of Rajasthan, Jaipur page",
+      "fetchedAt": null,
+      "lastVerifiedAt": "2026-10-28",
+      "verificationNotes": [
+        "Only factual identity/name is represented; omitted coordinates and volatile visit details are not verified by this record."
+      ]
+    },
+    "lastVerifiedAt": "2026-10-28",
+    "name": "Jantar Mantar",
+    "placeType": "attraction"
+  },
+  {
+    "id": "hawa-mahal-jaipur",
+    "destinationId": "jaipur-in",
+    "categoryIds": [
+      "heritage-forts-palaces",
+      "culture-arts-festivals",
+      "photography",
+      "family-friendly"
+    ],
+    "sourceRefs": [
+      "rajasthan-tourism-hawa-mahal"
+    ],
+    "verificationStatus": "VERIFIED",
+    "provenance": {
+      "status": "VERIFIED",
+      "provider": "Department of Tourism, Government of Rajasthan",
+      "providerRecordId": null,
+      "sourceUrl": "https://www.tourism.rajasthan.gov.in/hawa-mahal.html",
+      "license": "Rajasthan Tourism copyright policy; factual name only, prominent attribution, no third-party assets.",
+      "attribution": "Department of Tourism, Government of Rajasthan, Hawa Mahal page",
+      "fetchedAt": null,
+      "lastVerifiedAt": "2026-10-28",
+      "verificationNotes": [
+        "Only factual identity/name is represented; omitted coordinates and volatile visit details are not verified by this record."
+      ]
+    },
+    "lastVerifiedAt": "2026-10-28",
+    "name": "Hawa Mahal",
+    "placeType": "attraction"
+  }
+]

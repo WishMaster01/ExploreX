@@ -19,6 +19,12 @@ const nextConfig: NextConfig = {
   },
   reactStrictMode: true,
   serverExternalPackages: ["@prisma/adapter-pg", "pg"],
+  outputFileTracingIncludes: {
+    "/api/catalog/[destination]": [
+      "./data/destinations/**/*",
+      "./data/catalogs/*.json",
+    ],
+  },
   async headers() {
     return [
       {

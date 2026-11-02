@@ -1,0 +1,34 @@
+{
+  "id": "maldives",
+  "label": "Maldives",
+  "name": "Maldives",
+  "destinationType": "country",
+  "city": null,
+  "state": null,
+  "country": "Maldives",
+  "parentDestinationId": null,
+  "aliases": [
+    "Maldives"
+  ],
+  "coordinates": null,
+  "popularity": 95,
+  "categoryIds": [],
+  "sourceRefs": [],
+  "status": "NEEDS_REVIEW",
+  "lastVerifiedAt": null,
+  "provenance": {
+    "status": "NEEDS_REVIEW",
+    "provider": null,
+    "providerRecordId": null,
+    "sourceUrl": null,
+    "license": null,
+    "attribution": null,
+    "fetchedAt": null,
+    "lastVerifiedAt": null,
+    "verificationNotes": [
+      "Country-level parent added to represent the existing Malé destination correctly; no coordinates inferred."
+    ]
+  },
+  "countryCode": "MV",
+  "timeZone": null
+}

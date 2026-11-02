@@ -1,0 +1,30 @@
+{
+  "id": "melbourne-australia-guide",
+  "destinationId": "melbourne-australia",
+  "overview": "",
+  "bestTimeToVisit": [],
+  "transportAdvice": [],
+  "localEtiquette": [],
+  "safetyGuidance": [],
+  "accessibilityNotes": [],
+  "budgetGuidance": [],
+  "categoryIds": [],
+  "sourceRefs": [],
+  "verificationStatus": "UNAVAILABLE",
+  "provenance": {
+    "status": "UNAVAILABLE",
+    "provider": null,
+    "providerRecordId": null,
+    "sourceUrl": null,
+    "license": null,
+    "attribution": null,
+    "fetchedAt": null,
+    "lastVerifiedAt": null,
+    "verificationNotes": [
+      "No travel guide claims or source records are available for this destination yet."
+    ]
+  },
+  "lastVerifiedAt": null,
+  "factualClaims": [],
+  "editorialAdvice": []
+}

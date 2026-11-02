@@ -1,0 +1,35 @@
+{
+  "id": "hyderabad-india",
+  "label": "Hyderabad, Telangana, India",
+  "name": "Hyderabad",
+  "destinationType": "city",
+  "city": "Hyderabad",
+  "state": "Telangana",
+  "country": "India",
+  "parentDestinationId": null,
+  "aliases": [],
+  "coordinates": {
+    "latitude": 17.385,
+    "longitude": 78.4867
+  },
+  "popularity": 87,
+  "categoryIds": [],
+  "sourceRefs": [],
+  "status": "NEEDS_REVIEW",
+  "lastVerifiedAt": null,
+  "provenance": {
+    "status": "NEEDS_REVIEW",
+    "provider": null,
+    "providerRecordId": null,
+    "sourceUrl": null,
+    "license": null,
+    "attribution": null,
+    "fetchedAt": null,
+    "lastVerifiedAt": null,
+    "verificationNotes": [
+      "Preserved from the legacy hardcoded destination list; original source citation and verification date were not recorded."
+    ]
+  },
+  "countryCode": "IN",
+  "timeZone": null
+}

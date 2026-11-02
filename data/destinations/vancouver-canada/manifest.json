@@ -1,0 +1,78 @@
+{
+  "schemaVersion": "1.0.0",
+  "destinationId": "vancouver-canada",
+  "generatedAt": "2026-10-28T17:03:52.749Z",
+  "datasets": {
+    "destination": {
+      "filePath": "data/destinations/vancouver-canada/destination.json",
+      "recordCount": 1,
+      "sourceCoverage": "none",
+      "validationStatus": "valid",
+      "freshnessDays": null
+    },
+    "places": {
+      "filePath": "data/destinations/vancouver-canada/places.json",
+      "recordCount": 0,
+      "sourceCoverage": "none",
+      "validationStatus": "valid",
+      "freshnessDays": null
+    },
+    "restaurants": {
+      "filePath": "data/destinations/vancouver-canada/restaurants.json",
+      "recordCount": 0,
+      "sourceCoverage": "none",
+      "validationStatus": "valid",
+      "freshnessDays": null
+    },
+    "hotels": {
+      "filePath": "data/destinations/vancouver-canada/hotels.json",
+      "recordCount": 0,
+      "sourceCoverage": "none",
+      "validationStatus": "valid",
+      "freshnessDays": null
+    },
+    "experiences": {
+      "filePath": "data/destinations/vancouver-canada/experiences.json",
+      "recordCount": 0,
+      "sourceCoverage": "none",
+      "validationStatus": "valid",
+      "freshnessDays": null
+    },
+    "events": {
+      "filePath": "data/destinations/vancouver-canada/events.json",
+      "recordCount": 0,
+      "sourceCoverage": "none",
+      "validationStatus": "valid",
+      "freshnessDays": null
+    },
+    "routes": {
+      "filePath": "data/destinations/vancouver-canada/routes.json",
+      "recordCount": 0,
+      "sourceCoverage": "none",
+      "validationStatus": "valid",
+      "freshnessDays": null
+    },
+    "travelGuide": {
+      "filePath": "data/destinations/vancouver-canada/travel-guide.json",
+      "recordCount": 0,
+      "sourceCoverage": "none",
+      "validationStatus": "valid",
+      "freshnessDays": null
+    }
+  },
+  "recordCounts": {
+    "destination": 1,
+    "places": 0,
+    "restaurants": 0,
+    "hotels": 0,
+    "experiences": 0,
+    "events": 0,
+    "routes": 0,
+    "travelGuide": 0
+  },
+  "sourceRefs": [],
+  "coverageStatus": "not_started",
+  "validationStatus": "valid",
+  "issues": [],
+  "lastSuccessfulImportAt": null
+}

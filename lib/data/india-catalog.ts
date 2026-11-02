@@ -4,14 +4,17 @@ import rawRestaurants from "../../data/restaurants/jaipur.json";
 import rawHotels from "../../data/hotels/jaipur.json";
 import rawExperiences from "../../data/experiences/jaipur.json";
 import rawGuide from "../../data/travel-guides/jaipur.json";
-import rawTaxonomy from "../../data/taxonomy/categories.json";
+import rawTaxonomy from "../../data/catalogs/travel-taxonomy.json";
 import {
   jaipurCatalogSchema,
   taxonomySchema,
   unknownCategoryReferences,
 } from "@/lib/domain/dataset-schemas";
+import { flattenTravelTaxonomy } from "@/lib/domain/travel-data-schemas";
 
-const taxonomyResult = taxonomySchema.safeParse(rawTaxonomy);
+const taxonomyResult = taxonomySchema.safeParse(
+  flattenTravelTaxonomy(rawTaxonomy),
+);
 if (!taxonomyResult.success) {
   throw new Error("The checked-in travel taxonomy is invalid.");
 }

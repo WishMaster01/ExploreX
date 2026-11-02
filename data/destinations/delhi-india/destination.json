@@ -1,0 +1,37 @@
+{
+  "id": "delhi-india",
+  "label": "Delhi, India",
+  "name": "Delhi",
+  "destinationType": "city",
+  "city": "Delhi",
+  "state": null,
+  "country": "India",
+  "parentDestinationId": null,
+  "aliases": [
+    "New Delhi"
+  ],
+  "coordinates": {
+    "latitude": 28.6139,
+    "longitude": 77.209
+  },
+  "popularity": 99,
+  "categoryIds": [],
+  "sourceRefs": [],
+  "status": "NEEDS_REVIEW",
+  "lastVerifiedAt": null,
+  "provenance": {
+    "status": "NEEDS_REVIEW",
+    "provider": null,
+    "providerRecordId": null,
+    "sourceUrl": null,
+    "license": null,
+    "attribution": null,
+    "fetchedAt": null,
+    "lastVerifiedAt": null,
+    "verificationNotes": [
+      "Preserved from the legacy hardcoded destination list; original source citation and verification date were not recorded."
+    ]
+  },
+  "countryCode": "IN",
+  "timeZone": null
+}

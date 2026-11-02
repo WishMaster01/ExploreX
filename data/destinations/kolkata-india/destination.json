@@ -1,0 +1,37 @@
+{
+  "id": "kolkata-india",
+  "label": "Kolkata, West Bengal, India",
+  "name": "Kolkata",
+  "destinationType": "city",
+  "city": "Kolkata",
+  "state": "West Bengal",
+  "country": "India",
+  "parentDestinationId": null,
+  "aliases": [
+    "Calcutta"
+  ],
+  "coordinates": {
+    "latitude": 22.5726,
+    "longitude": 88.3639
+  },
+  "popularity": 86,
+  "categoryIds": [],
+  "sourceRefs": [],
+  "status": "NEEDS_REVIEW",
+  "lastVerifiedAt": null,
+  "provenance": {
+    "status": "NEEDS_REVIEW",
+    "provider": null,
+    "providerRecordId": null,
+    "sourceUrl": null,
+    "license": null,
+    "attribution": null,
+    "fetchedAt": null,
+    "lastVerifiedAt": null,
+    "verificationNotes": [
+      "Preserved from the legacy hardcoded destination list; original source citation and verification date were not recorded."
+    ]
+  },
+  "countryCode": "IN",
+  "timeZone": null
+}

@@ -1,0 +1,37 @@
+{
+  "id": "udaipur-india",
+  "label": "Udaipur, Rajasthan, India",
+  "name": "Udaipur",
+  "destinationType": "city",
+  "city": "Udaipur",
+  "state": "Rajasthan",
+  "country": "India",
+  "parentDestinationId": null,
+  "aliases": [
+    "City of Lakes"
+  ],
+  "coordinates": {
+    "latitude": 24.5854,
+    "longitude": 73.7125
+  },
+  "popularity": 88,
+  "categoryIds": [],
+  "sourceRefs": [],
+  "status": "NEEDS_REVIEW",
+  "lastVerifiedAt": null,
+  "provenance": {
+    "status": "NEEDS_REVIEW",
+    "provider": null,
+    "providerRecordId": null,
+    "sourceUrl": null,
+    "license": null,
+    "attribution": null,
+    "fetchedAt": null,
+    "lastVerifiedAt": null,
+    "verificationNotes": [
+      "Preserved from the legacy hardcoded destination list; original source citation and verification date were not recorded."
+    ]
+  },
+  "countryCode": "IN",
+  "timeZone": null
+}

@@ -1,0 +1,1451 @@
+{
+  "version": "1.0.0",
+  "destinations": [
+    {
+      "id": "mumbai-india",
+      "label": "Mumbai, Maharashtra, India",
+      "name": "Mumbai",
+      "destinationType": "city",
+      "city": "Mumbai",
+      "state": "Maharashtra",
+      "country": "India",
+      "parentDestinationId": null,
+      "aliases": ["Bombay"],
+      "coordinates": {
+        "latitude": 19.076,
+        "longitude": 72.8777
+      },
+      "popularity": 98,
+      "categoryIds": [],
+      "sourceRefs": [],
+      "status": "NEEDS_REVIEW",
+      "lastVerifiedAt": null,
+      "provenance": {
+        "status": "NEEDS_REVIEW",
+        "provider": null,
+        "providerRecordId": null,
+        "sourceUrl": null,
+        "license": null,
+        "attribution": null,
+        "fetchedAt": null,
+        "lastVerifiedAt": null,
+        "verificationNotes": [
+          "Preserved from the legacy hardcoded destination list; original source citation and verification date were not recorded."
+        ]
+      },
+      "countryCode": "IN",
+      "timeZone": null
+    },
+    {
+      "id": "delhi-india",
+      "label": "Delhi, India",
+      "name": "Delhi",
+      "destinationType": "city",
+      "city": "Delhi",
+      "state": null,
+      "country": "India",
+      "parentDestinationId": null,
+      "aliases": ["New Delhi"],
+      "coordinates": {
+        "latitude": 28.6139,
+        "longitude": 77.209
+      },
+      "popularity": 99,
+      "categoryIds": [],
+      "sourceRefs": [],
+      "status": "NEEDS_REVIEW",
+      "lastVerifiedAt": null,
+      "provenance": {
+        "status": "NEEDS_REVIEW",
+        "provider": null,
+        "providerRecordId": null,
+        "sourceUrl": null,
+        "license": null,
+        "attribution": null,
+        "fetchedAt": null,
+        "lastVerifiedAt": null,
+        "verificationNotes": [
+          "Preserved from the legacy hardcoded destination list; original source citation and verification date were not recorded."
+        ]
+      },
+      "countryCode": "IN",
+      "timeZone": null
+    },
+    {
+      "id": "bengaluru-india",
+      "label": "Bengaluru, Karnataka, India",
+      "name": "Bengaluru",
+      "destinationType": "city",
+      "city": "Bengaluru",
+      "state": "Karnataka",
+      "country": "India",
+      "parentDestinationId": null,
+      "aliases": ["Bangalore"],
+      "coordinates": {
+        "latitude": 12.9716,
+        "longitude": 77.5946
+      },
+      "popularity": 94,
+      "categoryIds": [],
+      "sourceRefs": [],
+      "status": "NEEDS_REVIEW",
+      "lastVerifiedAt": null,
+      "provenance": {
+        "status": "NEEDS_REVIEW",
+        "provider": null,
+        "providerRecordId": null,
+        "sourceUrl": null,
+        "license": null,
+        "attribution": null,
+        "fetchedAt": null,
+        "lastVerifiedAt": null,
+        "verificationNotes": [
+          "Preserved from the legacy hardcoded destination list; original source citation and verification date were not recorded."
+        ]
+      },
+      "countryCode": "IN",
+      "timeZone": null
+    },
+    {
+      "id": "goa-india",
+      "label": "Goa, India",
+      "name": "Goa",
+      "destinationType": "region",
+      "city": null,
+      "state": null,
+      "country": "India",
+      "parentDestinationId": null,
+      "aliases": ["Panaji"],
+      "coordinates": {
+        "latitude": 15.2993,
+        "longitude": 74.124
+      },
+      "popularity": 97,
+      "categoryIds": [],
+      "sourceRefs": [],
+      "status": "NEEDS_REVIEW",
+      "lastVerifiedAt": null,
+      "provenance": {
+        "status": "NEEDS_REVIEW",
+        "provider": null,
+        "providerRecordId": null,
+        "sourceUrl": null,
+        "license": null,
+        "attribution": null,
+        "fetchedAt": null,
+        "lastVerifiedAt": null,
+        "verificationNotes": [
+          "Preserved from the legacy hardcoded destination list; original source citation and verification date were not recorded."
+        ]
+      },
+      "countryCode": "IN",
+      "timeZone": null
+    },
+    {
+      "id": "jaipur-in",
+      "label": "Jaipur, Rajasthan, India",
+      "name": "Jaipur",
+      "destinationType": "city",
+      "city": "Jaipur",
+      "state": "Rajasthan",
+      "country": "India",
+      "parentDestinationId": null,
+      "aliases": ["Pink City"],
+      "coordinates": {
+        "latitude": 26.9124,
+        "longitude": 75.7873
+      },
+      "popularity": 93,
+      "categoryIds": [
+        "heritage-forts-palaces",
+        "culture-arts-festivals",
+        "food-street-food",
+        "weekend-getaway",
+        "photography",
+        "backpacking-budget",
+        "family-friendly",
+        "romantic",
+        "workation"
+      ],
+      "sourceRefs": [
+        "jaipur-municipal-city-profile",
+        "rajasthan-tourism-jaipur",
+        "rajasthan-tourism-copyright-policy"
+      ],
+      "status": "VERIFIED",
+      "lastVerifiedAt": "2026-10-28",
+      "provenance": {
+        "status": "VERIFIED",
+        "provider": "Jaipur Municipal Corporation Heritage Cell",
+        "providerRecordId": null,
+        "sourceUrl": "https://pinkcity.jaipurmcheritage.org/Cityexplorepage/CityProfile.aspx",
+        "license": "Factual city coordinate only; reuse terms should be reconfirmed before expanding stored content.",
+        "attribution": "Jaipur Municipal Corporation Heritage Cell, City Profile",
+        "fetchedAt": null,
+        "lastVerifiedAt": "2026-10-28",
+        "verificationNotes": [
+          "Coordinates identify the city center, not a point of interest."
+        ]
+      },
+      "countryCode": "IN",
+      "timeZone": "Asia/Kolkata"
+    },
+    {
+      "id": "agra-india",
+      "label": "Agra, Uttar Pradesh, India",
+      "name": "Agra",
+      "destinationType": "city",
+      "city": "Agra",
+      "state": "Uttar Pradesh",
+      "country": "India",
+      "parentDestinationId": null,
+      "aliases": ["Taj Mahal"],
+      "coordinates": {
+        "latitude": 27.1767,
+        "longitude": 78.0081
+      },
+      "popularity": 95,
+      "categoryIds": [],
+      "sourceRefs": [],
+      "status": "NEEDS_REVIEW",
+      "lastVerifiedAt": null,
+      "provenance": {
+        "status": "NEEDS_REVIEW",
+        "provider": null,
+        "providerRecordId": null,
+        "sourceUrl": null,
+        "license": null,
+        "attribution": null,
+        "fetchedAt": null,
+        "lastVerifiedAt": null,
+        "verificationNotes": [
+          "Preserved from the legacy hardcoded destination list; original source citation and verification date were not recorded."
+        ]
+      },
+      "countryCode": "IN",
+      "timeZone": null
+    },
+    {
+      "id": "varanasi-india",
+      "label": "Varanasi, Uttar Pradesh, India",
+      "name": "Varanasi",
+      "destinationType": "city",
+      "city": "Varanasi",
+      "state": "Uttar Pradesh",
+      "country": "India",
+      "parentDestinationId": null,
+      "aliases": ["Banaras", "Kashi"],
+      "coordinates": {
+        "latitude": 25.3176,
+        "longitude": 82.9739
+      },
+      "popularity": 90,
+      "categoryIds": [],
+      "sourceRefs": [],
+      "status": "NEEDS_REVIEW",
+      "lastVerifiedAt": null,
+      "provenance": {
+        "status": "NEEDS_REVIEW",
+        "provider": null,
+        "providerRecordId": null,
+        "sourceUrl": null,
+        "license": null,
+        "attribution": null,
+        "fetchedAt": null,
+        "lastVerifiedAt": null,
+        "verificationNotes": [
+          "Preserved from the legacy hardcoded destination list; original source citation and verification date were not recorded."
+        ]
+      },
+      "countryCode": "IN",
+      "timeZone": null
+    },
+    {
+      "id": "kochi-india",
+      "label": "Kochi, Kerala, India",
+      "name": "Kochi",
+      "destinationType": "city",
+      "city": "Kochi",
+      "state": "Kerala",
+      "country": "India",
+      "parentDestinationId": null,
+      "aliases": ["Cochin"],
+      "coordinates": {
+        "latitude": 9.9312,
+        "longitude": 76.2673
+      },
+      "popularity": 88,
+      "categoryIds": [],
+      "sourceRefs": [],
+      "status": "NEEDS_REVIEW",
+      "lastVerifiedAt": null,
+      "provenance": {
+        "status": "NEEDS_REVIEW",
+        "provider": null,
+        "providerRecordId": null,
+        "sourceUrl": null,
+        "license": null,
+        "attribution": null,
+        "fetchedAt": null,
+        "lastVerifiedAt": null,
+        "verificationNotes": [
+          "Preserved from the legacy hardcoded destination list; original source citation and verification date were not recorded."
+        ]
+      },
+      "countryCode": "IN",
+      "timeZone": null
+    },
+    {
+      "id": "manali-india",
+      "label": "Manali, Himachal Pradesh, India",
+      "name": "Manali",
+      "destinationType": "city",
+      "city": "Manali",
+      "state": "Himachal Pradesh",
+      "country": "India",
+      "parentDestinationId": null,
+      "aliases": [],
+      "coordinates": {
+        "latitude": 32.2396,
+        "longitude": 77.1887
+      },
+      "popularity": 91,
+      "categoryIds": [],
+      "sourceRefs": [],
+      "status": "NEEDS_REVIEW",
+      "lastVerifiedAt": null,
+      "provenance": {
+        "status": "NEEDS_REVIEW",
+        "provider": null,
+        "providerRecordId": null,
+        "sourceUrl": null,
+        "license": null,
+        "attribution": null,
+        "fetchedAt": null,
+        "lastVerifiedAt": null,
+        "verificationNotes": [
+          "Preserved from the legacy hardcoded destination list; original source citation and verification date were not recorded."
+        ]
+      },
+      "countryCode": "IN",
+      "timeZone": null
+    },
+    {
+      "id": "srinagar-india",
+      "label": "Srinagar, Jammu and Kashmir, India",
+      "name": "Srinagar",
+      "destinationType": "city",
+      "city": "Srinagar",
+      "state": "Jammu and Kashmir",
+      "country": "India",
+      "parentDestinationId": null,
+      "aliases": [],
+      "coordinates": {
+        "latitude": 34.0837,
+        "longitude": 74.7973
+      },
+      "popularity": 89,
+      "categoryIds": [],
+      "sourceRefs": [],
+      "status": "NEEDS_REVIEW",
+      "lastVerifiedAt": null,
+      "provenance": {
+        "status": "NEEDS_REVIEW",
+        "provider": null,
+        "providerRecordId": null,
+        "sourceUrl": null,
+        "license": null,
+        "attribution": null,
+        "fetchedAt": null,
+        "lastVerifiedAt": null,
+        "verificationNotes": [
+          "Preserved from the legacy hardcoded destination list; original source citation and verification date were not recorded."
+        ]
+      },
+      "countryCode": "IN",
+      "timeZone": null
+    },
+    {
+      "id": "udaipur-india",
+      "label": "Udaipur, Rajasthan, India",
+      "name": "Udaipur",
+      "destinationType": "city",
+      "city": "Udaipur",
+      "state": "Rajasthan",
+      "country": "India",
+      "parentDestinationId": null,
+      "aliases": ["City of Lakes"],
+      "coordinates": {
+        "latitude": 24.5854,
+        "longitude": 73.7125
+      },
+      "popularity": 88,
+      "categoryIds": [],
+      "sourceRefs": [],
+      "status": "NEEDS_REVIEW",
+      "lastVerifiedAt": null,
+      "provenance": {
+        "status": "NEEDS_REVIEW",
+        "provider": null,
+        "providerRecordId": null,
+        "sourceUrl": null,
+        "license": null,
+        "attribution": null,
+        "fetchedAt": null,
+        "lastVerifiedAt": null,
+        "verificationNotes": [
+          "Preserved from the legacy hardcoded destination list; original source citation and verification date were not recorded."
+        ]
+      },
+      "countryCode": "IN",
+      "timeZone": null
+    },
+    {
+      "id": "chennai-india",
+      "label": "Chennai, Tamil Nadu, India",
+      "name": "Chennai",
+      "destinationType": "city",
+      "city": "Chennai",
+      "state": "Tamil Nadu",
+      "country": "India",
+      "parentDestinationId": null,
+      "aliases": ["Madras"],
+      "coordinates": {
+        "latitude": 13.0827,
+        "longitude": 80.2707
+      },
+      "popularity": 86,
+      "categoryIds": [],
+      "sourceRefs": [],
+      "status": "NEEDS_REVIEW",
+      "lastVerifiedAt": null,
+      "provenance": {
+        "status": "NEEDS_REVIEW",
+        "provider": null,
+        "providerRecordId": null,
+        "sourceUrl": null,
+        "license": null,
+        "attribution": null,
+        "fetchedAt": null,
+        "lastVerifiedAt": null,
+        "verificationNotes": [
+          "Preserved from the legacy hardcoded destination list; original source citation and verification date were not recorded."
+        ]
+      },
+      "countryCode": "IN",
+      "timeZone": null
+    },
+    {
+      "id": "hyderabad-india",
+      "label": "Hyderabad, Telangana, India",
+      "name": "Hyderabad",
+      "destinationType": "city",
+      "city": "Hyderabad",
+      "state": "Telangana",
+      "country": "India",
+      "parentDestinationId": null,
+      "aliases": [],
+      "coordinates": {
+        "latitude": 17.385,
+        "longitude": 78.4867
+      },
+      "popularity": 87,
+      "categoryIds": [],
+      "sourceRefs": [],
+      "status": "NEEDS_REVIEW",
+      "lastVerifiedAt": null,
+      "provenance": {
+        "status": "NEEDS_REVIEW",
+        "provider": null,
+        "providerRecordId": null,
+        "sourceUrl": null,
+        "license": null,
+        "attribution": null,
+        "fetchedAt": null,
+        "lastVerifiedAt": null,
+        "verificationNotes": [
+          "Preserved from the legacy hardcoded destination list; original source citation and verification date were not recorded."
+        ]
+      },
+      "countryCode": "IN",
+      "timeZone": null
+    },
+    {
+      "id": "kolkata-india",
+      "label": "Kolkata, West Bengal, India",
+      "name": "Kolkata",
+      "destinationType": "city",
+      "city": "Kolkata",
+      "state": "West Bengal",
+      "country": "India",
+      "parentDestinationId": null,
+      "aliases": ["Calcutta"],
+      "coordinates": {
+        "latitude": 22.5726,
+        "longitude": 88.3639
+      },
+      "popularity": 86,
+      "categoryIds": [],
+      "sourceRefs": [],
+      "status": "NEEDS_REVIEW",
+      "lastVerifiedAt": null,
+      "provenance": {
+        "status": "NEEDS_REVIEW",
+        "provider": null,
+        "providerRecordId": null,
+        "sourceUrl": null,
+        "license": null,
+        "attribution": null,
+        "fetchedAt": null,
+        "lastVerifiedAt": null,
+        "verificationNotes": [
+          "Preserved from the legacy hardcoded destination list; original source citation and verification date were not recorded."
+        ]
+      },
+      "countryCode": "IN",
+      "timeZone": null
+    },
+    {
+      "id": "pune-india",
+      "label": "Pune, Maharashtra, India",
+      "name": "Pune",
+      "destinationType": "city",
+      "city": "Pune",
+      "state": "Maharashtra",
+      "country": "India",
+      "parentDestinationId": null,
+      "aliases": [],
+      "coordinates": {
+        "latitude": 18.5204,
+        "longitude": 73.8567
+      },
+      "popularity": 84,
+      "categoryIds": [],
+      "sourceRefs": [],
+      "status": "NEEDS_REVIEW",
+      "lastVerifiedAt": null,
+      "provenance": {
+        "status": "NEEDS_REVIEW",
+        "provider": null,
+        "providerRecordId": null,
+        "sourceUrl": null,
+        "license": null,
+        "attribution": null,
+        "fetchedAt": null,
+        "lastVerifiedAt": null,
+        "verificationNotes": [
+          "Preserved from the legacy hardcoded destination list; original source citation and verification date were not recorded."
+        ]
+      },
+      "countryCode": "IN",
+      "timeZone": null
+    },
+    {
+      "id": "tokyo-japan",
+      "label": "Tokyo, Japan",
+      "name": "Tokyo",
+      "destinationType": "city",
+      "city": "Tokyo",
+      "state": null,
+      "country": "Japan",
+      "parentDestinationId": null,
+      "aliases": [],
+      "coordinates": {
+        "latitude": 35.6762,
+        "longitude": 139.6503
+      },
+      "popularity": 100,
+      "categoryIds": [],
+      "sourceRefs": [],
+      "status": "NEEDS_REVIEW",
+      "lastVerifiedAt": null,
+      "provenance": {
+        "status": "NEEDS_REVIEW",
+        "provider": null,
+        "providerRecordId": null,
+        "sourceUrl": null,
+        "license": null,
+        "attribution": null,
+        "fetchedAt": null,
+        "lastVerifiedAt": null,
+        "verificationNotes": [
+          "Preserved from the legacy hardcoded destination list; original source citation and verification date were not recorded."
+        ]
+      },
+      "countryCode": "JP",
+      "timeZone": null
+    },
+    {
+      "id": "kyoto-japan",
+      "label": "Kyoto, Japan",
+      "name": "Kyoto",
+      "destinationType": "city",
+      "city": "Kyoto",
+      "state": null,
+      "country": "Japan",
+      "parentDestinationId": null,
+      "aliases": [],
+      "coordinates": {
+        "latitude": 35.0116,
+        "longitude": 135.7681
+      },
+      "popularity": 96,
+      "categoryIds": [],
+      "sourceRefs": [],
+      "status": "NEEDS_REVIEW",
+      "lastVerifiedAt": null,
+      "provenance": {
+        "status": "NEEDS_REVIEW",
+        "provider": null,
+        "providerRecordId": null,
+        "sourceUrl": null,
+        "license": null,
+        "attribution": null,
+        "fetchedAt": null,
+        "lastVerifiedAt": null,
+        "verificationNotes": [
+          "Preserved from the legacy hardcoded destination list; original source citation and verification date were not recorded."
+        ]
+      },
+      "countryCode": "JP",
+      "timeZone": null
+    },
+    {
+      "id": "paris-france",
+      "label": "Paris, France",
+      "name": "Paris",
+      "destinationType": "city",
+      "city": "Paris",
+      "state": null,
+      "country": "France",
+      "parentDestinationId": null,
+      "aliases": [],
+      "coordinates": {
+        "latitude": 48.8566,
+        "longitude": 2.3522
+      },
+      "popularity": 100,
+      "categoryIds": [],
+      "sourceRefs": [],
+      "status": "NEEDS_REVIEW",
+      "lastVerifiedAt": null,
+      "provenance": {
+        "status": "NEEDS_REVIEW",
+        "provider": null,
+        "providerRecordId": null,
+        "sourceUrl": null,
+        "license": null,
+        "attribution": null,
+        "fetchedAt": null,
+        "lastVerifiedAt": null,
+        "verificationNotes": [
+          "Preserved from the legacy hardcoded destination list; original source citation and verification date were not recorded."
+        ]
+      },
+      "countryCode": "FR",
+      "timeZone": null
+    },
+    {
+      "id": "london-united-kingdom",
+      "label": "London, England, United Kingdom",
+      "name": "London",
+      "destinationType": "city",
+      "city": "London",
+      "state": "England",
+      "country": "United Kingdom",
+      "parentDestinationId": null,
+      "aliases": ["UK"],
+      "coordinates": {
+        "latitude": 51.5072,
+        "longitude": -0.1276
+      },
+      "popularity": 100,
+      "categoryIds": [],
+      "sourceRefs": [],
+      "status": "NEEDS_REVIEW",
+      "lastVerifiedAt": null,
+      "provenance": {
+        "status": "NEEDS_REVIEW",
+        "provider": null,
+        "providerRecordId": null,
+        "sourceUrl": null,
+        "license": null,
+        "attribution": null,
+        "fetchedAt": null,
+        "lastVerifiedAt": null,
+        "verificationNotes": [
+          "Preserved from the legacy hardcoded destination list; original source citation and verification date were not recorded."
+        ]
+      },
+      "countryCode": "GB",
+      "timeZone": null
+    },
+    {
+      "id": "rome-italy",
+      "label": "Rome, Italy",
+      "name": "Rome",
+      "destinationType": "city",
+      "city": "Rome",
+      "state": null,
+      "country": "Italy",
+      "parentDestinationId": null,
+      "aliases": [],
+      "coordinates": {
+        "latitude": 41.9028,
+        "longitude": 12.4964
+      },
+      "popularity": 98,
+      "categoryIds": [],
+      "sourceRefs": [],
+      "status": "NEEDS_REVIEW",
+      "lastVerifiedAt": null,
+      "provenance": {
+        "status": "NEEDS_REVIEW",
+        "provider": null,
+        "providerRecordId": null,
+        "sourceUrl": null,
+        "license": null,
+        "attribution": null,
+        "fetchedAt": null,
+        "lastVerifiedAt": null,
+        "verificationNotes": [
+          "Preserved from the legacy hardcoded destination list; original source citation and verification date were not recorded."
+        ]
+      },
+      "countryCode": "IT",
+      "timeZone": null
+    },
+    {
+      "id": "venice-italy",
+      "label": "Venice, Italy",
+      "name": "Venice",
+      "destinationType": "city",
+      "city": "Venice",
+      "state": null,
+      "country": "Italy",
+      "parentDestinationId": null,
+      "aliases": [],
+      "coordinates": {
+        "latitude": 45.4408,
+        "longitude": 12.3155
+      },
+      "popularity": 96,
+      "categoryIds": [],
+      "sourceRefs": [],
+      "status": "NEEDS_REVIEW",
+      "lastVerifiedAt": null,
+      "provenance": {
+        "status": "NEEDS_REVIEW",
+        "provider": null,
+        "providerRecordId": null,
+        "sourceUrl": null,
+        "license": null,
+        "attribution": null,
+        "fetchedAt": null,
+        "lastVerifiedAt": null,
+        "verificationNotes": [
+          "Preserved from the legacy hardcoded destination list; original source citation and verification date were not recorded."
+        ]
+      },
+      "countryCode": "IT",
+      "timeZone": null
+    },
+    {
+      "id": "barcelona-spain",
+      "label": "Barcelona, Catalonia, Spain",
+      "name": "Barcelona",
+      "destinationType": "city",
+      "city": "Barcelona",
+      "state": "Catalonia",
+      "country": "Spain",
+      "parentDestinationId": null,
+      "aliases": [],
+      "coordinates": {
+        "latitude": 41.3874,
+        "longitude": 2.1686
+      },
+      "popularity": 98,
+      "categoryIds": [],
+      "sourceRefs": [],
+      "status": "NEEDS_REVIEW",
+      "lastVerifiedAt": null,
+      "provenance": {
+        "status": "NEEDS_REVIEW",
+        "provider": null,
+        "providerRecordId": null,
+        "sourceUrl": null,
+        "license": null,
+        "attribution": null,
+        "fetchedAt": null,
+        "lastVerifiedAt": null,
+        "verificationNotes": [
+          "Preserved from the legacy hardcoded destination list; original source citation and verification date were not recorded."
+        ]
+      },
+      "countryCode": "ES",
+      "timeZone": null
+    },
+    {
+      "id": "amsterdam-netherlands",
+      "label": "Amsterdam, Netherlands",
+      "name": "Amsterdam",
+      "destinationType": "city",
+      "city": "Amsterdam",
+      "state": null,
+      "country": "Netherlands",
+      "parentDestinationId": null,
+      "aliases": [],
+      "coordinates": {
+        "latitude": 52.3676,
+        "longitude": 4.9041
+      },
+      "popularity": 96,
+      "categoryIds": [],
+      "sourceRefs": [],
+      "status": "NEEDS_REVIEW",
+      "lastVerifiedAt": null,
+      "provenance": {
+        "status": "NEEDS_REVIEW",
+        "provider": null,
+        "providerRecordId": null,
+        "sourceUrl": null,
+        "license": null,
+        "attribution": null,
+        "fetchedAt": null,
+        "lastVerifiedAt": null,
+        "verificationNotes": [
+          "Preserved from the legacy hardcoded destination list; original source citation and verification date were not recorded."
+        ]
+      },
+      "countryCode": "NL",
+      "timeZone": null
+    },
+    {
+      "id": "dubai-united-arab-emirates",
+      "label": "Dubai, United Arab Emirates",
+      "name": "Dubai",
+      "destinationType": "city",
+      "city": "Dubai",
+      "state": null,
+      "country": "United Arab Emirates",
+      "parentDestinationId": null,
+      "aliases": ["UAE"],
+      "coordinates": {
+        "latitude": 25.2048,
+        "longitude": 55.2708
+      },
+      "popularity": 99,
+      "categoryIds": [],
+      "sourceRefs": [],
+      "status": "NEEDS_REVIEW",
+      "lastVerifiedAt": null,
+      "provenance": {
+        "status": "NEEDS_REVIEW",
+        "provider": null,
+        "providerRecordId": null,
+        "sourceUrl": null,
+        "license": null,
+        "attribution": null,
+        "fetchedAt": null,
+        "lastVerifiedAt": null,
+        "verificationNotes": [
+          "Preserved from the legacy hardcoded destination list; original source citation and verification date were not recorded."
+        ]
+      },
+      "countryCode": "AE",
+      "timeZone": null
+    },
+    {
+      "id": "singapore-singapore",
+      "label": "Singapore",
+      "name": "Singapore",
+      "destinationType": "country",
+      "city": null,
+      "state": null,
+      "country": "Singapore",
+      "parentDestinationId": null,
+      "aliases": [],
+      "coordinates": {
+        "latitude": 1.3521,
+        "longitude": 103.8198
+      },
+      "popularity": 98,
+      "categoryIds": [],
+      "sourceRefs": [],
+      "status": "NEEDS_REVIEW",
+      "lastVerifiedAt": null,
+      "provenance": {
+        "status": "NEEDS_REVIEW",
+        "provider": null,
+        "providerRecordId": null,
+        "sourceUrl": null,
+        "license": null,
+        "attribution": null,
+        "fetchedAt": null,
+        "lastVerifiedAt": null,
+        "verificationNotes": [
+          "Preserved from the legacy hardcoded destination list; original source citation and verification date were not recorded."
+        ]
+      },
+      "countryCode": "SG",
+      "timeZone": null
+    },
+    {
+      "id": "bangkok-thailand",
+      "label": "Bangkok, Thailand",
+      "name": "Bangkok",
+      "destinationType": "city",
+      "city": "Bangkok",
+      "state": null,
+      "country": "Thailand",
+      "parentDestinationId": null,
+      "aliases": [],
+      "coordinates": {
+        "latitude": 13.7563,
+        "longitude": 100.5018
+      },
+      "popularity": 98,
+      "categoryIds": [],
+      "sourceRefs": [],
+      "status": "NEEDS_REVIEW",
+      "lastVerifiedAt": null,
+      "provenance": {
+        "status": "NEEDS_REVIEW",
+        "provider": null,
+        "providerRecordId": null,
+        "sourceUrl": null,
+        "license": null,
+        "attribution": null,
+        "fetchedAt": null,
+        "lastVerifiedAt": null,
+        "verificationNotes": [
+          "Preserved from the legacy hardcoded destination list; original source citation and verification date were not recorded."
+        ]
+      },
+      "countryCode": "TH",
+      "timeZone": null
+    },
+    {
+      "id": "bali-indonesia",
+      "label": "Bali, Indonesia",
+      "name": "Bali",
+      "destinationType": "island",
+      "city": null,
+      "state": null,
+      "country": "Indonesia",
+      "parentDestinationId": null,
+      "aliases": ["Denpasar"],
+      "coordinates": {
+        "latitude": -8.3405,
+        "longitude": 115.092
+      },
+      "popularity": 99,
+      "categoryIds": [],
+      "sourceRefs": [],
+      "status": "NEEDS_REVIEW",
+      "lastVerifiedAt": null,
+      "provenance": {
+        "status": "NEEDS_REVIEW",
+        "provider": null,
+        "providerRecordId": null,
+        "sourceUrl": null,
+        "license": null,
+        "attribution": null,
+        "fetchedAt": null,
+        "lastVerifiedAt": null,
+        "verificationNotes": [
+          "Preserved from the legacy hardcoded destination list; original source citation and verification date were not recorded."
+        ]
+      },
+      "countryCode": "ID",
+      "timeZone": null
+    },
+    {
+      "id": "male-maldives",
+      "label": "Malé, Maldives",
+      "name": "Malé",
+      "destinationType": "city",
+      "city": "Malé",
+      "state": null,
+      "country": "Maldives",
+      "parentDestinationId": "maldives",
+      "aliases": ["Male"],
+      "coordinates": {
+        "latitude": 4.1755,
+        "longitude": 73.5093
+      },
+      "popularity": 95,
+      "categoryIds": [],
+      "sourceRefs": [],
+      "status": "NEEDS_REVIEW",
+      "lastVerifiedAt": null,
+      "provenance": {
+        "status": "NEEDS_REVIEW",
+        "provider": null,
+        "providerRecordId": null,
+        "sourceUrl": null,
+        "license": null,
+        "attribution": null,
+        "fetchedAt": null,
+        "lastVerifiedAt": null,
+        "verificationNotes": [
+          "Preserved from the legacy hardcoded destination list; original source citation and verification date were not recorded."
+        ]
+      },
+      "countryCode": "MV",
+      "timeZone": null
+    },
+    {
+      "id": "istanbul-turkiye",
+      "label": "Istanbul, Türkiye",
+      "name": "Istanbul",
+      "destinationType": "city",
+      "city": "Istanbul",
+      "state": null,
+      "country": "Türkiye",
+      "parentDestinationId": null,
+      "aliases": ["Turkey"],
+      "coordinates": {
+        "latitude": 41.0082,
+        "longitude": 28.9784
+      },
+      "popularity": 97,
+      "categoryIds": [],
+      "sourceRefs": [],
+      "status": "NEEDS_REVIEW",
+      "lastVerifiedAt": null,
+      "provenance": {
+        "status": "NEEDS_REVIEW",
+        "provider": null,
+        "providerRecordId": null,
+        "sourceUrl": null,
+        "license": null,
+        "attribution": null,
+        "fetchedAt": null,
+        "lastVerifiedAt": null,
+        "verificationNotes": [
+          "Preserved from the legacy hardcoded destination list; original source citation and verification date were not recorded."
+        ]
+      },
+      "countryCode": "TR",
+      "timeZone": null
+    },
+    {
+      "id": "new-york-city-usa",
+      "label": "New York City, New York, USA",
+      "name": "New York City",
+      "destinationType": "city",
+      "city": "New York City",
+      "state": "New York",
+      "country": "USA",
+      "parentDestinationId": null,
+      "aliases": ["NYC", "New York"],
+      "coordinates": {
+        "latitude": 40.7128,
+        "longitude": -74.006
+      },
+      "popularity": 100,
+      "categoryIds": [],
+      "sourceRefs": [],
+      "status": "NEEDS_REVIEW",
+      "lastVerifiedAt": null,
+      "provenance": {
+        "status": "NEEDS_REVIEW",
+        "provider": null,
+        "providerRecordId": null,
+        "sourceUrl": null,
+        "license": null,
+        "attribution": null,
+        "fetchedAt": null,
+        "lastVerifiedAt": null,
+        "verificationNotes": [
+          "Preserved from the legacy hardcoded destination list; original source citation and verification date were not recorded."
+        ]
+      },
+      "countryCode": "US",
+      "timeZone": null
+    },
+    {
+      "id": "san-francisco-usa",
+      "label": "San Francisco, California, USA",
+      "name": "San Francisco",
+      "destinationType": "city",
+      "city": "San Francisco",
+      "state": "California",
+      "country": "USA",
+      "parentDestinationId": null,
+      "aliases": ["SF"],
+      "coordinates": {
+        "latitude": 37.7749,
+        "longitude": -122.4194
+      },
+      "popularity": 95,
+      "categoryIds": [],
+      "sourceRefs": [],
+      "status": "NEEDS_REVIEW",
+      "lastVerifiedAt": null,
+      "provenance": {
+        "status": "NEEDS_REVIEW",
+        "provider": null,
+        "providerRecordId": null,
+        "sourceUrl": null,
+        "license": null,
+        "attribution": null,
+        "fetchedAt": null,
+        "lastVerifiedAt": null,
+        "verificationNotes": [
+          "Preserved from the legacy hardcoded destination list; original source citation and verification date were not recorded."
+        ]
+      },
+      "countryCode": "US",
+      "timeZone": null
+    },
+    {
+      "id": "los-angeles-usa",
+      "label": "Los Angeles, California, USA",
+      "name": "Los Angeles",
+      "destinationType": "city",
+      "city": "Los Angeles",
+      "state": "California",
+      "country": "USA",
+      "parentDestinationId": null,
+      "aliases": ["LA"],
+      "coordinates": {
+        "latitude": 34.0522,
+        "longitude": -118.2437
+      },
+      "popularity": 96,
+      "categoryIds": [],
+      "sourceRefs": [],
+      "status": "NEEDS_REVIEW",
+      "lastVerifiedAt": null,
+      "provenance": {
+        "status": "NEEDS_REVIEW",
+        "provider": null,
+        "providerRecordId": null,
+        "sourceUrl": null,
+        "license": null,
+        "attribution": null,
+        "fetchedAt": null,
+        "lastVerifiedAt": null,
+        "verificationNotes": [
+          "Preserved from the legacy hardcoded destination list; original source citation and verification date were not recorded."
+        ]
+      },
+      "countryCode": "US",
+      "timeZone": null
+    },
+    {
+      "id": "toronto-canada",
+      "label": "Toronto, Ontario, Canada",
+      "name": "Toronto",
+      "destinationType": "city",
+      "city": "Toronto",
+      "state": "Ontario",
+      "country": "Canada",
+      "parentDestinationId": null,
+      "aliases": [],
+      "coordinates": {
+        "latitude": 43.6532,
+        "longitude": -79.3832
+      },
+      "popularity": 92,
+      "categoryIds": [],
+      "sourceRefs": [],
+      "status": "NEEDS_REVIEW",
+      "lastVerifiedAt": null,
+      "provenance": {
+        "status": "NEEDS_REVIEW",
+        "provider": null,
+        "providerRecordId": null,
+        "sourceUrl": null,
+        "license": null,
+        "attribution": null,
+        "fetchedAt": null,
+        "lastVerifiedAt": null,
+        "verificationNotes": [
+          "Preserved from the legacy hardcoded destination list; original source citation and verification date were not recorded."
+        ]
+      },
+      "countryCode": "CA",
+      "timeZone": null
+    },
+    {
+      "id": "vancouver-canada",
+      "label": "Vancouver, British Columbia, Canada",
+      "name": "Vancouver",
+      "destinationType": "city",
+      "city": "Vancouver",
+      "state": "British Columbia",
+      "country": "Canada",
+      "parentDestinationId": null,
+      "aliases": [],
+      "coordinates": {
+        "latitude": 49.2827,
+        "longitude": -123.1207
+      },
+      "popularity": 92,
+      "categoryIds": [],
+      "sourceRefs": [],
+      "status": "NEEDS_REVIEW",
+      "lastVerifiedAt": null,
+      "provenance": {
+        "status": "NEEDS_REVIEW",
+        "provider": null,
+        "providerRecordId": null,
+        "sourceUrl": null,
+        "license": null,
+        "attribution": null,
+        "fetchedAt": null,
+        "lastVerifiedAt": null,
+        "verificationNotes": [
+          "Preserved from the legacy hardcoded destination list; original source citation and verification date were not recorded."
+        ]
+      },
+      "countryCode": "CA",
+      "timeZone": null
+    },
+    {
+      "id": "sydney-australia",
+      "label": "Sydney, New South Wales, Australia",
+      "name": "Sydney",
+      "destinationType": "city",
+      "city": "Sydney",
+      "state": "New South Wales",
+      "country": "Australia",
+      "parentDestinationId": null,
+      "aliases": [],
+      "coordinates": {
+        "latitude": -33.8688,
+        "longitude": 151.2093
+      },
+      "popularity": 98,
+      "categoryIds": [],
+      "sourceRefs": [],
+      "status": "NEEDS_REVIEW",
+      "lastVerifiedAt": null,
+      "provenance": {
+        "status": "NEEDS_REVIEW",
+        "provider": null,
+        "providerRecordId": null,
+        "sourceUrl": null,
+        "license": null,
+        "attribution": null,
+        "fetchedAt": null,
+        "lastVerifiedAt": null,
+        "verificationNotes": [
+          "Preserved from the legacy hardcoded destination list; original source citation and verification date were not recorded."
+        ]
+      },
+      "countryCode": "AU",
+      "timeZone": null
+    },
+    {
+      "id": "melbourne-australia",
+      "label": "Melbourne, Victoria, Australia",
+      "name": "Melbourne",
+      "destinationType": "city",
+      "city": "Melbourne",
+      "state": "Victoria",
+      "country": "Australia",
+      "parentDestinationId": null,
+      "aliases": [],
+      "coordinates": {
+        "latitude": -37.8136,
+        "longitude": 144.9631
+      },
+      "popularity": 94,
+      "categoryIds": [],
+      "sourceRefs": [],
+      "status": "NEEDS_REVIEW",
+      "lastVerifiedAt": null,
+      "provenance": {
+        "status": "NEEDS_REVIEW",
+        "provider": null,
+        "providerRecordId": null,
+        "sourceUrl": null,
+        "license": null,
+        "attribution": null,
+        "fetchedAt": null,
+        "lastVerifiedAt": null,
+        "verificationNotes": [
+          "Preserved from the legacy hardcoded destination list; original source citation and verification date were not recorded."
+        ]
+      },
+      "countryCode": "AU",
+      "timeZone": null
+    },
+    {
+      "id": "cape-town-south-africa",
+      "label": "Cape Town, Western Cape, South Africa",
+      "name": "Cape Town",
+      "destinationType": "city",
+      "city": "Cape Town",
+      "state": "Western Cape",
+      "country": "South Africa",
+      "parentDestinationId": null,
+      "aliases": [],
+      "coordinates": {
+        "latitude": -33.9249,
+        "longitude": 18.4241
+      },
+      "popularity": 94,
+      "categoryIds": [],
+      "sourceRefs": [],
+      "status": "NEEDS_REVIEW",
+      "lastVerifiedAt": null,
+      "provenance": {
+        "status": "NEEDS_REVIEW",
+        "provider": null,
+        "providerRecordId": null,
+        "sourceUrl": null,
+        "license": null,
+        "attribution": null,
+        "fetchedAt": null,
+        "lastVerifiedAt": null,
+        "verificationNotes": [
+          "Preserved from the legacy hardcoded destination list; original source citation and verification date were not recorded."
+        ]
+      },
+      "countryCode": "ZA",
+      "timeZone": null
+    },
+    {
+      "id": "cairo-egypt",
+      "label": "Cairo, Egypt",
+      "name": "Cairo",
+      "destinationType": "city",
+      "city": "Cairo",
+      "state": null,
+      "country": "Egypt",
+      "parentDestinationId": null,
+      "aliases": [],
+      "coordinates": {
+        "latitude": 30.0444,
+        "longitude": 31.2357
+      },
+      "popularity": 94,
+      "categoryIds": [],
+      "sourceRefs": [],
+      "status": "NEEDS_REVIEW",
+      "lastVerifiedAt": null,
+      "provenance": {
+        "status": "NEEDS_REVIEW",
+        "provider": null,
+        "providerRecordId": null,
+        "sourceUrl": null,
+        "license": null,
+        "attribution": null,
+        "fetchedAt": null,
+        "lastVerifiedAt": null,
+        "verificationNotes": [
+          "Preserved from the legacy hardcoded destination list; original source citation and verification date were not recorded."
+        ]
+      },
+      "countryCode": "EG",
+      "timeZone": null
+    },
+    {
+      "id": "reykjavik-iceland",
+      "label": "Reykjavík, Iceland",
+      "name": "Reykjavík",
+      "destinationType": "city",
+      "city": "Reykjavík",
+      "state": null,
+      "country": "Iceland",
+      "parentDestinationId": null,
+      "aliases": ["Reykjavik"],
+      "coordinates": {
+        "latitude": 64.1466,
+        "longitude": -21.9426
+      },
+      "popularity": 91,
+      "categoryIds": [],
+      "sourceRefs": [],
+      "status": "NEEDS_REVIEW",
+      "lastVerifiedAt": null,
+      "provenance": {
+        "status": "NEEDS_REVIEW",
+        "provider": null,
+        "providerRecordId": null,
+        "sourceUrl": null,
+        "license": null,
+        "attribution": null,
+        "fetchedAt": null,
+        "lastVerifiedAt": null,
+        "verificationNotes": [
+          "Preserved from the legacy hardcoded destination list; original source citation and verification date were not recorded."
+        ]
+      },
+      "countryCode": "IS",
+      "timeZone": null
+    },
+    {
+      "id": "santorini-greece",
+      "label": "Santorini, Greece",
+      "name": "Santorini",
+      "destinationType": "city",
+      "city": "Santorini",
+      "state": null,
+      "country": "Greece",
+      "parentDestinationId": null,
+      "aliases": [],
+      "coordinates": {
+        "latitude": 36.3932,
+        "longitude": 25.4615
+      },
+      "popularity": 96,
+      "categoryIds": [],
+      "sourceRefs": [],
+      "status": "NEEDS_REVIEW",
+      "lastVerifiedAt": null,
+      "provenance": {
+        "status": "NEEDS_REVIEW",
+        "provider": null,
+        "providerRecordId": null,
+        "sourceUrl": null,
+        "license": null,
+        "attribution": null,
+        "fetchedAt": null,
+        "lastVerifiedAt": null,
+        "verificationNotes": [
+          "Preserved from the legacy hardcoded destination list; original source citation and verification date were not recorded."
+        ]
+      },
+      "countryCode": "GR",
+      "timeZone": null
+    },
+    {
+      "id": "maldives",
+      "label": "Maldives",
+      "name": "Maldives",
+      "destinationType": "country",
+      "city": null,
+      "state": null,
+      "country": "Maldives",
+      "parentDestinationId": null,
+      "aliases": ["Maldives"],
+      "coordinates": null,
+      "popularity": 95,
+      "categoryIds": [],
+      "sourceRefs": [],
+      "status": "NEEDS_REVIEW",
+      "lastVerifiedAt": null,
+      "provenance": {
+        "status": "NEEDS_REVIEW",
+        "provider": null,
+        "providerRecordId": null,
+        "sourceUrl": null,
+        "license": null,
+        "attribution": null,
+        "fetchedAt": null,
+        "lastVerifiedAt": null,
+        "verificationNotes": [
+          "Country-level parent added to represent the existing Malé destination correctly; no coordinates inferred."
+        ]
+      },
+      "countryCode": "MV",
+      "timeZone": null
+    }
+  ]
+}

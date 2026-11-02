@@ -14,6 +14,7 @@ import {
 } from "@/lib/travel-data/plan-source";
 import {
   createGooglePlacesProvider,
+  createTravelDataProvider,
   getTravelDataProvider,
 } from "@/lib/travel-data/provider";
 import type {
@@ -307,6 +308,21 @@ describe("travel data source safety", () => {
     vi.stubEnv("GOOGLE_MAPS_API_KEY", "");
     expect(getTravelDataProvider().name).toBe("unavailable");
     vi.unstubAllEnvs();
+  });
+
+  it("selects an offline, explicitly labeled Jaipur fixture provider", async () => {
+    expect(createTravelDataProvider("google_places").name).toBe("unavailable");
+    const fixture = createTravelDataProvider("fixture");
+    const result = await fixture.searchPlaces("Amber Palace, Jaipur");
+    expect(result.status).toBe("available");
+    expect(result.data).toEqual([
+      { id: "amber-palace-jaipur", name: "Amber Palace" },
+    ]);
+    expect(result.source).toMatchObject({
+      source: "PROVIDER_SOURCED",
+      provider: "local_fixture",
+    });
+    expect((await fixture.searchHotels("Jaipur")).data).toEqual([]);
   });
 
   it("uses provider place results and turns provider timeouts into fallback status", async () => {

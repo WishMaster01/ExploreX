@@ -1,0 +1,188 @@
+{
+  "version": "1.0.0",
+  "categories": [
+    {
+      "id": "spiritual",
+      "name": "Spiritual and pilgrimage",
+      "description": "Journeys centered on spiritual practice, places of worship, or pilgrimage.",
+      "subcategories": [
+        { "id": "spiritual-pilgrimage", "name": "Spiritual and pilgrimage" }
+      ],
+      "tags": ["pilgrimage", "spiritual"]
+    },
+    {
+      "id": "mountains",
+      "name": "Mountains",
+      "description": "Mountain destinations and highland escapes.",
+      "subcategories": [
+        {
+          "id": "mountains-himalayan",
+          "name": "Mountains and Himalayan escapes"
+        }
+      ],
+      "tags": ["mountains", "himalaya"]
+    },
+    {
+      "id": "beaches",
+      "name": "Beaches",
+      "description": "Coastal destinations and beach activities.",
+      "subcategories": [
+        { "id": "beaches-coastal", "name": "Beaches and coastal travel" }
+      ],
+      "tags": ["beach", "coast"]
+    },
+    {
+      "id": "heritage",
+      "name": "Heritage",
+      "description": "Historic places, forts, palaces, and built heritage.",
+      "subcategories": [
+        {
+          "id": "heritage-forts-palaces",
+          "name": "Heritage, forts, and palaces"
+        }
+      ],
+      "tags": ["heritage", "fort", "palace"]
+    },
+    {
+      "id": "culture",
+      "name": "Culture",
+      "description": "Arts, cultural practice, performances, and festivals.",
+      "subcategories": [
+        {
+          "id": "culture-arts-festivals",
+          "name": "Culture, arts, and festivals"
+        }
+      ],
+      "tags": ["culture", "arts", "festival"]
+    },
+    {
+      "id": "wildlife",
+      "name": "Wildlife",
+      "description": "Wildlife observation and protected natural areas.",
+      "subcategories": [
+        {
+          "id": "wildlife-national-parks",
+          "name": "Wildlife and national parks"
+        }
+      ],
+      "tags": ["wildlife", "national-park"]
+    },
+    {
+      "id": "adventure",
+      "name": "Adventure",
+      "description": "Outdoor recreation and adventure activities.",
+      "subcategories": [
+        {
+          "id": "adventure-outdoors",
+          "name": "Adventure and outdoor experiences"
+        }
+      ],
+      "tags": ["adventure", "outdoors"]
+    },
+    {
+      "id": "food",
+      "name": "Food",
+      "description": "Food-focused visits and culinary trails.",
+      "subcategories": [
+        { "id": "food-street-food", "name": "Food trails and street food" }
+      ],
+      "tags": ["food-trail", "street-food"]
+    },
+    {
+      "id": "hidden_gems",
+      "name": "Hidden gems",
+      "description": "Locally grounded experiences and less prominent places, subject to verification.",
+      "subcategories": [
+        { "id": "hidden-local", "name": "Hidden gems and local experiences" }
+      ],
+      "tags": ["hidden-gem", "local-experience"]
+    },
+    {
+      "id": "weekend",
+      "name": "Weekend getaways",
+      "description": "Trips suited to a short itinerary; duration suitability is editorial.",
+      "subcategories": [
+        { "id": "weekend-getaway", "name": "Weekend getaways" }
+      ],
+      "tags": ["weekend"]
+    },
+    {
+      "id": "water",
+      "name": "Water",
+      "description": "Freshwater landscapes and related activities.",
+      "subcategories": [
+        {
+          "id": "lakes-rivers-waterfalls",
+          "name": "Lakes, rivers, and waterfalls"
+        }
+      ],
+      "tags": ["lake", "river", "waterfall"]
+    },
+    {
+      "id": "desert",
+      "name": "Desert",
+      "description": "Desert landscapes and night-sky experiences.",
+      "subcategories": [
+        { "id": "deserts-stargazing", "name": "Deserts and stargazing" }
+      ],
+      "tags": ["desert", "stargazing"]
+    },
+    {
+      "id": "ecotourism",
+      "name": "Ecotourism",
+      "description": "Nature experiences emphasizing environmental care.",
+      "subcategories": [
+        { "id": "nature-ecotourism", "name": "Nature and eco-tourism" }
+      ],
+      "tags": ["nature", "eco-tourism"]
+    },
+    {
+      "id": "romantic_family",
+      "name": "Romantic and family travel",
+      "description": "Subjective trip-style classifications that require editorial review.",
+      "subcategories": [
+        { "id": "romantic", "name": "Romantic travel" },
+        { "id": "family-friendly", "name": "Family-friendly travel" }
+      ],
+      "tags": ["romantic", "family"]
+    },
+    {
+      "id": "budget_backpacking",
+      "name": "Budget and backpacking",
+      "description": "Budget-oriented and backpacking trip styles; price claims need separate sourcing.",
+      "subcategories": [
+        { "id": "backpacking-budget", "name": "Backpacking and budget travel" }
+      ],
+      "tags": ["backpacking", "budget"]
+    },
+    {
+      "id": "wellness",
+      "name": "Wellness",
+      "description": "Wellness experiences, yoga, and Ayurveda-related travel.",
+      "subcategories": [
+        {
+          "id": "wellness-yoga-ayurveda",
+          "name": "Wellness, yoga, and Ayurveda"
+        }
+      ],
+      "tags": ["wellness", "yoga", "ayurveda"]
+    }
+  ],
+  "tags": [
+    {
+      "id": "photography",
+      "name": "Photography",
+      "description": "Photography interest; editorial classification."
+    },
+    {
+      "id": "village_tourism",
+      "name": "Village tourism",
+      "description": "Community-led village visits require consent and benefit-sharing review."
+    },
+    {
+      "id": "workation",
+      "name": "Workation",
+      "description": "Remote work and leisure; connectivity claims require verification."
+    }
+  ]
+}

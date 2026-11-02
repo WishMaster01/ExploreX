@@ -1,0 +1,37 @@
+{
+  "id": "los-angeles-usa",
+  "label": "Los Angeles, California, USA",
+  "name": "Los Angeles",
+  "destinationType": "city",
+  "city": "Los Angeles",
+  "state": "California",
+  "country": "USA",
+  "parentDestinationId": null,
+  "aliases": [
+    "LA"
+  ],
+  "coordinates": {
+    "latitude": 34.0522,
+    "longitude": -118.2437
+  },
+  "popularity": 96,
+  "categoryIds": [],
+  "sourceRefs": [],
+  "status": "NEEDS_REVIEW",
+  "lastVerifiedAt": null,
+  "provenance": {
+    "status": "NEEDS_REVIEW",
+    "provider": null,
+    "providerRecordId": null,
+    "sourceUrl": null,
+    "license": null,
+    "attribution": null,
+    "fetchedAt": null,
+    "lastVerifiedAt": null,
+    "verificationNotes": [
+      "Preserved from the legacy hardcoded destination list; original source citation and verification date were not recorded."
+    ]
+  },
+  "countryCode": "US",
+  "timeZone": null
+}

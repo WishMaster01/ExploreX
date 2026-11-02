@@ -1,0 +1,37 @@
+{
+  "id": "istanbul-turkiye",
+  "label": "Istanbul, Türkiye",
+  "name": "Istanbul",
+  "destinationType": "city",
+  "city": "Istanbul",
+  "state": null,
+  "country": "Türkiye",
+  "parentDestinationId": null,
+  "aliases": [
+    "Turkey"
+  ],
+  "coordinates": {
+    "latitude": 41.0082,
+    "longitude": 28.9784
+  },
+  "popularity": 97,
+  "categoryIds": [],
+  "sourceRefs": [],
+  "status": "NEEDS_REVIEW",
+  "lastVerifiedAt": null,
+  "provenance": {
+    "status": "NEEDS_REVIEW",
+    "provider": null,
+    "providerRecordId": null,
+    "sourceUrl": null,
+    "license": null,
+    "attribution": null,
+    "fetchedAt": null,
+    "lastVerifiedAt": null,
+    "verificationNotes": [
+      "Preserved from the legacy hardcoded destination list; original source citation and verification date were not recorded."
+    ]
+  },
+  "countryCode": "TR",
+  "timeZone": null
+}

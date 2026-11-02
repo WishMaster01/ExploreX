@@ -1,0 +1,35 @@
+{
+  "id": "pune-india",
+  "label": "Pune, Maharashtra, India",
+  "name": "Pune",
+  "destinationType": "city",
+  "city": "Pune",
+  "state": "Maharashtra",
+  "country": "India",
+  "parentDestinationId": null,
+  "aliases": [],
+  "coordinates": {
+    "latitude": 18.5204,
+    "longitude": 73.8567
+  },
+  "popularity": 84,
+  "categoryIds": [],
+  "sourceRefs": [],
+  "status": "NEEDS_REVIEW",
+  "lastVerifiedAt": null,
+  "provenance": {
+    "status": "NEEDS_REVIEW",
+    "provider": null,
+    "providerRecordId": null,
+    "sourceUrl": null,
+    "license": null,
+    "attribution": null,
+    "fetchedAt": null,
+    "lastVerifiedAt": null,
+    "verificationNotes": [
+      "Preserved from the legacy hardcoded destination list; original source citation and verification date were not recorded."
+    ]
+  },
+  "countryCode": "IN",
+  "timeZone": null
+}

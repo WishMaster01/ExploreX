@@ -5,6 +5,9 @@ const serverEnvironmentSchema = z.object({
   DIRECT_URL: z.string().url().optional(),
   OPENROUTER_API_KEY: z.string().min(1).optional(),
   GOOGLE_MAPS_API_KEY: z.string().min(1).optional(),
+  TRAVEL_DATA_PROVIDER: z
+    .enum(["auto", "disabled", "fixture", "google_places"])
+    .default("auto"),
   ARCJET_KEY: z.string().min(1).optional(),
   CRON_SECRET: z.string().min(1).optional(),
   ADMIN_USERS: z.string().optional(),

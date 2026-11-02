@@ -1,0 +1,84 @@
+{
+  "schemaVersion": "1.0.0",
+  "destinationId": "jaipur-in",
+  "generatedAt": "2026-10-28T17:03:52.749Z",
+  "datasets": {
+    "destination": {
+      "filePath": "data/destinations/jaipur-in/destination.json",
+      "recordCount": 1,
+      "sourceCoverage": "sourced",
+      "validationStatus": "valid",
+      "freshnessDays": 0
+    },
+    "places": {
+      "filePath": "data/destinations/jaipur-in/places.json",
+      "recordCount": 4,
+      "sourceCoverage": "sourced",
+      "validationStatus": "valid",
+      "freshnessDays": 0
+    },
+    "restaurants": {
+      "filePath": "data/destinations/jaipur-in/restaurants.json",
+      "recordCount": 0,
+      "sourceCoverage": "none",
+      "validationStatus": "valid",
+      "freshnessDays": null
+    },
+    "hotels": {
+      "filePath": "data/destinations/jaipur-in/hotels.json",
+      "recordCount": 0,
+      "sourceCoverage": "none",
+      "validationStatus": "valid",
+      "freshnessDays": null
+    },
+    "experiences": {
+      "filePath": "data/destinations/jaipur-in/experiences.json",
+      "recordCount": 0,
+      "sourceCoverage": "none",
+      "validationStatus": "valid",
+      "freshnessDays": null
+    },
+    "events": {
+      "filePath": "data/destinations/jaipur-in/events.json",
+      "recordCount": 0,
+      "sourceCoverage": "none",
+      "validationStatus": "valid",
+      "freshnessDays": null
+    },
+    "routes": {
+      "filePath": "data/destinations/jaipur-in/routes.json",
+      "recordCount": 0,
+      "sourceCoverage": "none",
+      "validationStatus": "valid",
+      "freshnessDays": null
+    },
+    "travelGuide": {
+      "filePath": "data/destinations/jaipur-in/travel-guide.json",
+      "recordCount": 1,
+      "sourceCoverage": "none",
+      "validationStatus": "valid",
+      "freshnessDays": null
+    }
+  },
+  "recordCounts": {
+    "destination": 1,
+    "places": 4,
+    "restaurants": 0,
+    "hotels": 0,
+    "experiences": 0,
+    "events": 0,
+    "routes": 0,
+    "travelGuide": 1
+  },
+  "sourceRefs": [
+    "jaipur-municipal-city-profile",
+    "rajasthan-tourism-amber-palace",
+    "rajasthan-tourism-copyright-policy",
+    "rajasthan-tourism-hawa-mahal",
+    "rajasthan-tourism-jaipur"
+  ],
+  "coverageStatus": "partial",
+  "validationStatus": "valid",
+  "issues": [],
+  "lastSuccessfulImportAt": null
+}

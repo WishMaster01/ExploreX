@@ -1,0 +1,37 @@
+{
+  "id": "reykjavik-iceland",
+  "label": "Reykjavík, Iceland",
+  "name": "Reykjavík",
+  "destinationType": "city",
+  "city": "Reykjavík",
+  "state": null,
+  "country": "Iceland",
+  "parentDestinationId": null,
+  "aliases": [
+    "Reykjavik"
+  ],
+  "coordinates": {
+    "latitude": 64.1466,
+    "longitude": -21.9426
+  },
+  "popularity": 91,
+  "categoryIds": [],
+  "sourceRefs": [],
+  "status": "NEEDS_REVIEW",
+  "lastVerifiedAt": null,
+  "provenance": {
+    "status": "NEEDS_REVIEW",
+    "provider": null,
+    "providerRecordId": null,
+    "sourceUrl": null,
+    "license": null,
+    "attribution": null,
+    "fetchedAt": null,
+    "lastVerifiedAt": null,
+    "verificationNotes": [
+      "Preserved from the legacy hardcoded destination list; original source citation and verification date were not recorded."
+    ]
+  },
+  "countryCode": "IS",
+  "timeZone": null
+}

@@ -1,0 +1,37 @@
+{
+  "id": "male-maldives",
+  "label": "Malé, Maldives",
+  "name": "Malé",
+  "destinationType": "city",
+  "city": "Malé",
+  "state": null,
+  "country": "Maldives",
+  "parentDestinationId": "maldives",
+  "aliases": [
+    "Male"
+  ],
+  "coordinates": {
+    "latitude": 4.1755,
+    "longitude": 73.5093
+  },
+  "popularity": 95,
+  "categoryIds": [],
+  "sourceRefs": [],
+  "status": "NEEDS_REVIEW",
+  "lastVerifiedAt": null,
+  "provenance": {
+    "status": "NEEDS_REVIEW",
+    "provider": null,
+    "providerRecordId": null,
+    "sourceUrl": null,
+    "license": null,
+    "attribution": null,
+    "fetchedAt": null,
+    "lastVerifiedAt": null,
+    "verificationNotes": [
+      "Preserved from the legacy hardcoded destination list; original source citation and verification date were not recorded."
+    ]
+  },
+  "countryCode": "MV",
+  "timeZone": null
+}

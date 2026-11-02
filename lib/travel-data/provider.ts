@@ -9,6 +9,7 @@ import { fetchWithTimeout } from "./fetch-with-timeout";
 import { serverLogger } from "@/lib/observability/server-logger";
 import { getServerEnvironment } from "@/lib/env";
 import { DomainError } from "@/lib/domain/errors";
+import { LocalFixtureTravelDataProvider } from "./fixture-provider";
 
 const EMPTY_RESULT = (
   provider: string,
@@ -191,10 +192,31 @@ export class GooglePlacesProvider implements TravelDataProvider {
 }
 
 export function getTravelDataProvider(): TravelDataProvider {
-  const key = getServerEnvironment().GOOGLE_MAPS_API_KEY;
-  return key
-    ? new GooglePlacesProvider(key)
-    : new UnavailableTravelDataProvider();
+  const environment = getServerEnvironment();
+  return createTravelDataProvider(
+    environment.TRAVEL_DATA_PROVIDER,
+    environment.GOOGLE_MAPS_API_KEY,
+  );
+}
+
+export function createTravelDataProvider(
+  mode: "auto" | "disabled" | "fixture" | "google_places",
+  apiKey?: string,
+): TravelDataProvider {
+  switch (mode) {
+    case "disabled":
+      return new UnavailableTravelDataProvider();
+    case "fixture":
+      return new LocalFixtureTravelDataProvider();
+    case "google_places":
+      return apiKey
+        ? new GooglePlacesProvider(apiKey)
+        : new UnavailableTravelDataProvider();
+    case "auto":
+      return apiKey
+        ? new GooglePlacesProvider(apiKey)
+        : new UnavailableTravelDataProvider();
+  }
 }
 
 export function createGooglePlacesProvider(

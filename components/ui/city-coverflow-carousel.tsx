@@ -239,8 +239,8 @@ export function CityCoverflowCarousel({
                       </span>
                     </div>
                     {city.coordinates && (
-                      <span className="text-[10px] text-slate-500 font-mono pl-5">
-                        {city.coordinates}
+                      <span className="text-[10px] text-amber-300 pl-5">
+                        Coordinates pending source review
                       </span>
                     )}
                   </div>
