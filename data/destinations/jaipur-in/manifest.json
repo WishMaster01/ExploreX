@@ -1,21 +1,21 @@
 {
   "schemaVersion": "1.0.0",
   "destinationId": "jaipur-in",
-  "generatedAt": "2026-10-28T17:03:52.749Z",
+  "generatedAt": "2026-11-02T05:28:33.254Z",
   "datasets": {
     "destination": {
       "filePath": "data/destinations/jaipur-in/destination.json",
       "recordCount": 1,
       "sourceCoverage": "sourced",
       "validationStatus": "valid",
-      "freshnessDays": 0
+      "freshnessDays": 5
     },
     "places": {
       "filePath": "data/destinations/jaipur-in/places.json",
       "recordCount": 4,
       "sourceCoverage": "sourced",
       "validationStatus": "valid",
-      "freshnessDays": 0
+      "freshnessDays": 5
     },
     "restaurants": {
       "filePath": "data/destinations/jaipur-in/restaurants.json",

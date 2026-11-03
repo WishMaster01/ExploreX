@@ -33,16 +33,31 @@ const collections = {
   routes: travelRouteSchema,
 };
 const issues = [];
+const verificationStatuses = [
+  "VERIFIED",
+  "NEEDS_REVIEW",
+  "ESTIMATED",
+  "AI_GENERATED",
+  "USER_PROVIDED",
+  "UNAVAILABLE",
+];
 const recordsByDestination = new Map();
 const summary = {
   destinations: 0,
   records: {},
-  verified: 0,
-  needsReview: 0,
-  unavailable: 0,
+  verificationStatuses: Object.fromEntries(
+    verificationStatuses.map((status) => [status, 0]),
+  ),
   duplicates: [],
   issues,
 };
+
+function addStatusCount(record) {
+  const status =
+    record.status ?? record.verificationStatus ?? record.provenance?.status;
+  if (Object.hasOwn(summary.verificationStatuses, status))
+    summary.verificationStatuses[status] += 1;
+}
 
 async function readJson(relativePath) {
   return JSON.parse(await readFile(path.join(root, relativePath), "utf8"));
@@ -106,9 +121,7 @@ const expectedFiles = [
 
 for (const destination of validDestinationCatalog) {
   allRecordIds.set(destination.id, "data/catalogs/destinations.json");
-  if (destination.status === "VERIFIED") summary.verified += 1;
-  else if (destination.status === "NEEDS_REVIEW") summary.needsReview += 1;
-  else if (destination.status === "UNAVAILABLE") summary.unavailable += 1;
+  addStatusCount(destination);
   if (destination.status === "VERIFIED" && !destination.sourceRefs.length)
     issues.push({
       file: "data/catalogs/destinations.json",
@@ -291,8 +304,8 @@ for (const destination of validDestinationCatalog) {
             });
         }
       }
+      addStatusCount(record);
       if (record.verificationStatus === "VERIFIED") {
-        summary.verified += 1;
         if (!record.sourceRefs.length)
           issues.push({
             file,
@@ -481,15 +494,12 @@ for (const destination of validDestinationCatalog) {
           path: "categoryIds",
           message: `Unknown taxonomy ID ${categoryId}`,
         });
-    if (guide.verificationStatus === "VERIFIED") summary.verified += 1;
-    else if (guide.verificationStatus === "NEEDS_REVIEW")
-      summary.needsReview += 1;
-    else if (guide.verificationStatus === "UNAVAILABLE")
-      summary.unavailable += 1;
+    addStatusCount(guide);
     dirRecords.push(guide);
   }
-  counts.travelGuide =
-    guide && guide.verificationStatus !== "UNAVAILABLE" ? 1 : 0;
+  // Count the object physically stored in travel-guide.json, including an
+  // explicit UNAVAILABLE placeholder. Coverage below separately excludes it.
+  counts.travelGuide = guide ? 1 : 0;
   for (const record of dirRecords) {
     if (record.provenance?.status === "VERIFIED" && !record.lastVerifiedAt)
       issues.push({
@@ -703,7 +713,10 @@ function manifestFor(destinationId, data, generatedAt) {
     recordCounts: data.counts,
     sourceRefs: data.sourceRefs,
     coverageStatus: Object.entries(data.counts).some(
-      ([key, count]) => key !== "destination" && count > 0,
+      ([key, count]) =>
+        key !== "destination" &&
+        count > 0 &&
+        !(key === "travelGuide" && data.guide?.verificationStatus === "UNAVAILABLE"),
     )
       ? "partial"
       : "not_started",
@@ -724,75 +737,223 @@ async function writeManifests() {
 }
 
 async function writeCoverageReport() {
+  const statusCell = (rows, status) =>
+    rows.filter(
+      (record) =>
+        (record.status ?? record.verificationStatus ?? record.provenance?.status) ===
+        status,
+    ).length;
+  const recordSourceCount = (rows) =>
+    rows.filter((record) => {
+      const references = [
+        ...(record.sourceRefs ?? []),
+        ...(record.factualClaims ?? []).flatMap((claim) => claim.sourceRefs),
+      ];
+      return references.some((sourceId) => sourcesById.has(sourceId));
+    }).length;
+  const rightsCoverage = (name, rows) => {
+    if (name.startsWith("taxonomy")) return "N/A (editorial taxonomy)";
+    if (name === "source registry")
+      return `${sourceRows.filter((source) => source.license && source.attribution && source.storagePolicy).length}/${sourceRows.length} complete`;
+    if (name === "destination manifests") return "inherited from registry";
+    const sourceIds = new Set(
+      rows.flatMap((record) => [
+        ...(record.sourceRefs ?? []),
+        ...(record.factualClaims ?? []).flatMap((claim) => claim.sourceRefs),
+      ]),
+    );
+    if (!sourceIds.size) return "none (no linked sources)";
+    const policyComplete = [...sourceIds].filter((sourceId) => {
+      const source = sourcesById.get(sourceId);
+      return source?.license && source.attribution && source.storagePolicy;
+    }).length;
+    return `${policyComplete}/${sourceIds.size} linked source policies documented`;
+  };
+  const destinationRows = validDestinationCatalog;
+  const entityRows = Object.fromEntries(
+    Object.keys(collections).map((name) => [
+      name,
+      [...recordsByDestination.values()].flatMap(
+        (data) => data.recordCollections[name] ?? [],
+      ),
+    ]),
+  );
+  const guideRows = [...recordsByDestination.values()]
+    .map((data) => data.guide)
+    .filter(Boolean);
+  const sourceRows = registry?.sources ?? [];
+  const manifestRows = await Promise.all(
+    [...recordsByDestination.keys()].map(async (id) =>
+      readJson(`data/destinations/${id}/manifest.json`).catch(() => null),
+    ),
+  );
+  const legacyDatasetFiles = [
+    ["destinations", "data/destinations/jaipur.json", "destinations"],
+    ["places", "data/places/jaipur.json", "places"],
+    ["restaurants", "data/restaurants/jaipur.json", "restaurants"],
+    ["hotels", "data/hotels/jaipur.json", "hotels"],
+    ["experiences", "data/experiences/jaipur.json", "experiences"],
+    ["travel guides", "data/travel-guides/jaipur.json", "travelGuides"],
+  ];
+  const legacyManifest = await readJson("data/manifests/jaipur.json").catch(
+    () => null,
+  );
+  const legacyRows = await Promise.all(
+    legacyDatasetFiles.map(async ([name, file, manifestKey]) => {
+      const raw = await readJson(file).catch(() => null);
+      const rows = raw === null ? [] : Array.isArray(raw) ? raw : [raw];
+      const withEvidence = rows.filter(
+        (record) =>
+          (record.evidence?.length ?? 0) > 0 ||
+          record.source?.status === "PROVIDER_SOURCED",
+      ).length;
+      return {
+        name,
+        file,
+        count: rows.length,
+        withEvidence,
+        manifestMatches:
+          legacyManifest?.recordCounts?.[manifestKey] === rows.length,
+      };
+    }),
+  );
+  const reportDatasets = [
+    ["destinations", destinationRows, "data/catalogs/destinations.json"],
+    ...Object.entries(entityRows).map(([name, rows]) => [
+      name,
+      rows,
+      "data/destinations/",
+    ]),
+    ["travel guides (including unavailable placeholders)", guideRows, "data/destinations/"],
+    ["taxonomy categories", taxonomy?.categories ?? [], "data/catalogs/travel-taxonomy.json"],
+    [
+      "taxonomy subcategories",
+      taxonomy?.categories.flatMap((category) => category.subcategories) ?? [],
+      "data/catalogs/travel-taxonomy.json",
+    ],
+    ["taxonomy tags", taxonomy?.tags ?? [], "data/catalogs/travel-taxonomy.json"],
+    ["source registry", sourceRows, "data/catalogs/source-registry.json"],
+    ["destination manifests", manifestRows.filter(Boolean), "data/destinations/"],
+  ];
+  const threshold = Date.now() - 365 * 86_400_000;
   const lines = [
-    "# Travel data coverage",
+    "# Travel data coverage and audit",
     "",
     `Generated: ${new Date().toISOString()}`,
     "",
-    `Destinations: **${summary.destinations}**`,
+    `Canonical destinations: **${summary.destinations}**; physical destination folders: **${recordsByDestination.size}**; destination manifests: **${manifestRows.filter(Boolean).length}**.`,
     "",
-    "Counts include destination records, entity records, and one guide record when present. Empty arrays mean no records are currently sourced; they do not establish that no businesses, events, or experiences exist.",
+    "Record counts reflect objects actually stored, including explicit UNAVAILABLE travel-guide placeholders. Taxonomy, source-registry, and manifest rows are metadata and do not have travel verification statuses. A source is counted as identifiable when a record references an ID present in the source registry; this does not itself mean the claim is independently verified or its license permits storage.",
     "",
-    "| Dataset | Records |",
-    "| --- | ---: |",
-    ...Object.entries(summary.records).map(
-      ([name, count]) => `| ${name} | ${count} |`,
-    ),
-    `| Verified records | ${summary.verified} |`,
-    `| Needs review | ${summary.needsReview} |`,
-    `| Unavailable placeholders | ${summary.unavailable} |`,
-    `| Duplicate records | ${summary.duplicates.length} |`,
-    `| Validation issues | ${issues.length} |`,
+    "Empty entity datasets are INCOMPLETE, not evidence that no matching businesses or activities exist. An AI-generated description is never counted as evidence of factual accuracy.",
     "",
-    "## Destination coverage",
-    "",
-    "| Destination ID | Type | Dest. | Places | Restaurants | Hotels | Experiences | Events | Routes | Guide | Verified | Needs review | Unavailable | Source status | Coverage | Issues |",
-    "| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- | --- | ---: |",
+    "| Dataset | Actual records | Source-identifiable | Rights metadata | VERIFIED | NEEDS_REVIEW | ESTIMATED | AI_GENERATED | USER_PROVIDED | UNAVAILABLE | Missing fields | Invalid coordinates | Duplicate IDs | Broken references | Stale >365d |",
+    "| --- | ---: | ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
   ];
+  for (const [name, rows, filePrefix] of reportDatasets) {
+    const related = issues.filter((issue) => issue.file.startsWith(filePrefix));
+    const metadataOnly = name.startsWith("taxonomy") || name === "source registry" || name === "destination manifests";
+    const missing = related.filter(
+      (issue) =>
+        /required|undefined/i.test(issue.message) ||
+        issue.message === "Required dataset file is missing",
+    ).length;
+    const invalidCoordinates = related.filter((issue) =>
+      issue.path.toLowerCase().includes("coordinate"),
+    ).length;
+    const duplicateIds = related.filter((issue) =>
+      /duplicate stable id|duplicate .* id/i.test(issue.message),
+    ).length;
+    const brokenRefs = related.filter((issue) =>
+      /unknown (source|taxonomy|place|venue|parent|route)/i.test(issue.message),
+    ).length;
+    const stale = rows.filter((record) => {
+      const checkedAt =
+        record.lastVerifiedAt ?? record.lastCheckedAt ?? record.generatedAt;
+      const timestamp = record.generatedAt
+        ? Date.parse(record.generatedAt)
+        : checkedAt
+          ? Date.parse(`${checkedAt}T00:00:00Z`)
+          : Number.NaN;
+      return Number.isFinite(timestamp) && timestamp < threshold;
+    }).length;
+    const statusValues = metadataOnly
+      ? verificationStatuses.map(() => "N/A")
+      : verificationStatuses.map((status) => statusCell(rows, status));
+    const sourceCount = metadataOnly ? "N/A" : recordSourceCount(rows);
+    const rights = rightsCoverage(name, rows);
+    lines.push(
+      `| ${name} | ${rows.length}${rows.length === 0 ? " (INCOMPLETE)" : ""} | ${sourceCount} | ${rights} | ${statusValues.join(" | ")} | ${missing} | ${invalidCoordinates} | ${duplicateIds} | ${brokenRefs} | ${stale} |`,
+    );
+  }
+  lines.push(
+    "",
+    "",
+    "## Per-destination inventory",
+    "",
+    "| Destination ID | Places | Restaurants | Hotels | Experiences | Events | Routes | Guide file record | Verified | Needs review | Estimated | AI generated | User provided | Unavailable | Manifest count matches files | Coverage | Validation issues |",
+    "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- | --- | ---: |",
+  );
   for (const [id, data] of recordsByDestination) {
-    const coveredRecords = Object.entries(data.counts)
-      .filter(([key]) => key !== "destination")
-      .reduce((sum, [, count]) => sum + count, 0);
     const destinationRecords = [
       data.destination,
       ...Object.values(data.recordCollections).flat(),
       ...(data.guide ? [data.guide] : []),
     ];
-    const verified = destinationRecords.filter(
-      (record) =>
-        record.status === "VERIFIED" ||
-        record.verificationStatus === "VERIFIED",
-    ).length;
-    const needsReview = destinationRecords.filter(
-      (record) =>
-        record.status === "NEEDS_REVIEW" ||
-        record.verificationStatus === "NEEDS_REVIEW",
-    ).length;
-    const unavailable = destinationRecords.filter(
-      (record) =>
-        record.status === "UNAVAILABLE" ||
-        record.verificationStatus === "UNAVAILABLE",
-    ).length;
-    const status = data.destination.status;
+    const destinationStatusCells = verificationStatuses.map((status) =>
+      statusCell(destinationRecords, status),
+    );
+    const guideStatus = data.guide?.verificationStatus ?? "MISSING";
+    const physicalCounts = data.counts;
+    const manifest = manifestRows[
+      [...recordsByDestination.keys()].indexOf(id)
+    ];
+    const manifestMatches = Boolean(
+      manifest &&
+        Object.entries(physicalCounts).every(
+          ([name, count]) => manifest.recordCounts?.[name] === count,
+        ),
+    );
+    const hasUsefulCoverage =
+      Object.values(data.recordCollections).some((rows) => rows.length > 0) ||
+      (Boolean(data.guide) && guideStatus !== "UNAVAILABLE");
     const destinationIssues = issues.filter(
       (issue) => issue.file.includes(`/destinations/${id}/`) || issue.id === id,
     ).length;
     lines.push(
-      `| ${id} | ${data.destination.destinationType} | ${data.counts.destination} | ${data.counts.places} | ${data.counts.restaurants} | ${data.counts.hotels} | ${data.counts.experiences} | ${data.counts.events} | ${data.counts.routes} | ${data.counts.travelGuide} | ${verified} | ${needsReview} | ${unavailable} | ${status} | ${coveredRecords > 0 ? "partial" : "not started"} | ${destinationIssues} |`,
+      `| ${id} | ${data.counts.places} | ${data.counts.restaurants} | ${data.counts.hotels} | ${data.counts.experiences} | ${data.counts.events} | ${data.counts.routes} | ${data.guide ? 1 : 0} | ${destinationStatusCells.join(" | ")} | ${manifestMatches ? "yes" : "NO"} | ${hasUsefulCoverage ? "partial" : "not started"} | ${destinationIssues} |`,
     );
   }
   lines.push(
     "",
+    "## Findings and source policy",
+    "",
+    `- Verification status totals across travel records: ${verificationStatuses.map((status) => `${status} ${summary.verificationStatuses[status]}`).join(", ")}.`,
+    `- Empty datasets: ${Object.entries(entityRows).filter(([, rows]) => rows.length === 0).map(([name]) => name).join(", ")}; these are incomplete inventories.`,
     "## Data quality notes",
     "",
     `- Missing dataset files: ${issues.filter((issue) => issue.message === "Required dataset file is missing").length}.`,
-    `- Missing source metadata: ${validDestinationCatalog.filter((record) => !record.sourceRefs.length).length} legacy destination records need review; factual and volatile entity collections stay empty unless sourced.`,
+    `- Destination records without an identifiable source reference: ${validDestinationCatalog.filter((record) => !record.sourceRefs.some((sourceId) => sourcesById.has(sourceId))).length}; these legacy coordinates remain NEEDS_REVIEW.`,
     `- Broken source/category/geographic references: ${countReferenceIssues()}.`,
     `- Other validation issues: ${issues.length}.`,
     `- Duplicate records: ${summary.duplicates.length}; duplicate detection covers stable IDs globally and normalized names within each entity dataset.`,
-    `- Unverified or unavailable records: ${summary.needsReview + summary.unavailable}.`,
+    `- Records that need review or are unavailable: ${summary.verificationStatuses.NEEDS_REVIEW + summary.verificationStatuses.UNAVAILABLE}.`,
     `- Stale verified records (older than 365 days): ${countStaleRecords()}.`,
-    "- Candidate providers in the source registry are not counted as curated sources. See [travel data policy](TRAVEL_DATA.md) for terms and configuration.",
+    `- License, attribution, and storage policy fields are present in ${sourceRows.filter((source) => source.license && source.attribution && source.storagePolicy).length}/${sourceRows.length} source-registry entries. Jaipur city-profile reuse terms remain explicitly unknown; source-specific restrictions and candidate-only status are described in the registry and [travel data policy](TRAVEL_DATA.md).`,
+    "- The four canonical Jaipur place records contain sourced names only; guide factualClaims are empty. No AI-generated content is included as evidence. The 40 legacy destination coordinates are preserved for compatibility but remain unsupported pending source review; no record has been invented to fill empty datasets.",
+    "- Phase 2 compatibility files under data/{places,restaurants,hotels,experiences,travel-guides}/jaipur.json remain separate from the canonical per-destination set. The legacy places file has four sourced-name records and the legacy guide is an editorial status summary; its PROVIDER_SOURCED/CURATED labels are not the canonical verification vocabulary. The legacy data/manifests/jaipur.json counts match those compatibility files.",
+    "- Source URLs were not re-fetched during this local audit. Record lastVerifiedAt is therefore reported as stored, not independently confirmed during this run.",
+    "",
+    "## Phase 2 Jaipur compatibility files",
+    "",
+    "These files are retained separately from the canonical `jaipur-in` folder. Their legacy `PROVIDER_SOURCED` and `CURATED` labels do not map directly to canonical verification states. Evidence/source columns count rows with an evidence URL list or provider-sourced marker; use the legacy schema and manifest for details.",
+    "",
+    "| Dataset | File records | Rows with legacy evidence/source marker | Legacy manifest count matches |",
+    "| --- | ---: | ---: | --- |",
+    ...legacyRows.map(
+      (row) =>
+        `| ${row.name} | ${row.count}${row.count === 0 ? " (INCOMPLETE)" : ""} | ${row.withEvidence} | ${row.manifestMatches ? "yes" : "NO"} |`,
+    ),
     "",
   );
   const stale = listStaleRecords();
@@ -818,6 +979,15 @@ function listStaleRecords() {
   const threshold = Date.now() - 365 * 86_400_000;
   const stale = [];
   for (const data of recordsByDestination.values()) {
+    if (
+      data.destination.lastVerifiedAt &&
+      Date.parse(`${data.destination.lastVerifiedAt}T00:00:00Z`) < threshold
+    )
+      stale.push({
+        destinationId: data.destination.id,
+        id: data.destination.id,
+        name: "destination",
+      });
     for (const [name, rows] of Object.entries(data.recordCollections)) {
       for (const record of rows)
         if (
@@ -840,6 +1010,13 @@ function listStaleRecords() {
         name: "travelGuide",
       });
   }
+  for (const source of registry?.sources ?? [])
+    if (Date.parse(`${source.lastCheckedAt}T00:00:00Z`) < threshold)
+      stale.push({
+        destinationId: "source-registry",
+        id: source.id,
+        name: "source",
+      });
   return stale;
 }
 
@@ -932,9 +1109,7 @@ console.log(
     {
       destinations: summary.destinations,
       records: summary.records,
-      verified: summary.verified,
-      needsReview: summary.needsReview,
-      unavailable: summary.unavailable,
+      verificationStatuses: summary.verificationStatuses,
       duplicateCount: summary.duplicates.length,
       issueCount: issues.length,
       applied: command === "import" && apply,

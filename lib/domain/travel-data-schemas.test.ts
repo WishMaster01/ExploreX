@@ -285,10 +285,20 @@ describe("canonical travel data contracts", () => {
       const manifest = JSON.parse(
         await readFile(path.join(directory, "manifest.json"), "utf8"),
       );
+      const guide = JSON.parse(
+        await readFile(path.join(directory, "travel-guide.json"), "utf8"),
+      );
       expect(
         travelDestinationManifestSchema.safeParse(manifest).success,
         destination.id,
       ).toBe(true);
+      expect(manifest.recordCounts.travelGuide, destination.id).toBe(1);
+      expect(manifest.datasets.travelGuide.recordCount, destination.id).toBe(1);
+      expect(manifest.datasets.travelGuide.sourceCoverage, destination.id).toBe(
+        guide.sourceRefs.length ? "sourced" : "none",
+      );
+      if (guide.verificationStatus === "UNAVAILABLE")
+        expect(manifest.coverageStatus, destination.id).toBe("not_started");
       for (const [type, file] of Object.entries({
         places: "places.json",
         restaurants: "restaurants.json",
@@ -305,6 +315,33 @@ describe("canonical travel data contracts", () => {
         );
       }
     }
+  });
+
+  it("reports every verification state and marks empty collections incomplete", async () => {
+    const report = await readFile(
+      path.join(process.cwd(), "docs/TRAVEL_DATA_COVERAGE.md"),
+      "utf8",
+    );
+    for (const status of [
+      "VERIFIED",
+      "NEEDS_REVIEW",
+      "ESTIMATED",
+      "AI_GENERATED",
+      "USER_PROVIDED",
+      "UNAVAILABLE",
+    ])
+      expect(report).toContain(status);
+    expect(report).toContain("restaurants | 0 (INCOMPLETE)");
+    expect(report).toContain("taxonomy categories | 16");
+    expect(report).toContain("taxonomy subcategories | 17");
+    expect(report).toContain("taxonomy tags | 3");
+    expect(report).toContain("source registry | 14");
+    expect(report).toContain("destination manifests | 41");
+    expect(report).toContain("AI-generated description is never counted as evidence");
+    expect(report).toContain("40 legacy destination coordinates");
+    expect(report).toContain("## Phase 2 Jaipur compatibility files");
+    expect(report).toContain("| places | 4 | 4 | yes |");
+    expect(report).toContain("| restaurants | 0 (INCOMPLETE) | 0 | yes |");
   });
 
   it("creates stable idempotent import keys and uses conflict-safe upserts", async () => {

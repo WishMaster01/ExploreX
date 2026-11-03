@@ -6,6 +6,7 @@
 - `data/catalogs/travel-taxonomy.json` is the canonical 16-category taxonomy, its legacy-compatible subcategory IDs, and shared tags. `flattenTravelTaxonomy` is a read-only compatibility adapter for the older Jaipur dataset contract.
 - `data/catalogs/source-registry.json` describes sources actually used by curated records, ephemeral provider integrations, and sources that remain candidates. A candidate is not a license grant.
 - `data/destinations/<id>/` contains `destination.json`, place, restaurant, hotel, experience, event, route, guide, and generated manifest files. Empty arrays mean no records have been accepted; they do not mean the destination lacks those businesses or activities.
+- Canonical manifest record counts match the physical files, including one `UNAVAILABLE` guide placeholder per destination. Availability is represented by record status; a destination with only an unavailable guide remains `not_started` coverage. Source license, attribution, and storage policy details live in the source registry, not on each manifest.
 - The earlier `data/destinations/jaipur.json`, `data/places/jaipur.json`, and related Jaipur files remain as compatibility data for the Phase 2 response. New application search and normalized destination catalog APIs use the canonical catalog and `data/destinations/jaipur-in/`.
 - Runtime schemas live in `lib/domain/travel-data-schemas.ts`; prior Jaipur contracts remain in `lib/domain/dataset-schemas.ts`.
 

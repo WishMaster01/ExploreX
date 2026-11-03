@@ -121,7 +121,9 @@ function validateDataset(
     ...Object.fromEntries(
       Object.entries(records).map(([name, value]) => [name, value.length]),
     ),
-    travelGuide: guide.verificationStatus === "UNAVAILABLE" ? 0 : 1,
+    // Manifests count stored guide objects, including explicit unavailable
+    // placeholders. Availability is represented by the guide status itself.
+    travelGuide: 1,
   };
   if (JSON.stringify(manifest.recordCounts) !== JSON.stringify(recordCounts))
     throw new Error("Manifest record counts do not match loaded datasets");

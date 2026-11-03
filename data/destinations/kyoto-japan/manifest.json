@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "destinationId": "kyoto-japan",
-  "generatedAt": "2026-10-28T17:03:52.749Z",
+  "generatedAt": "2026-11-02T05:28:33.254Z",
   "datasets": {
     "destination": {
       "filePath": "data/destinations/kyoto-japan/destination.json",
@@ -54,7 +54,7 @@
     },
     "travelGuide": {
       "filePath": "data/destinations/kyoto-japan/travel-guide.json",
-      "recordCount": 0,
+      "recordCount": 1,
       "sourceCoverage": "none",
       "validationStatus": "valid",
       "freshnessDays": null
@@ -68,7 +68,7 @@
     "experiences": 0,
     "events": 0,
     "routes": 0,
-    "travelGuide": 0
+    "travelGuide": 1
   },
   "sourceRefs": [],
   "coverageStatus": "not_started",
