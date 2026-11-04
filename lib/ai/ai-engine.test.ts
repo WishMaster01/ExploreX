@@ -375,4 +375,18 @@ describe("travel data source safety", () => {
     await assertion;
     vi.useRealTimers();
   });
+
+  it("keeps invalid provider credentials private and returns no factual fallback", async () => {
+    const provider = createGooglePlacesProvider(
+      "private-invalid-test-key",
+      vi.fn(
+        async () => new Response("unauthorized", { status: 401 }),
+      ) as typeof fetch,
+    );
+    const result = await provider.searchPlaces("Example Museum, Paris");
+    expect(result.status).toBe("error");
+    expect(result.data).toEqual([]);
+    expect(JSON.stringify(result)).not.toContain("private-invalid-test-key");
+    expect(result.source.note).toBe("Places provider request failed.");
+  });
 });

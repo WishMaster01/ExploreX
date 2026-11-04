@@ -62,36 +62,39 @@ function validateDataset(
     ]),
     ...taxonomy.tags.map((tag) => tag.id),
   ]);
-  const knownSources = new Set(sources.sources.map((source) => source.id));
   const sourceById = new Map(
     sources.sources.map((source) => [source.id, source]),
   );
+  const validateSourceRefs = (sourceRefs: string[], label: string) => {
+    for (const sourceId of sourceRefs) {
+      const source = sourceById.get(sourceId);
+      if (!source) throw new Error(`${label} has an unknown source`);
+      if (source.currentUse !== "used")
+        throw new Error(
+          `${label} cites a source not approved for curated storage`,
+        );
+    }
+  };
+  const validateCategories = (categoryIds: string[], label: string) => {
+    if (categoryIds.some((categoryId) => !knownTaxonomy.has(categoryId)))
+      throw new Error(`${label} has an unknown category`);
+  };
   const knownDestinationIds = new Set(
     travelDestinationCatalogSchema
       .parse(destinationCatalogRaw)
       .destinations.map(({ id }) => id),
   );
+  validateSourceRefs(destination.sourceRefs, "Destination");
+  validateCategories(destination.categoryIds, "Destination");
   const records: Record<string, Array<{ sourceRefs: string[] }>> = {};
   for (const [name, schema] of Object.entries(datasetSchemas)) {
     const parsed = schema.array().parse(values[name]);
     for (const record of parsed) {
       if ("destinationId" in record && record.destinationId !== destinationId)
         throw new Error(`${name} record destination mismatch`);
-      if (
-        "categoryIds" in record &&
-        record.categoryIds.some((categoryId) => !knownTaxonomy.has(categoryId))
-      )
-        throw new Error(`${name} record has an unknown category`);
-      if (record.sourceRefs.some((sourceId) => !knownSources.has(sourceId)))
-        throw new Error(`${name} record has an unknown source`);
-      if (
-        record.sourceRefs.some(
-          (sourceId) => sourceById.get(sourceId)?.currentUse !== "used",
-        )
-      )
-        throw new Error(
-          `${name} record cites a source not approved for curated storage`,
-        );
+      if ("categoryIds" in record)
+        validateCategories(record.categoryIds, `${name} record`);
+      validateSourceRefs(record.sourceRefs, `${name} record`);
       if (
         "originDestinationId" in record &&
         !knownDestinationIds.has(record.originDestinationId)
@@ -106,16 +109,21 @@ function validateDataset(
     records[name] = parsed;
   }
   const guide = travelGuideSchema.parse(values.travelGuide);
-  if (
-    guide.destinationId !== destinationId ||
-    guide.categoryIds.some((categoryId) => !knownTaxonomy.has(categoryId))
-  )
-    throw new Error("Travel guide validation failed");
-  if (guide.sourceRefs.some((sourceId) => !knownSources.has(sourceId)))
-    throw new Error("Travel guide references an unknown source");
-  for (const claim of guide.factualClaims)
-    if (claim.sourceRefs.some((sourceId) => !knownSources.has(sourceId)))
-      throw new Error("Travel guide claim references an unknown source");
+  if (guide.destinationId !== destinationId)
+    throw new Error("Travel guide destination identity mismatch");
+  validateCategories(guide.categoryIds, "Travel guide");
+  validateSourceRefs(guide.sourceRefs, "Travel guide");
+  const guideClaims = [
+    ...guide.factualClaims,
+    ...guide.bestTimeToVisit,
+    ...guide.transportAdvice,
+    ...guide.localEtiquette,
+    ...guide.safetyGuidance,
+    ...guide.accessibilityNotes,
+    ...guide.budgetGuidance,
+  ];
+  for (const claim of guideClaims)
+    validateSourceRefs(claim.sourceRefs, "Travel guide claim");
   const recordCounts = {
     destination: 1,
     ...Object.fromEntries(
@@ -127,13 +135,23 @@ function validateDataset(
   };
   if (JSON.stringify(manifest.recordCounts) !== JSON.stringify(recordCounts))
     throw new Error("Manifest record counts do not match loaded datasets");
+  for (const [name, count] of Object.entries(recordCounts))
+    if (manifest.datasets[name]?.recordCount !== count)
+      throw new Error(
+        `Manifest ${name} dataset count does not match loaded data`,
+      );
+  if (
+    JSON.stringify(Object.keys(manifest.datasets).sort()) !==
+    JSON.stringify(Object.keys(recordCounts).sort())
+  )
+    throw new Error("Manifest dataset list does not match loaded datasets");
   const referencedSources = new Set([
     ...destination.sourceRefs,
     ...Object.values(records).flatMap((value) =>
       value.flatMap((record) => record.sourceRefs),
     ),
     ...guide.sourceRefs,
-    ...guide.factualClaims.flatMap((claim) => claim.sourceRefs),
+    ...guideClaims.flatMap((claim) => claim.sourceRefs),
   ]);
   if (
     JSON.stringify(manifest.sourceRefs) !==

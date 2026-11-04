@@ -15,6 +15,7 @@ import {
 import { fadeUp } from "./panel-primitives";
 import { GlassPanel, SectionHeading } from "@/components/travel/TravelUI";
 import { useTripPlan } from "@/context/TripPlanContext";
+import { googleMapsPlaceSearchUrl } from "@/lib/travel-data/maps";
 
 export function TimelinePanel({ trip }: { trip: DisplayTrip }) {
   const [selectedDay, setSelectedDay] = useState("all");
@@ -98,12 +99,9 @@ export function TimelinePanel({ trip }: { trip: DisplayTrip }) {
                     const key = `${day.day}-${segment.title}-${index}`;
                     const isComplete = completed.includes(key);
                     const isExpanded = expanded.includes(key);
-                    const query = segment.coordinates
-                      ? `${segment.coordinates.latitude},${segment.coordinates.longitude}`
-                      : `${segment.title} ${segment.address}`;
                     const mapsUrl =
                       segment.sourceMetadata?.mapsUrl ||
-                      `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+                      googleMapsPlaceSearchUrl(segment.title);
                     return (
                       <li
                         key={key}
@@ -122,10 +120,13 @@ export function TimelinePanel({ trip }: { trip: DisplayTrip }) {
                                 {segment.title}
                               </h4>
                               <span
-                                className={`rounded-full px-2 py-1 text-[11px] font-semibold ${segment.sourceMetadata?.source === "VERIFIED" ? "bg-emerald-50 text-emerald-800" : "bg-amber-50 text-amber-800"}`}
+                                className={`rounded-full px-2 py-1 text-[11px] font-semibold ${segment.sourceMetadata?.source === "VERIFIED" || segment.sourceMetadata?.source === "PROVIDER_SOURCED" ? "bg-emerald-50 text-emerald-800" : "bg-amber-50 text-amber-800"}`}
                               >
-                                {segment.sourceMetadata?.source === "VERIFIED"
-                                  ? "Name matched"
+                                {segment.sourceMetadata?.source ===
+                                  "VERIFIED" ||
+                                segment.sourceMetadata?.source ===
+                                  "PROVIDER_SOURCED"
+                                  ? "Name matched; details unverified"
                                   : "AI suggestion · confirm details"}
                               </span>
                             </div>
@@ -136,7 +137,10 @@ export function TimelinePanel({ trip }: { trip: DisplayTrip }) {
                             <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-xs text-slate-600">
                               <span className="inline-flex items-center gap-1.5">
                                 <Timer className="size-3.5 text-slate-400" />
-                                {segment.duration}
+                                {segment.duration ===
+                                "Visit duration not specified"
+                                  ? segment.duration
+                                  : `Visit duration estimate: ${segment.duration}`}
                               </span>
                               <span className="font-medium">
                                 Cost estimate: {segment.cost}

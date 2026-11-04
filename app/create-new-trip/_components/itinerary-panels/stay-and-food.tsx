@@ -84,17 +84,26 @@ export function StayAndFoodPanel({ trip }: { trip: DisplayTrip }) {
                           {hotel.name}
                         </h3>
                         <p className="mt-1 text-xs text-slate-500">
-                          {hotel.address}
+                          Unverified address: {hotel.address}
                         </p>
                       </div>
 
-                      <span className="flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-bold text-amber-700">
-                        <Star className="size-3.5 fill-current" />
-                        {hotel.rating}
+                      <span
+                        aria-label={`Unverified AI generated hotel rating ${hotel.rating}`}
+                        className="flex flex-col items-end rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-bold text-amber-700"
+                      >
+                        <span className="flex items-center gap-1">
+                          <Star className="size-3.5 fill-current" />
+                          {hotel.rating}
+                        </span>
+                        <span className="text-[9px] font-medium">
+                          unverified
+                        </span>
                       </span>
                     </div>
 
-                    {hotel.sourceMetadata?.source === "VERIFIED" &&
+                    {(hotel.sourceMetadata?.source === "VERIFIED" ||
+                      hotel.sourceMetadata?.source === "PROVIDER_SOURCED") &&
                     hotel.sourceMetadata.mapsUrl ? (
                       <a
                         href={hotel.sourceMetadata.mapsUrl}
@@ -102,7 +111,7 @@ export function StayAndFoodPanel({ trip }: { trip: DisplayTrip }) {
                         rel="noreferrer"
                         className="mt-2 inline-block text-xs font-semibold text-blue-700 underline"
                       >
-                        Name matched · Google Maps
+                        Name matched in Google Maps; details unverified
                       </a>
                     ) : (
                       <p className="mt-2 text-xs font-semibold text-amber-700">
@@ -129,7 +138,7 @@ export function StayAndFoodPanel({ trip }: { trip: DisplayTrip }) {
 
                     <div className="mt-3 flex items-center justify-between gap-2">
                       <p className="text-sm font-bold text-teal-700">
-                        {hotel.price}/night
+                        AI estimate: {hotel.price}/night
                       </p>
 
                       {hotel.recommendationScore !== undefined && (
@@ -186,12 +195,12 @@ export function StayAndFoodPanel({ trip }: { trip: DisplayTrip }) {
 
                   <div className="flex flex-col items-end gap-1">
                     <span className="rounded-full border border-teal-200 bg-teal-50 px-3 py-1 text-xs font-bold text-teal-700">
-                      {restaurant.price}
+                      AI estimate: {restaurant.price}
                     </span>
                     {restaurant.rating !== undefined ? (
                       <span className="inline-flex items-center gap-1 text-xs text-amber-700">
                         <Star className="size-3 fill-current" />
-                        {restaurant.rating.toFixed(1)}
+                        {restaurant.rating.toFixed(1)} · unverified
                       </span>
                     ) : (
                       <span className="text-[11px] text-slate-500">
@@ -206,7 +215,7 @@ export function StayAndFoodPanel({ trip }: { trip: DisplayTrip }) {
                 </p>
                 {restaurant.address && (
                   <p className="mt-2 text-xs text-slate-500">
-                    {restaurant.address}
+                    Unverified address: {restaurant.address}
                   </p>
                 )}
                 <div className="mt-2 flex flex-wrap gap-1.5">
@@ -229,13 +238,25 @@ export function StayAndFoodPanel({ trip }: { trip: DisplayTrip }) {
                 </div>
                 <p className="mt-2 text-xs text-slate-500">
                   {restaurant.geo_coordinates
-                    ? `Coordinates available · ${restaurant.geo_coordinates.latitude.toFixed(3)}, ${restaurant.geo_coordinates.longitude.toFixed(3)}`
-                    : "Distance unavailable · no restaurant coordinates"}
+                    ? "Coordinates are unverified; location is not confirmed."
+                    : "Distance unavailable; no restaurant coordinates."}
                 </p>
                 <p className="mt-2 text-xs font-semibold text-amber-700">
-                  {restaurant.source_metadata?.source === "VERIFIED"
-                    ? "Name matched · Google Maps"
-                    : "AI generated · verify before visiting"}
+                  {(restaurant.source_metadata?.source === "VERIFIED" ||
+                    restaurant.source_metadata?.source ===
+                      "PROVIDER_SOURCED") &&
+                  restaurant.source_metadata.mapsUrl ? (
+                    <a
+                      href={restaurant.source_metadata.mapsUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="underline"
+                    >
+                      Name matched in Google Maps; details unverified
+                    </a>
+                  ) : (
+                    "AI generated · verify before visiting"
+                  )}
                 </p>
               </div>
             ))}

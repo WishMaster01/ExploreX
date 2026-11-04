@@ -15,6 +15,10 @@ import {
 } from "lucide-react";
 import { fadeUp, PanelTitle, MapMetric } from "./panel-primitives";
 import { GlassPanel } from "@/components/travel/TravelUI";
+import {
+  googleMapsDirectionsUrl,
+  googleMapsPlaceSearchUrl,
+} from "@/lib/travel-data/maps";
 
 export function RouteOptimizationPanel({ trip }: { trip: DisplayTrip }) {
   const [selectedDay, setSelectedDay] = useState("all");
@@ -39,20 +43,9 @@ export function RouteOptimizationPanel({ trip }: { trip: DisplayTrip }) {
   const dayStops = markers.filter(
     (marker) => marker.type !== "hotel" && marker.day === routeDay,
   );
-  const directionsUrl =
-    dayStops.length > 1
-      ? `https://www.google.com/maps/dir/?api=1&origin=${dayStops[0].coordinates.latitude},${dayStops[0].coordinates.longitude}&destination=${dayStops.at(-1)!.coordinates.latitude},${dayStops.at(-1)!.coordinates.longitude}${
-          dayStops.length > 2
-            ? `&waypoints=${dayStops
-                .slice(1, -1)
-                .map(
-                  (stop) =>
-                    `${stop.coordinates.latitude},${stop.coordinates.longitude}`,
-                )
-                .join("%7C")}`
-            : ""
-        }`
-      : null;
+  const directionsUrl = googleMapsDirectionsUrl(
+    dayStops.map((stop) => stop.label),
+  );
 
   const iconFor = (type: MapMarker["type"]) => {
     if (type === "hotel") return <Hotel className="size-4" />;
@@ -128,7 +121,7 @@ export function RouteOptimizationPanel({ trip }: { trip: DisplayTrip }) {
                 loading="lazy"
                 referrerPolicy="no-referrer-when-downgrade"
                 className="mt-4 h-64 w-full rounded-xl border border-slate-200 sm:h-80"
-                src={`https://www.google.com/maps?q=${activeMarker.coordinates.latitude},${activeMarker.coordinates.longitude}&output=embed`}
+                src={`${googleMapsPlaceSearchUrl(activeMarker.label)}&output=embed`}
               />
             ) : (
               <button
@@ -153,8 +146,9 @@ export function RouteOptimizationPanel({ trip }: { trip: DisplayTrip }) {
               </a>
             )}
             <p className="mt-2 text-xs text-slate-500">
-              Map pins use the itinerary coordinates. Coordinates may be
-              AI-generated unless a place name is provider-matched. Turn-by-turn
+              Map searches use place names, not generated coordinates. A
+              provider name match does not verify an address or exact location;
+              confirm the selected result before navigating. Turn-by-turn
               routing opens in Google Maps.
             </p>
           </>
