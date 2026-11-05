@@ -2,9 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { DomainError } from "@/lib/domain/errors";
 import { getServerEnvironment } from "@/lib/env";
 import type { Destination } from "@/lib/domain/travel";
-import {
-  createTravelProviderAdapters,
-} from "./index";
+import { createTravelProviderAdapters } from "./index";
 import { GoogleMapsTravelAdapter } from "./google-maps";
 import { OpenMeteoWeatherAdapter } from "./open-meteo";
 import { FrankfurterCurrencyAdapter } from "./frankfurter";
@@ -64,7 +62,9 @@ describe("Google Maps provider adapters", () => {
   it("rejects malformed place responses", async () => {
     const adapter = new GoogleMapsTravelAdapter(
       "key",
-      vi.fn().mockResolvedValue(jsonResponse({ places: [{ id: "missing-name" }] })),
+      vi
+        .fn()
+        .mockResolvedValue(jsonResponse({ places: [{ id: "missing-name" }] })),
     );
     await expect(
       adapter.searchPlaces({ query: "Museum", destination, limit: 2 }),
@@ -78,11 +78,16 @@ describe("Google Maps provider adapters", () => {
         jsonResponse({
           status: "OK",
           results: [
-            { place_id: "geo-1", geometry: { location: { lat: 26.9, lng: 75.8 } } },
+            {
+              place_id: "geo-1",
+              geometry: { location: { lat: 26.9, lng: 75.8 } },
+            },
           ],
         }),
       )
-      .mockResolvedValueOnce(jsonResponse({ status: "ZERO_RESULTS", results: [] }));
+      .mockResolvedValueOnce(
+        jsonResponse({ status: "ZERO_RESULTS", results: [] }),
+      );
     const adapter = new GoogleMapsTravelAdapter("key", fetcher);
     const first = await adapter.geocode({ query: "Jaipur", countryCode: "IN" });
     const second = await adapter.geocode({ query: "no such place" });
@@ -107,17 +112,23 @@ describe("Google Maps provider adapters", () => {
         }),
       ),
     );
-    await expect(adapter.geocode({ query: "Somewhere" })).rejects.toMatchObject({
-      code: "PROVIDER_UNAVAILABLE",
-    });
+    await expect(adapter.geocode({ query: "Somewhere" })).rejects.toMatchObject(
+      {
+        code: "PROVIDER_UNAVAILABLE",
+      },
+    );
   });
 
   it("returns provider road distance and duration without estimating either", async () => {
     const adapter = new GoogleMapsTravelAdapter(
       "key",
-      vi.fn().mockResolvedValue(
-        jsonResponse({ routes: [{ distanceMeters: 12_345, duration: "1200s" }] }),
-      ),
+      vi
+        .fn()
+        .mockResolvedValue(
+          jsonResponse({
+            routes: [{ distanceMeters: 12_345, duration: "1200s" }],
+          }),
+        ),
     );
     const result = await adapter.getRoute({
       origin: { latitude: 26.9, longitude: 75.8 },
@@ -136,7 +147,11 @@ describe("Google Maps provider adapters", () => {
   it("maps invalid credentials and provider quotas to typed errors without leaking keys", async () => {
     const unauthorized = new GoogleMapsTravelAdapter(
       "top-secret",
-      vi.fn().mockResolvedValue(new Response("credential diagnostics", { status: 401 })),
+      vi
+        .fn()
+        .mockResolvedValue(
+          new Response("credential diagnostics", { status: 401 }),
+        ),
     );
     await expect(
       unauthorized.searchPlaces({ query: "Museum", destination, limit: 1 }),
@@ -157,13 +172,19 @@ describe("Google Maps provider adapters", () => {
       .mockResolvedValueOnce(new Response("temporary", { status: 503 }))
       .mockResolvedValueOnce(jsonResponse({ places: [] }));
     const adapter = new GoogleMapsTravelAdapter("key", fetcher);
-    const result = await adapter.searchPlaces({ query: "Museum", destination, limit: 1 });
+    const result = await adapter.searchPlaces({
+      query: "Museum",
+      destination,
+      limit: 1,
+    });
     expect(result.items).toEqual([]);
     expect(fetcher).toHaveBeenCalledTimes(2);
   });
 
   it("does not retry non-retryable authentication errors", async () => {
-    const fetcher = vi.fn().mockResolvedValue(new Response("no", { status: 403 }));
+    const fetcher = vi
+      .fn()
+      .mockResolvedValue(new Response("no", { status: 403 }));
     const adapter = new GoogleMapsTravelAdapter("key", fetcher);
     await expect(
       adapter.searchPlaces({ query: "Museum", destination, limit: 1 }),
@@ -236,9 +257,16 @@ describe("Open-Meteo and Frankfurter adapters", () => {
   });
 
   it("normalizes a reference currency rate and labels it as non-transactional", async () => {
-    const fetcher = vi.fn().mockResolvedValue(
-      jsonResponse({ date: "2026-11-03", base: "USD", quote: "INR", rate: 88.5 }),
-    );
+    const fetcher = vi
+      .fn()
+      .mockResolvedValue(
+        jsonResponse({
+          date: "2026-11-03",
+          base: "USD",
+          quote: "INR",
+          rate: 88.5,
+        }),
+      );
     const result = await new FrankfurterCurrencyAdapter(fetcher).getRate({
       baseCurrency: "usd",
       quoteCurrency: "inr",
@@ -249,13 +277,19 @@ describe("Open-Meteo and Frankfurter adapters", () => {
       rate: 88.5,
       asOf: "2026-11-03T00:00:00.000Z",
     });
-    expect(result.source.note).toContain("not a cash, card, or transaction quote");
+    expect(result.source.note).toContain(
+      "not a cash, card, or transaction quote",
+    );
     expect(result.source.sourceId).toBe("USD/INR/2026-11-03");
   });
 
   it("rejects malformed rates and invalid currency inputs", async () => {
     const invalidResponse = new FrankfurterCurrencyAdapter(
-      vi.fn().mockResolvedValue(jsonResponse({ date: "bad", base: "USD", quote: "INR", rate: -1 })),
+      vi
+        .fn()
+        .mockResolvedValue(
+          jsonResponse({ date: "bad", base: "USD", quote: "INR", rate: -1 }),
+        ),
     );
     await expect(
       invalidResponse.getRate({ baseCurrency: "USD", quoteCurrency: "INR" }),
@@ -268,24 +302,60 @@ describe("Open-Meteo and Frankfurter adapters", () => {
 
 describe("provider composition", () => {
   it("returns explicit unavailable results when no credentialed provider is configured", async () => {
-    const env = getServerEnvironment({ ...process.env, TRAVEL_ADAPTER_MODE: "auto" });
+    const env = getServerEnvironment({
+      ...process.env,
+      TRAVEL_ADAPTER_MODE: "auto",
+    });
     const providers = createTravelProviderAdapters(env, {
       nodeEnvironment: "production",
       fetcher: vi.fn(),
     });
-    expect((await providers.places.searchPlaces({ query: "Palace", destination, limit: 2 })).source.status).toBe("UNAVAILABLE");
-    expect((await providers.routing.getRoute({
-      origin: { latitude: 26.9, longitude: 75.8 },
-      destination: { latitude: 26.91, longitude: 75.81 },
-      mode: "drive",
-    })).items).toBeNull();
-    expect((await providers.accommodation.searchAccommodation({ query: "stay", destination, limit: 2 })).items).toEqual([]);
-    expect((await providers.transport.searchTransport({ origin: destination, destination, passengers: 1 })).items).toEqual([]);
-    expect((await providers.events.searchEvents({ destination })).items).toEqual([]);
+    expect(
+      (
+        await providers.places.searchPlaces({
+          query: "Palace",
+          destination,
+          limit: 2,
+        })
+      ).source.status,
+    ).toBe("UNAVAILABLE");
+    expect(
+      (
+        await providers.routing.getRoute({
+          origin: { latitude: 26.9, longitude: 75.8 },
+          destination: { latitude: 26.91, longitude: 75.81 },
+          mode: "drive",
+        })
+      ).items,
+    ).toBeNull();
+    expect(
+      (
+        await providers.accommodation.searchAccommodation({
+          query: "stay",
+          destination,
+          limit: 2,
+        })
+      ).items,
+    ).toEqual([]);
+    expect(
+      (
+        await providers.transport.searchTransport({
+          origin: destination,
+          destination,
+          passengers: 1,
+        })
+      ).items,
+    ).toEqual([]);
+    expect(
+      (await providers.events.searchEvents({ destination })).items,
+    ).toEqual([]);
   });
 
   it("uses checked-in Jaipur place names only in explicit local mock mode", async () => {
-    const env = getServerEnvironment({ ...process.env, TRAVEL_ADAPTER_MODE: "mock" });
+    const env = getServerEnvironment({
+      ...process.env,
+      TRAVEL_ADAPTER_MODE: "mock",
+    });
     const providers = createTravelProviderAdapters(env, {
       nodeEnvironment: "development",
       fetcher: vi.fn(),
@@ -296,11 +366,16 @@ describe("provider composition", () => {
       limit: 3,
     });
     expect(result.items.map(({ name }) => name)).toEqual(["Amber Palace"]);
-    expect(result.items[0].source.note).toContain("no live provider confirmation");
+    expect(result.items[0].source.note).toContain(
+      "no live provider confirmation",
+    );
   });
 
   it("refuses local mock mode in production", () => {
-    const env = getServerEnvironment({ ...process.env, TRAVEL_ADAPTER_MODE: "mock" });
+    const env = getServerEnvironment({
+      ...process.env,
+      TRAVEL_ADAPTER_MODE: "mock",
+    });
     expect(() =>
       createTravelProviderAdapters(env, { nodeEnvironment: "production" }),
     ).toThrow(DomainError);

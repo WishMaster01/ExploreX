@@ -3,9 +3,17 @@ import { z } from "zod";
 import { DomainError } from "@/lib/domain/errors";
 import { weatherObservationSchema } from "@/lib/domain/travel";
 import type { SourceMetadata, WeatherObservation } from "@/lib/domain/travel";
-import type { ProviderResult, WeatherInput, WeatherProvider } from "@/lib/travel-data/ports";
+import type {
+  ProviderResult,
+  WeatherInput,
+  WeatherProvider,
+} from "@/lib/travel-data/ports";
 import { APP_CONFIG } from "@/lib/config";
-import { requestProviderJson, parseProviderResponse, providerTimestamp } from "./http";
+import {
+  requestProviderJson,
+  parseProviderResponse,
+  providerTimestamp,
+} from "./http";
 
 const responseSchema = z.object({
   current: z.object({
@@ -20,12 +28,17 @@ export class OpenMeteoWeatherAdapter implements WeatherProvider {
   readonly name = "open_meteo";
 
   constructor(
-    private readonly options: { apiKey?: string; customerEndpoint?: boolean } = {},
+    private readonly options: {
+      apiKey?: string;
+      customerEndpoint?: boolean;
+    } = {},
     private readonly fetcher: typeof fetch = fetch,
     private readonly timeoutMs: number = APP_CONFIG.travelData.timeoutMs,
   ) {}
 
-  async getWeather(input: WeatherInput): Promise<ProviderResult<WeatherObservation | null>> {
+  async getWeather(
+    input: WeatherInput,
+  ): Promise<ProviderResult<WeatherObservation | null>> {
     if (input.at)
       throw new DomainError(
         "VALIDATION_ERROR",
@@ -43,7 +56,8 @@ export class OpenMeteoWeatherAdapter implements WeatherProvider {
       timezone: input.timeZone ?? "auto",
       timeformat: "unixtime",
     }).toString();
-    if (this.options.apiKey) url.searchParams.set("apikey", this.options.apiKey);
+    if (this.options.apiKey)
+      url.searchParams.set("apikey", this.options.apiKey);
 
     const raw = await requestProviderJson(
       this.fetcher,

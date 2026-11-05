@@ -32,42 +32,90 @@ const unavailableSource = (provider: string, note: string): SourceMetadata => ({
 
 const unavailablePlaces: PlacesProvider = {
   async searchPlaces(): Promise<ProviderResult<Place[]>> {
-    return { items: [], source: unavailableSource("unconfigured", "Place search provider is not configured.") };
+    return {
+      items: [],
+      source: unavailableSource(
+        "unconfigured",
+        "Place search provider is not configured.",
+      ),
+    };
   },
 };
 const unavailableGeocoding: GeocodingProvider = {
   async geocode(): Promise<ProviderResult<GeocodedLocation[]>> {
-    return { items: [], source: unavailableSource("unconfigured", "Geocoding provider is not configured.") };
+    return {
+      items: [],
+      source: unavailableSource(
+        "unconfigured",
+        "Geocoding provider is not configured.",
+      ),
+    };
   },
 };
 const unavailableRouting: RoutingProvider = {
   async getRoute(): Promise<ProviderResult<null>> {
-    return { items: null, source: unavailableSource("unconfigured", "Route provider is not configured; no duration or road distance is available.") };
+    return {
+      items: null,
+      source: unavailableSource(
+        "unconfigured",
+        "Route provider is not configured; no duration or road distance is available.",
+      ),
+    };
   },
 };
 const unavailableWeather: WeatherProvider = {
   async getWeather(): Promise<ProviderResult<null>> {
-    return { items: null, source: unavailableSource("unconfigured", "Weather provider is not configured.") };
+    return {
+      items: null,
+      source: unavailableSource(
+        "unconfigured",
+        "Weather provider is not configured.",
+      ),
+    };
   },
 };
 const unavailableAccommodation: AccommodationProvider = {
   async searchAccommodation(): Promise<ProviderResult<[]>> {
-    return { items: [], source: unavailableSource("unconfigured", "No authorized accommodation availability provider is configured.") };
+    return {
+      items: [],
+      source: unavailableSource(
+        "unconfigured",
+        "No authorized accommodation availability provider is configured.",
+      ),
+    };
   },
 };
 const unavailableTransport: TransportProvider = {
   async searchTransport(): Promise<ProviderResult<[]>> {
-    return { items: [], source: unavailableSource("unconfigured", "No authorized transport availability provider is configured.") };
+    return {
+      items: [],
+      source: unavailableSource(
+        "unconfigured",
+        "No authorized transport availability provider is configured.",
+      ),
+    };
   },
 };
 const unavailableCurrency: CurrencyProvider = {
   async getRate(): Promise<ProviderResult<null>> {
-    return { items: null, source: unavailableSource("unconfigured", "Currency provider is not configured.") };
+    return {
+      items: null,
+      source: unavailableSource(
+        "unconfigured",
+        "Currency provider is not configured.",
+      ),
+    };
   },
 };
 const unavailableEvents: EventsProvider = {
   async searchEvents(): Promise<ProviderResult<[]>> {
-    return { items: [], source: unavailableSource("unconfigured", "No official event provider is configured.") };
+    return {
+      items: [],
+      source: unavailableSource(
+        "unconfigured",
+        "No official event provider is configured.",
+      ),
+    };
   },
 };
 
@@ -77,28 +125,33 @@ const localMockPlaces: PlacesProvider = {
     const query = input.query.trim().toLocaleLowerCase();
     const retrievedAt = new Date().toISOString();
     const places = query
-      ? jaipurPlaces.filter((place) =>
-          place.destinationId === input.destination.id &&
-          place.name.toLocaleLowerCase().includes(query),
+      ? jaipurPlaces.filter(
+          (place) =>
+            place.destinationId === input.destination.id &&
+            place.name.toLocaleLowerCase().includes(query),
         )
       : [];
-    const items = places.map((place) => ({
-      id: place.id,
-      destinationId: place.destinationId,
-      name: place.name,
-      source: {
-        status: place.verificationStatus === "VERIFIED" ? "VERIFIED" : "STALE",
-        provider: "checked_in_travel_catalog",
-        sourceId: place.id,
-        retrievedAt,
-        validUntil: null,
-        confidence: null,
-        ...(place.provenance.attribution
-          ? { attribution: place.provenance.attribution }
-          : {}),
-        note: "Local mock mode; checked-in place name only, with no live provider confirmation.",
-      } satisfies SourceMetadata,
-    } satisfies Place));
+    const items = places.map(
+      (place) =>
+        ({
+          id: place.id,
+          destinationId: place.destinationId,
+          name: place.name,
+          source: {
+            status:
+              place.verificationStatus === "VERIFIED" ? "VERIFIED" : "STALE",
+            provider: "checked_in_travel_catalog",
+            sourceId: place.id,
+            retrievedAt,
+            validUntil: null,
+            confidence: null,
+            ...(place.provenance.attribution
+              ? { attribution: place.provenance.attribution }
+              : {}),
+            note: "Local mock mode; checked-in place name only, with no live provider confirmation.",
+          } satisfies SourceMetadata,
+        }) satisfies Place,
+    );
     return {
       items,
       source: {
@@ -130,11 +183,13 @@ export function createTravelProviderAdapters(
 ): TravelProviderAdapters {
   const fetcher = options.fetcher ?? fetch;
   const mode = environment.TRAVEL_ADAPTER_MODE;
-  if (mode === "disabled")
-    return unavailableAdapters();
+  if (mode === "disabled") return unavailableAdapters();
   if (mode === "mock") {
     if ((options.nodeEnvironment ?? process.env.NODE_ENV) === "production")
-      throw new DomainError("CONFIGURATION_ERROR", "Mock travel adapters cannot run in production");
+      throw new DomainError(
+        "CONFIGURATION_ERROR",
+        "Mock travel adapters cannot run in production",
+      );
     return { ...unavailableAdapters(), places: localMockPlaces };
   }
 
@@ -148,27 +203,27 @@ export function createTravelProviderAdapters(
     places:
       environment.TRAVEL_PLACES_PROVIDER === "disabled"
         ? unavailablePlaces
-        : maps ?? unavailablePlaces,
+        : (maps ?? unavailablePlaces),
     geocoding:
       environment.TRAVEL_GEOCODING_PROVIDER === "disabled"
         ? unavailableGeocoding
-        : maps ?? unavailableGeocoding,
+        : (maps ?? unavailableGeocoding),
     routing:
       environment.TRAVEL_ROUTING_PROVIDER === "disabled"
         ? unavailableRouting
-        : maps ?? unavailableRouting,
+        : (maps ?? unavailableRouting),
     weather:
       environment.TRAVEL_WEATHER_PROVIDER === "disabled"
         ? unavailableWeather
         : weatherAllowed
-      ? new OpenMeteoWeatherAdapter(
-          {
-            apiKey: environment.OPEN_METEO_API_KEY,
-            customerEndpoint: Boolean(environment.OPEN_METEO_API_KEY),
-          },
-          fetcher,
-        )
-      : unavailableWeather,
+          ? new OpenMeteoWeatherAdapter(
+              {
+                apiKey: environment.OPEN_METEO_API_KEY,
+                customerEndpoint: Boolean(environment.OPEN_METEO_API_KEY),
+              },
+              fetcher,
+            )
+          : unavailableWeather,
     accommodation: unavailableAccommodation,
     transport: unavailableTransport,
     currency:

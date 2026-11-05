@@ -50,7 +50,11 @@ function coordinatesForCity(cityQuery: string) {
 async function handleGet(request: Request) {
   const params = parseWeatherQueryParams(new URL(request.url).searchParams);
   if (!params)
-    return apiError("Weather query parameters are invalid", 400, "VALIDATION_ERROR");
+    return apiError(
+      "Weather query parameters are invalid",
+      400,
+      "VALIDATION_ERROR",
+    );
 
   const denied = await enforceRateLimit(request, {
     ...APP_CONFIG.rateLimits.weather,
@@ -71,7 +75,11 @@ async function handleGet(request: Request) {
       coordinates,
     });
     if (!result.items)
-      return apiError("Weather data is unavailable", 502, "SERVICE_UNAVAILABLE");
+      return apiError(
+        "Weather data is unavailable",
+        502,
+        "SERVICE_UNAVAILABLE",
+      );
     const observation = result.items;
     serverLogger.info("travel_data.request.completed", {
       provider: result.source.provider,

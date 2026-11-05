@@ -2,9 +2,18 @@ import "server-only";
 import { z } from "zod";
 import { DomainError } from "@/lib/domain/errors";
 import type { SourceMetadata } from "@/lib/domain/travel";
-import type { CurrencyProvider, CurrencyRateInput, CurrencyRate, ProviderResult } from "@/lib/travel-data/ports";
+import type {
+  CurrencyProvider,
+  CurrencyRateInput,
+  CurrencyRate,
+  ProviderResult,
+} from "@/lib/travel-data/ports";
 import { APP_CONFIG } from "@/lib/config";
-import { requestProviderJson, parseProviderResponse, providerTimestamp } from "./http";
+import {
+  requestProviderJson,
+  parseProviderResponse,
+  providerTimestamp,
+} from "./http";
 
 const rateResponseSchema = z.object({
   date: z.string().date(),
@@ -21,18 +30,26 @@ export class FrankfurterCurrencyAdapter implements CurrencyProvider {
     private readonly timeoutMs: number = APP_CONFIG.travelData.timeoutMs,
   ) {}
 
-  async getRate(input: CurrencyRateInput): Promise<ProviderResult<CurrencyRate | null>> {
+  async getRate(
+    input: CurrencyRateInput,
+  ): Promise<ProviderResult<CurrencyRate | null>> {
     const base = input.baseCurrency.trim().toUpperCase();
     const quote = input.quoteCurrency.trim().toUpperCase();
     if (!/^[A-Z]{3}$/.test(base) || !/^[A-Z]{3}$/.test(quote))
-      throw new DomainError("VALIDATION_ERROR", "Currency codes must be ISO 4217 codes");
+      throw new DomainError(
+        "VALIDATION_ERROR",
+        "Currency codes must be ISO 4217 codes",
+      );
     const url = new URL(
       `https://api.frankfurter.dev/v2/rate/${encodeURIComponent(base.toLowerCase())}/${encodeURIComponent(quote.toLowerCase())}`,
     );
     if (input.at) {
       const date = new Date(input.at);
       if (Number.isNaN(date.valueOf()))
-        throw new DomainError("VALIDATION_ERROR", "Currency rate date is invalid");
+        throw new DomainError(
+          "VALIDATION_ERROR",
+          "Currency rate date is invalid",
+        );
       url.searchParams.set("date", date.toISOString().slice(0, 10));
     }
     const raw = await requestProviderJson(
@@ -44,7 +61,10 @@ export class FrankfurterCurrencyAdapter implements CurrencyProvider {
     const retrievedAt = providerTimestamp();
     const rate = parseProviderResponse(rateResponseSchema, raw);
     if (rate.base.toUpperCase() !== base || rate.quote.toUpperCase() !== quote)
-      throw new DomainError("PROVIDER_UNAVAILABLE", "Currency provider returned a different currency pair");
+      throw new DomainError(
+        "PROVIDER_UNAVAILABLE",
+        "Currency provider returned a different currency pair",
+      );
     const items: CurrencyRate = {
       baseCurrency: base,
       quoteCurrency: quote,
@@ -64,4 +84,3 @@ export class FrankfurterCurrencyAdapter implements CurrencyProvider {
     return { items, source };
   }
 }
-

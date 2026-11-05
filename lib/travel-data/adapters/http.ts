@@ -14,9 +14,13 @@ function responseError(status: number): DomainError {
       "Travel provider rejected its credentials or permissions",
     );
   if (status === 429)
-    return new DomainError("RATE_LIMITED", "Travel provider quota was reached", {
-      retryable: true,
-    });
+    return new DomainError(
+      "RATE_LIMITED",
+      "Travel provider quota was reached",
+      {
+        retryable: true,
+      },
+    );
   return new DomainError(
     "PROVIDER_UNAVAILABLE",
     "Travel provider request failed",
@@ -66,12 +70,17 @@ export async function requestProviderJson(
       }
       throw new DomainError(
         timedOut ? "PROVIDER_TIMEOUT" : "PROVIDER_UNAVAILABLE",
-        timedOut ? "Travel provider request timed out" : "Travel provider is unavailable",
+        timedOut
+          ? "Travel provider request timed out"
+          : "Travel provider is unavailable",
         { retryable: true },
       );
     }
   }
-  throw new DomainError("PROVIDER_UNAVAILABLE", "Travel provider is unavailable");
+  throw new DomainError(
+    "PROVIDER_UNAVAILABLE",
+    "Travel provider is unavailable",
+  );
 }
 
 export function parseProviderResponse<T>(
