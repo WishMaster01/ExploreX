@@ -5,6 +5,15 @@ const serverEnvironmentSchema = z.object({
   DIRECT_URL: z.string().url().optional(),
   OPENROUTER_API_KEY: z.string().min(1).optional(),
   GOOGLE_MAPS_API_KEY: z.string().min(1).optional(),
+  OPEN_METEO_API_KEY: z.string().min(1).optional(),
+  TRAVEL_ADAPTER_MODE: z
+    .enum(["auto", "mock", "disabled"])
+    .default("auto"),
+  TRAVEL_PLACES_PROVIDER: z.enum(["auto", "google_places", "disabled"]).default("auto"),
+  TRAVEL_GEOCODING_PROVIDER: z.enum(["auto", "google_geocoding", "disabled"]).default("auto"),
+  TRAVEL_ROUTING_PROVIDER: z.enum(["auto", "google_routes", "disabled"]).default("auto"),
+  TRAVEL_WEATHER_PROVIDER: z.enum(["auto", "open_meteo", "disabled"]).default("auto"),
+  TRAVEL_CURRENCY_PROVIDER: z.enum(["auto", "frankfurter", "disabled"]).default("auto"),
   TRAVEL_DATA_PROVIDER: z
     .enum(["auto", "disabled", "fixture", "google_places"])
     .default("auto"),

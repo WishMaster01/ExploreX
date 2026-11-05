@@ -1,21 +1,13 @@
-import { z } from "zod";
 import { apiError, apiOk } from "@/lib/api";
 import { APP_CONFIG } from "@/lib/config";
+import { DomainError } from "@/lib/domain/errors";
 import { parseWeatherQueryParams } from "@/lib/domain/schemas";
-import { enforceRateLimit } from "@/lib/rate-limit";
-import { withRequestMetrics } from "@/lib/observability/request-metrics";
-import { serverLogger } from "@/lib/observability/server-logger";
-import { fetchWithTimeout } from "@/lib/travel-data/fetch-with-timeout";
 import { exploreCities } from "@/lib/data/cities";
 import { DESTINATIONS } from "@/lib/data/destinations";
-
-const weatherResponseSchema = z.object({
-  current: z.object({
-    temperature_2m: z.number().finite(),
-    weather_code: z.number().int().min(0).max(99),
-  }),
-  timezone: z.string().min(1).max(80),
-});
+import { withRequestMetrics } from "@/lib/observability/request-metrics";
+import { serverLogger } from "@/lib/observability/server-logger";
+import { getTravelProviderAdapters } from "@/lib/travel-data/adapters";
+import { enforceRateLimit } from "@/lib/rate-limit";
 
 function decodeWeatherCode(code: number): string {
   if (code === 0) return "Clear Sky";
@@ -58,15 +50,10 @@ function coordinatesForCity(cityQuery: string) {
 async function handleGet(request: Request) {
   const params = parseWeatherQueryParams(new URL(request.url).searchParams);
   if (!params)
-    return apiError(
-      "Weather query parameters are invalid",
-      400,
-      "VALIDATION_ERROR",
-    );
+    return apiError("Weather query parameters are invalid", 400, "VALIDATION_ERROR");
 
-  const policy = APP_CONFIG.rateLimits.weather;
   const denied = await enforceRateLimit(request, {
-    ...policy,
+    ...APP_CONFIG.rateLimits.weather,
     userId: "weather:public",
     keyByIp: true,
   });
@@ -78,76 +65,45 @@ async function handleGet(request: Request) {
   if (!coordinates)
     return apiError("A known destination is required", 400, "VALIDATION_ERROR");
 
-  const providerUrl = new URL("https://api.open-meteo.com/v1/forecast");
-  providerUrl.search = new URLSearchParams({
-    latitude: String(coordinates.latitude),
-    longitude: String(coordinates.longitude),
-    current: "temperature_2m,weather_code",
-    timezone: "auto",
-  }).toString();
   const startedAt = performance.now();
   try {
-    const response = await fetchWithTimeout(
-      fetch,
-      providerUrl,
-      { cache: "no-store" },
-      APP_CONFIG.travelData.timeoutMs,
-    );
-    if (!response.ok) {
-      serverLogger.warn("travel_data.request.completed", {
-        provider: "open_meteo",
-        feature: "weather",
-        latencyMs: Math.round(performance.now() - startedAt),
-        status: response.status,
-        success: false,
-      });
-      return apiError(
-        "Weather data is unavailable",
-        502,
-        "SERVICE_UNAVAILABLE",
-      );
-    }
-
-    const parsed = weatherResponseSchema.safeParse(await response.json());
-    if (!parsed.success) {
-      serverLogger.warn("travel_data.response.invalid", {
-        provider: "open_meteo",
-        feature: "weather",
-      });
-      return apiError(
-        "Weather data is unavailable",
-        502,
-        "SERVICE_UNAVAILABLE",
-      );
-    }
+    const result = await getTravelProviderAdapters().weather.getWeather({
+      coordinates,
+    });
+    if (!result.items)
+      return apiError("Weather data is unavailable", 502, "SERVICE_UNAVAILABLE");
+    const observation = result.items;
     serverLogger.info("travel_data.request.completed", {
-      provider: "open_meteo",
+      provider: result.source.provider,
       feature: "weather",
       latencyMs: Math.round(performance.now() - startedAt),
-      status: response.status,
       success: true,
     });
-    const temperature = Math.round(parsed.data.current.temperature_2m);
+    const temperature = Math.round(observation.temperatureCelsius);
     return apiOk({
       success: true,
       temp: `${temperature}°C`,
-      condition: decodeWeatherCode(parsed.data.current.weather_code),
+      condition: decodeWeatherCode(Number(observation.conditionCode)),
       rawTemp: temperature,
-      timezone: parsed.data.timezone,
-      source: "Open-Meteo Live API",
+      timezone: observation.timeZone,
+      observedAt: observation.observedAt,
+      source: result.source.provider,
+      provenance: observation.source,
     });
   } catch (error) {
-    const timedOut = error instanceof Error && error.name === "AbortError";
+    const providerError = error instanceof DomainError ? error : null;
     serverLogger.warn("travel_data.request.failed", {
-      provider: "open_meteo",
+      provider: "configured_weather_adapter",
       feature: "weather",
       latencyMs: Math.round(performance.now() - startedAt),
-      errorCode: timedOut ? "PROVIDER_TIMEOUT" : "PROVIDER_ERROR",
+      errorCode: providerError?.code ?? "PROVIDER_ERROR",
       errorType: error instanceof Error ? error.name : "unknown",
     });
-    return timedOut
-      ? apiError("Weather provider timed out", 504, "PROVIDER_TIMEOUT")
-      : apiError("Weather data is unavailable", 502, "SERVICE_UNAVAILABLE");
+    if (providerError?.code === "PROVIDER_TIMEOUT")
+      return apiError("Weather provider timed out", 504, "PROVIDER_TIMEOUT");
+    if (providerError?.code === "RATE_LIMITED")
+      return apiError("Weather provider is rate limited", 429, "RATE_LIMITED");
+    return apiError("Weather data is unavailable", 502, "SERVICE_UNAVAILABLE");
   }
 }
 

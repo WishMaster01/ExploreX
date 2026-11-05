@@ -29,6 +29,7 @@ export const sourceMetadataSchema = z
     retrievedAt: z.string().datetime({ offset: true }).nullable(),
     validUntil: z.string().datetime({ offset: true }).nullable().optional(),
     confidence: z.number().min(0).max(1).nullable().optional(),
+    sourceId: z.string().trim().min(1).max(300).optional(),
     attribution: z.string().trim().max(500).optional(),
     note: z.string().trim().max(500).optional(),
   })
@@ -100,6 +101,8 @@ const placeCoreSchema = z
     source: sourceMetadataSchema,
   })
   .strict();
+
+export const placeSchema = placeCoreSchema;
 
 export const experienceSchema = placeCoreSchema
   .extend({
@@ -204,6 +207,7 @@ export const itineraryActivitySchema = z
 export type ProvenanceStatus = z.infer<typeof provenanceStatusSchema>;
 export type SourceMetadata = z.infer<typeof sourceMetadataSchema>;
 export type Coordinates = z.infer<typeof coordinatesSchema>;
+export type Place = z.infer<typeof placeSchema>;
 export type MoneyEstimate = z.infer<typeof moneyEstimateSchema>;
 export type Destination = z.infer<typeof destinationSchema>;
 export type Experience = z.infer<typeof experienceSchema>;

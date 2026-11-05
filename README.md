@@ -88,7 +88,14 @@ CRON_SECRET=replace_with_a_long_random_secret
 | `DIRECT_URL`                                      | Direct PostgreSQL connection string for Prisma operations.                            |
 | `OPENROUTER_API_KEY`                              | Optional for browsing and saved-trip features; required for AI generation.            |
 | `NEXT_PUBLIC_APP_URL`                             | Recommended production HTTPS origin for canonical URLs, sitemap, and Open Graph URLs. |
-| `GOOGLE_MAPS_API_KEY`                             | Optional server key for Google Places exact-name listing checks.                      |
+| `GOOGLE_MAPS_API_KEY`                             | Optional server key for Places, Geocoding, and Routes adapters and legacy checks.     |
+| `OPEN_METEO_API_KEY`                              | Required for commercial production weather through Open-Meteo's customer endpoint.  |
+| `TRAVEL_ADAPTER_MODE`                             | Normalized adapter mode: `auto`, local `mock`, or `disabled`.                         |
+| `TRAVEL_PLACES_PROVIDER`                          | Places adapter: `auto`, `google_places`, or `disabled`.                              |
+| `TRAVEL_GEOCODING_PROVIDER`                       | Geocoding adapter: `auto`, `google_geocoding`, or `disabled`.                        |
+| `TRAVEL_ROUTING_PROVIDER`                         | Routing adapter: `auto`, `google_routes`, or `disabled`.                             |
+| `TRAVEL_WEATHER_PROVIDER`                         | Weather adapter: `auto`, `open_meteo`, or `disabled`.                                |
+| `TRAVEL_CURRENCY_PROVIDER`                        | Currency adapter: `auto`, `frankfurter`, or `disabled`.                              |
 | `OPENROUTER_INPUT_COST_PER_MILLION`               | Optional account-specific input token price for cost estimates.                       |
 | `OPENROUTER_OUTPUT_COST_PER_MILLION`              | Optional account-specific output token price for cost estimates.                      |
 | `ARCJET_KEY`                                      | Arcjet key used for production API rate limiting.                                     |
@@ -96,6 +103,8 @@ CRON_SECRET=replace_with_a_long_random_secret
 | `CRON_SECRET`                                     | Bearer secret used by a scheduler to read due reminders.                              |
 
 Do not commit real `.env` files. This repository keeps `.env` ignored and allows `.env.example` to be committed.
+
+See [provider adapter selection, terms, attribution, and failure behavior](docs/PROVIDER_ADAPTERS.md) before enabling live travel providers.
 
 ## Getting Started
 

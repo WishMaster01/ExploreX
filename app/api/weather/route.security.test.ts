@@ -29,7 +29,11 @@ describe("public weather route hardening", () => {
   it("uses only the fixed weather provider for valid coordinates", async () => {
     const fetcher = vi.fn().mockResolvedValue(
       Response.json({
-        current: { temperature_2m: 21.7, weather_code: 1 },
+        current: {
+          time: 1_798_663_200,
+          temperature_2m: 21.7,
+          weather_code: 1,
+        },
         timezone: "Asia/Tokyo",
       }),
     );

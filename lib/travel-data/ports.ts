@@ -4,6 +4,7 @@ import type {
   Discovery,
   Hotel,
   MoneyEstimate,
+  Place,
   Restaurant,
   RouteLeg,
   SourceMetadata,
@@ -27,6 +28,11 @@ export type GeocodeInput = {
   query: string;
   countryCode?: string;
   languageCode?: string;
+};
+
+export type GeocodedLocation = {
+  coordinates: Coordinates;
+  sourceId?: string;
 };
 
 export type RouteInput = {
@@ -71,11 +77,11 @@ export type EventSearchInput = {
 };
 
 export interface PlacesProvider {
-  searchPlaces(input: PlaceSearchInput): Promise<ProviderResult<Discovery[]>>;
+  searchPlaces(input: PlaceSearchInput): Promise<ProviderResult<Place[]>>;
 }
 
 export interface GeocodingProvider {
-  geocode(input: GeocodeInput): Promise<ProviderResult<Coordinates[]>>;
+  geocode(input: GeocodeInput): Promise<ProviderResult<GeocodedLocation[]>>;
 }
 
 export interface RoutingProvider {
