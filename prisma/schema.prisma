@@ -88,6 +88,8 @@ model Trip {
   reminders      Reminder[]
 
   @@unique([userId, planHash])
+  // Supports the composite reminder FK that enforces matching trip ownership.
+  @@unique([id, userId])
   @@index([createdAt])
   @@index([userId, createdAt(sort: Desc)])
   @@index([userId, isFavorite, createdAt(sort: Desc)])
@@ -98,23 +100,24 @@ model Trip {
 }
 
 model Reminder {
-  id        String         @id @default(cuid())
-  type      ReminderType   @default(TRIP)
-  message   String
-  remindAt  DateTime       @db.Timestamptz(3)
-  timeZone  String         @default("UTC")
-  status    ReminderStatus @default(SCHEDULED)
-  createdAt DateTime       @default(now()) @db.Timestamptz(3)
-  updatedAt DateTime       @updatedAt @db.Timestamptz(3)
+  id             String         @id @default(cuid())
+  type           ReminderType   @default(TRIP)
+  message        String
+  remindAt       DateTime       @db.Timestamptz(3)
+  timeZone       String         @default("UTC")
+  status         ReminderStatus @default(SCHEDULED)
+  createdAt      DateTime       @default(now()) @db.Timestamptz(3)
+  updatedAt      DateTime       @updatedAt @db.Timestamptz(3)
+  idempotencyKey String?        @db.VarChar(128)
 
   userId String
   user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   tripId String?
-  trip   Trip?   @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  trip   Trip?   @relation(fields: [tripId, userId], references: [id, userId], onDelete: Cascade, map: "reminders_tripId_userId_fkey")
 
+  @@unique([userId, idempotencyKey])
   @@index([userId, status, remindAt])
   @@index([status, remindAt, id])
-  @@index([tripId])
   @@map("reminders")
 }
 
@@ -151,11 +154,11 @@ model CityGuide {
 }
 
 model SavedCity {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  id        String    @id @default(cuid())
+  createdAt DateTime  @default(now()) @db.Timestamptz(3)
   userId    String
   citySlug  String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   city      CityGuide @relation(fields: [citySlug], references: [slug], onDelete: Cascade)
 
   @@unique([userId, citySlug])

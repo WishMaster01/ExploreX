@@ -40,12 +40,14 @@ export async function getOrCreateCurrentUser() {
   }
 
   const clerkUser = await currentUser();
-  const primaryEmail =
-    clerkUser?.emailAddresses.find(
-      (email) => email.id === clerkUser.primaryEmailAddressId,
-    )?.emailAddress ?? clerkUser?.emailAddresses[0]?.emailAddress;
+  const primaryEmailAddress = clerkUser?.emailAddresses.find(
+    (email) => email.id === clerkUser.primaryEmailAddressId,
+  );
+  const primaryEmail = primaryEmailAddress?.emailAddress;
 
-  if (!primaryEmail) {
+  // Email matching links legacy ExploreX records to the authenticated Clerk
+  // account, so require proof of control before using it as an identity key.
+  if (!primaryEmail || primaryEmailAddress.verification?.status !== "verified") {
     return null;
   }
 

@@ -1,5 +1,6 @@
 import { apiError, apiOk, readJson, serverError } from "@/lib/api";
 import { ReminderStatus, ReminderType } from "@/lib/generated/prisma/client";
+import { Prisma } from "@/lib/generated/prisma/client";
 import { getOrCreateCurrentUser } from "@/lib/auth-user";
 import { prisma } from "@/lib/db";
 import { enforceRateLimit } from "@/lib/rate-limit";
@@ -80,6 +81,9 @@ export async function POST(request: Request) {
         "VALIDATION_ERROR",
       );
     const { tripId, type, message, timeZone } = parsed.data;
+    const idempotencyKey = request.headers.get("idempotency-key")?.trim();
+    if (idempotencyKey && (idempotencyKey.length < 1 || idempotencyKey.length > 128))
+      return apiError("Idempotency-Key must be at most 128 characters", 400, "VALIDATION_ERROR");
     const remindAt = new Date(parsed.data.remindAt);
     const now = Date.now();
     if (
@@ -97,25 +101,51 @@ export async function POST(request: Request) {
       select: { id: true },
     });
     if (!trip) return apiError("Trip not found", 404, "NOT_FOUND");
-    const reminder = await prisma.reminder.create({
-      data: {
-        tripId,
-        userId: user.id,
-        type: reminderTypes[type],
-        message,
-        remindAt,
-        timeZone,
-      },
-      select: {
-        id: true,
-        type: true,
-        message: true,
-        remindAt: true,
-        status: true,
-        tripId: true,
-      },
-    });
-    return apiOk(reminderDto(reminder), 201);
+    const data = {
+      tripId,
+      userId: user.id,
+      type: reminderTypes[type],
+      message,
+      remindAt,
+      timeZone,
+      ...(idempotencyKey ? { idempotencyKey } : {}),
+    };
+    const select = {
+      id: true,
+      type: true,
+      message: true,
+      remindAt: true,
+      status: true,
+      tripId: true,
+      timeZone: true,
+    } as const;
+    try {
+      const reminder = await prisma.reminder.create({ data, select });
+      return apiOk(reminderDto(reminder), 201);
+    } catch (error) {
+      if (
+        idempotencyKey &&
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === "P2002"
+      ) {
+        const existing = await prisma.reminder.findUnique({
+          where: { userId_idempotencyKey: { userId: user.id, idempotencyKey } },
+          select,
+        });
+        if (existing) {
+          const sameRequest =
+            existing.tripId === tripId &&
+            existing.type === reminderTypes[type] &&
+            existing.message === message &&
+            existing.remindAt.getTime() === remindAt.getTime() &&
+            existing.timeZone === timeZone;
+          if (!sameRequest)
+            return apiError("Idempotency-Key was already used for another request", 409, "CONFLICT");
+          return apiOk(reminderDto(existing));
+        }
+      }
+      throw error;
+    }
   } catch (error) {
     return serverError(error, "Error creating reminder");
   }

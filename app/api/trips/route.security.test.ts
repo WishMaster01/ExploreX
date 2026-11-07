@@ -11,6 +11,7 @@ vi.mock("@/lib/db", () => ({
     trip: {
       findFirst: vi.fn(),
       deleteMany: vi.fn(),
+      updateMany: vi.fn(),
     },
   },
 }));
@@ -21,10 +22,11 @@ vi.mock("@/lib/observability/server-logger", () => ({
 import { getOrCreateCurrentUser } from "@/lib/auth-user";
 import { Role } from "@/lib/generated/prisma/client";
 import { prisma } from "@/lib/db";
-import { DELETE, GET } from "./route";
+import { DELETE, GET, PATCH } from "./route";
 
 const findFirst = vi.mocked(prisma.trip.findFirst);
 const deleteMany = vi.mocked(prisma.trip.deleteMany);
+const updateMany = vi.mocked(prisma.trip.updateMany);
 const currentUser = vi.mocked(getOrCreateCurrentUser);
 
 describe("trip route security", () => {
@@ -42,6 +44,7 @@ describe("trip route security", () => {
       updatedAt: new Date(),
     } as Awaited<ReturnType<typeof getOrCreateCurrentUser>>);
     deleteMany.mockResolvedValue({ count: 0 });
+    updateMany.mockResolvedValue({ count: 0 });
   });
 
   it("returns not found for a trip owned by another user and scopes the read", async () => {
@@ -66,6 +69,21 @@ describe("trip route security", () => {
     expect(response.status).toBe(404);
     expect(deleteMany).toHaveBeenCalledWith({
       where: { id: "trip-b", userId: "user-a" },
+    });
+  });
+
+  it("does not update a trip owned by another user", async () => {
+    const response = await PATCH(
+      new Request("https://explorex.test/api/trips", {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ id: "trip-b", isFavorite: true }),
+      }),
+    );
+    expect(response.status).toBe(404);
+    expect(updateMany).toHaveBeenCalledWith({
+      where: { id: "trip-b", userId: "user-a" },
+      data: { isFavorite: true },
     });
   });
 

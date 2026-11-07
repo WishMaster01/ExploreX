@@ -143,7 +143,7 @@ export async function tripsPost(request: Request) {
     });
     if (existing) {
       const refreshed = await prisma.trip.update({
-        where: { id: existing.id },
+        where: { id: existing.id, userId: user.id },
         data: { lastViewedAt: new Date() },
         select: tripSelect,
       });
