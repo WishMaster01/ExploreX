@@ -25,6 +25,10 @@
     "travel-data:manifest": "node --experimental-strip-types scripts/travel-data.mjs manifest",
     "travel-data:report": "node --experimental-strip-types scripts/travel-data.mjs report",
     "travel-data:import": "node --experimental-strip-types scripts/travel-data.mjs import",
+    "rag:validate": "node --experimental-strip-types scripts/ingest-travel-knowledge.mjs",
+    "rag:ingest": "node --experimental-strip-types scripts/ingest-travel-knowledge.mjs --apply",
+    "rag:evaluate": "node --experimental-strip-types scripts/evaluate-travel-rag.mjs",
+    "rag:db-check": "node scripts/check-rag-database.mjs",
     "db:studio": "prisma studio",
     "prisma:validate": "prisma validate"
   },

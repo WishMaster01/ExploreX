@@ -41,6 +41,24 @@ enum SourceType {
   @@map("source_type")
 }
 
+enum KnowledgeVerificationStatus {
+  VERIFIED
+  PROVIDER_SOURCED
+  COMMUNITY_SUBMITTED
+  ESTIMATED
+  AI_GENERATED
+  STALE
+  UNAVAILABLE
+  REJECTED
+  CURATED
+  NEEDS_REVIEW
+}
+
+enum KnowledgeVisibility {
+  PUBLIC
+  PRIVATE
+}
+
 model User {
   id           String   @id @default(cuid())
   clerkUserId  String?  @unique
@@ -57,6 +75,7 @@ model User {
   reminders       Reminder[]
   analyticsEvents AnalyticsEvent[]
   savedCities     SavedCity[]
+  privateKnowledgeDocuments KnowledgeDocument[]
 
   @@map("users")
 }
@@ -172,6 +191,100 @@ model SiteDataset {
   updatedAt DateTime @updatedAt @db.Timestamptz(3)
 
   @@map("site_datasets")
+}
+
+model KnowledgeSource {
+  id              String   @id
+  name            String
+  url             String
+  owner           String
+  licenseStatus   String
+  license         String
+  termsUrl        String?
+  attribution     String
+  storagePolicy   String   @db.Text
+  dataTypes       String[] @default([])
+  lastCheckedAt   DateTime @db.Date
+  ingestionAllowed Boolean @default(false)
+  updatedAt       DateTime @updatedAt @db.Timestamptz(3)
+
+  documents KnowledgeDocument[]
+  failures  KnowledgeIngestionFailure[]
+
+  @@map("knowledge_sources")
+}
+
+model KnowledgeDocument {
+  id                  String                       @id @default(cuid())
+  sourceDocumentId    String
+  version             Int
+  isCurrent           Boolean                      @default(true)
+  isActive            Boolean                      @default(true)
+  title               String
+  content             String                       @db.Text
+  contentHash         String
+  recordHash          String
+  destinationId       String?
+  latitude            Float?
+  longitude           Float?
+  categoryIds         String[]                     @default([])
+  factTypes           String[]                     @default([])
+  language            String                       @default("en")
+  verificationStatus  KnowledgeVerificationStatus
+  visibility          KnowledgeVisibility          @default(PUBLIC)
+  sourceUrl           String
+  attribution         String
+  license             String                       @db.Text
+  storagePolicy       String                       @db.Text
+  lastVerifiedAt      DateTime?                    @db.Date
+  ingestedAt          DateTime                     @default(now()) @db.Timestamptz(3)
+  sourceId            String
+  ownerId             String?
+  source              KnowledgeSource              @relation(fields: [sourceId], references: [id], onDelete: Restrict)
+  owner               User?                        @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  chunks              KnowledgeChunk[]
+
+  @@unique([sourceId, sourceDocumentId, version])
+  @@index([sourceId, sourceDocumentId, isCurrent, isActive])
+  @@index([destinationId, verificationStatus, visibility, isCurrent, isActive])
+  @@index([ownerId, visibility, isCurrent, isActive])
+  @@index([latitude, longitude])
+  @@index([categoryIds], type: Gin)
+  @@map("knowledge_documents")
+}
+
+model KnowledgeChunk {
+  id                String            @id @default(cuid())
+  documentId        String
+  chunkIndex        Int
+  content           String            @db.Text
+  contentHash       String
+  embedding         Unsupported("vector(1536)")?
+  embeddingModel    String?
+  embeddingTokens   Int?
+  createdAt         DateTime          @default(now()) @db.Timestamptz(3)
+  document          KnowledgeDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@unique([documentId, chunkIndex])
+  @@index([documentId])
+  @@map("knowledge_chunks")
+}
+
+model KnowledgeIngestionFailure {
+  id           String          @id @default(cuid())
+  sourceId     String?
+  sourceDocId  String?
+  contentHash  String?
+  stage        String
+  errorCode    String
+  details      String          @db.VarChar(500)
+  occurredAt   DateTime        @default(now()) @db.Timestamptz(3)
+  resolvedAt   DateTime?       @db.Timestamptz(3)
+  source       KnowledgeSource? @relation(fields: [sourceId], references: [id], onDelete: SetNull)
+
+  @@index([sourceId, occurredAt])
+  @@index([resolvedAt, occurredAt])
+  @@map("knowledge_ingestion_failures")
 }
 
 model TripHotel {

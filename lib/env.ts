@@ -4,6 +4,23 @@ const serverEnvironmentSchema = z.object({
   DATABASE_URL: z.string().url().optional(),
   DIRECT_URL: z.string().url().optional(),
   OPENROUTER_API_KEY: z.string().min(1).optional(),
+  OPENROUTER_EMBEDDING_COST_PER_MILLION_USD: z.preprocess(
+    (value) => (value === "" ? undefined : value),
+    z.coerce.number().finite().nonnegative().optional(),
+  ),
+  RAG_EMBEDDING_MODEL: z
+    .string()
+    .min(1)
+    .max(120)
+    .default("openai/text-embedding-3-small"),
+  RAG_EMBEDDING_DIMENSIONS: z.coerce
+    .number()
+    .int()
+    .refine(
+      (value) => value === 1536,
+      "The current pgvector index requires 1536 dimensions",
+    )
+    .default(1536),
   GOOGLE_MAPS_API_KEY: z.string().min(1).optional(),
   OPEN_METEO_API_KEY: z.string().min(1).optional(),
   TRAVEL_ADAPTER_MODE: z.enum(["auto", "mock", "disabled"]).default("auto"),

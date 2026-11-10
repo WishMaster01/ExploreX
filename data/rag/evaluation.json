@@ -1,0 +1,54 @@
+{
+  "version": "1.0.0",
+  "notes": "Offline evaluation for the intentionally small Jaipur factual corpus. Unsupported requests are expected to abstain; this set does not claim India-wide coverage.",
+  "queries": [
+    {
+      "id": "jaipur-destination",
+      "query": "Jaipur destination",
+      "relevant": ["destination:jaipur-in:identity"],
+      "expectAbstain": true
+    },
+    {
+      "id": "amber-palace",
+      "query": "Amber Palace Jaipur",
+      "relevant": ["place:amber-palace-jaipur:name"],
+      "expectAbstain": true
+    },
+    {
+      "id": "city-palace",
+      "query": "City Palace in Jaipur",
+      "relevant": ["place:city-palace-jaipur:name"],
+      "expectAbstain": true
+    },
+    {
+      "id": "jantar-mantar",
+      "query": "Jantar Mantar Jaipur",
+      "relevant": ["place:jantar-mantar-jaipur:name"],
+      "expectAbstain": true
+    },
+    {
+      "id": "hawa-mahal",
+      "query": "Hawa Mahal Jaipur",
+      "relevant": ["place:hawa-mahal-jaipur:name"],
+      "expectAbstain": true
+    },
+    {
+      "id": "jaipur-accommodation",
+      "query": "verified hotel accommodation in Jaipur",
+      "relevant": [],
+      "expectAbstain": true
+    },
+    {
+      "id": "jaipur-opening-hours",
+      "query": "opening hours for Jaipur attractions",
+      "relevant": [],
+      "expectAbstain": true
+    },
+    {
+      "id": "unsupported-event",
+      "query": "verified event dates in Varanasi",
+      "relevant": [],
+      "expectAbstain": true
+    }
+  ]
+}

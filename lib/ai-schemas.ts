@@ -331,4 +331,63 @@ export const finalResponseSchema = z
   .object({ trip_plan: tripInfoSchema })
   .strict();
 
+export const plannerApiResponseSchema = z.discriminatedUnion("status", [
+  z
+    .object({
+      status: z.literal("ready"),
+      trip_plan: tripInfoSchema,
+      evidence: z
+        .array(
+          z
+            .object({
+              documentId: z.string().min(1),
+              sourceDocumentId: z.string().min(1),
+              sourceId: z.string().min(1),
+              version: z.number().int().positive(),
+              title: z.string().min(1),
+              sourceUrl: z
+                .string()
+                .url()
+                .refine((value) => new URL(value).protocol === "https:"),
+              attribution: z.string().min(1),
+              verificationStatus: z.string().min(1),
+              lastVerifiedAt: z.string().date().nullable(),
+              retrievedAt: z.string().datetime(),
+            })
+            .strict(),
+        )
+        .max(12),
+    })
+    .strict(),
+  z
+    .object({
+      status: z.literal("insufficient_evidence"),
+      uncertainty: z
+        .object({
+          reason: z.string().min(1).max(500),
+          missingEvidence: z.array(z.string().max(200)).max(12),
+          destination: z.string().max(160).nullable(),
+          sources: z
+            .array(
+              z
+                .object({
+                  title: z.string().min(1),
+                  sourceUrl: z
+                    .string()
+                    .url()
+                    .refine((value) => new URL(value).protocol === "https:"),
+                  attribution: z.string().min(1),
+                  verificationStatus: z.string().min(1),
+                  lastVerifiedAt: z.string().date().nullable(),
+                  retrievedAt: z.string().datetime(),
+                })
+                .strict(),
+            )
+            .max(12),
+        })
+        .strict(),
+    })
+    .strict(),
+]);
+
 export const aiFeatureAnswerSchema = z.string().trim().min(1).max(8_000);

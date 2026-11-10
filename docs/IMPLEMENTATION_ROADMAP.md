@@ -98,3 +98,6 @@ Current committed migration note: `20261010000000_persistence_hardening` casts r
 4. Are recommendations intentionally non-bookable for the MVP? If not, select inventory partners and define attribution/support.
 5. What is the policy for INR budgets, non-INR trips, paise rounding, trip dates and reminder timezone?
 6. Who owns curated content freshness, provider quotas, migration operations, reminder delivery and support escalations?
+# Phase 5: evidence-backed retrieval (initial implementation)
+
+Implemented as an initial PostgreSQL/pgvector design for a minimal Jaipur catalog. It adds validated source registration, repeatable versioned ingestion, chunk hashes and embedding reuse, hybrid retrieval, ownership filters, quarantine, offline keyword evaluation, and explicit planner abstention. Production rollout is blocked because existing app tables lack Prisma migration history and all seven repository migrations show pending; reconcile that baseline and arrange backup/restore before deploying the additive RAG migration. Coverage expansion, live semantic evaluation, scheduled freshness checks, and background ingestion remain later work; see [AI-AND-RAG-EVALUATION.md](AI-AND-RAG-EVALUATION.md).

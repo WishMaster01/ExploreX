@@ -105,3 +105,6 @@ AI feature answers use a separate `/api/ai-features` path with bounded request s
 - No dependency additions are recommended solely for this audit. A shared cache/queue, PostGIS, booking/travel inventory or observability vendor requires a measured/product requirement and separate decision.
 
 For prioritized findings and phase dependencies, see [IMPLEMENTATION_ROADMAP.md](./IMPLEMENTATION_ROADMAP.md). For route-level risks and actual baseline commands, see [EXISTING_SYSTEM_AUDIT.md](./EXISTING_SYSTEM_AUDIT.md).
+# Travel knowledge retrieval
+
+Travel facts are sourced from the source registry and curated corpus, validated in `lib/rag/schemas.ts`, ingested by `scripts/ingest-travel-knowledge.mjs`, then stored as versioned relational documents/chunks in PostgreSQL. `lib/rag/retrieve.ts` applies publication, verification, owner, taxonomy, and geographic filters before hybrid semantic/keyword ranking. Planner generation consumes traceable evidence only after the domain evidence gate passes; otherwise the API returns a structured uncertainty response. See [AI and RAG evaluation](AI-AND-RAG-EVALUATION.md) and [Decision 0005](DECISIONS/0005-postgres-pgvector-travel-rag.md) for migration and evaluation limits.

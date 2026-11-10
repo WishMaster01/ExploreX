@@ -170,6 +170,7 @@ const ChatBox = () => {
       let respText = "";
       let uiType = "default";
       let tripPlan: TripInfo | undefined;
+      let evidenceSummary = "";
 
       if (typeof result.data === "string") {
         respText = result.data;
@@ -177,6 +178,36 @@ const ChatBox = () => {
         respText = result.data.resp || result.data.text || "";
         uiType = result.data.ui || "default";
         tripPlan = result.data.trip_plan;
+        if (Array.isArray(result.data.evidence)) {
+          evidenceSummary = result.data.evidence
+            .map(
+              (source: {
+                title: string;
+                sourceUrl: string;
+                attribution: string;
+              }) =>
+                `${source.title} — ${source.attribution} (${source.sourceUrl})`,
+            )
+            .join("\n");
+        }
+        if (
+          result.data.status === "insufficient_evidence" &&
+          result.data.uncertainty
+        ) {
+          const uncertainty = result.data.uncertainty;
+          const missing = Array.isArray(uncertainty.missingEvidence)
+            ? uncertainty.missingEvidence.join("; ")
+            : "More verified destination details are needed.";
+          const sources = Array.isArray(uncertainty.sources)
+            ? uncertainty.sources
+                .map(
+                  (source: { title: string; sourceUrl: string }) =>
+                    `${source.title}: ${source.sourceUrl}`,
+                )
+                .join("\n")
+            : "";
+          respText = `${uncertainty.reason}\n\nMissing evidence: ${missing}${sources ? `\n\nSources checked:\n${sources}` : ""}`;
+        }
       }
 
       if (!isFinal) {
@@ -200,7 +231,7 @@ const ChatBox = () => {
           ...prev,
           {
             role: "assistant",
-            content: `Your ${tripPlanWithImages.destination} trip is ready! Check the itinerary dashboard on the right for hotels, day plans, budget, map, and travel essentials.`,
+            content: `Your ${tripPlanWithImages.destination} trip is ready! Check the itinerary dashboard on the right for hotels, day plans, budget, map, and travel essentials.${evidenceSummary ? `\n\nEvidence sources:\n${evidenceSummary}` : ""}`,
           },
         ]);
 
@@ -212,6 +243,7 @@ const ChatBox = () => {
           {
             role: "assistant",
             content:
+              respText ||
               "I couldn't generate the full trip plan. Please try again or provide more details.",
           },
         ]);

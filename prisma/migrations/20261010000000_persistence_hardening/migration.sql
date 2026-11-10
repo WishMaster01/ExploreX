@@ -1,4 +1,4 @@
-﻿DO $$
+DO $$
 BEGIN
   IF EXISTS (SELECT 1 FROM "users" WHERE "role" NOT IN ('user', 'admin')) THEN
     RAISE EXCEPTION 'Cannot migrate users.role: unrecognized value exists';
