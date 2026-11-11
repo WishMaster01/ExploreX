@@ -161,6 +161,7 @@ const ChatBox = () => {
       const result = await axios.post(
         "/api/aimodel",
         {
+          ...(isFinal ? { schemaVersion: "1.0" } : {}),
           messages: nextMessages,
           isFinal,
         },
@@ -207,6 +208,19 @@ const ChatBox = () => {
                 .join("\n")
             : "";
           respText = `${uncertainty.reason}\n\nMissing evidence: ${missing}${sources ? `\n\nSources checked:\n${sources}` : ""}`;
+        }
+        if (
+          result.data.schemaVersion === "1.0" &&
+          result.data.status !== "ready"
+        ) {
+          const missing = Array.isArray(result.data.missingEvidence)
+            ? result.data.missingEvidence.join("; ")
+            : "";
+          const validation = Array.isArray(result.data.validation?.errors)
+            ? result.data.validation.errors.join("; ")
+            : "";
+          const reasons = [missing, validation].filter(Boolean).join("; ");
+          respText = `The planner could not produce a validated itinerary (${result.data.status.replaceAll("_", " ")}).${reasons ? ` ${reasons}` : " Please try again or adjust your trip preferences."}`;
         }
       }
 

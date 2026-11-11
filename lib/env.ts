@@ -4,6 +4,37 @@ const serverEnvironmentSchema = z.object({
   DATABASE_URL: z.string().url().optional(),
   DIRECT_URL: z.string().url().optional(),
   OPENROUTER_API_KEY: z.string().min(1).optional(),
+  GEMINI_API_KEY: z.string().min(1).optional(),
+  AI_AGENT_PROVIDER: z.enum(["openrouter", "gemini"]).default("openrouter"),
+  AI_AGENT_MODEL: z.string().min(1).max(120).optional(),
+  AI_AGENT_TIMEOUT_MS: z.coerce
+    .number()
+    .int()
+    .min(1_000)
+    .max(90_000)
+    .default(30_000),
+  AI_AGENT_EXECUTION_BUDGET_MS: z.coerce
+    .number()
+    .int()
+    .min(5_000)
+    .max(120_000)
+    .default(60_000),
+  AI_AGENT_MAX_GRAPH_STEPS: z.coerce.number().int().min(10).max(12).default(12),
+  AI_AGENT_MAX_TOKENS: z.coerce
+    .number()
+    .int()
+    .min(256)
+    .max(8_000)
+    .default(4_000),
+  AI_AGENT_MAX_RETRIES: z.coerce.number().int().min(0).max(2).default(1),
+  AI_AGENT_INPUT_COST_PER_MILLION: z.preprocess(
+    (value) => (value === "" ? undefined : value),
+    z.coerce.number().finite().nonnegative().optional(),
+  ),
+  AI_AGENT_OUTPUT_COST_PER_MILLION: z.preprocess(
+    (value) => (value === "" ? undefined : value),
+    z.coerce.number().finite().nonnegative().optional(),
+  ),
   OPENROUTER_EMBEDDING_COST_PER_MILLION_USD: z.preprocess(
     (value) => (value === "" ? undefined : value),
     z.coerce.number().finite().nonnegative().optional(),

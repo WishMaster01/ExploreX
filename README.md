@@ -368,6 +368,8 @@ Results are ordered by due time and limited to 100 reminders per call. Polling d
 
 ## Architecture boundaries
 
+The controlled LangGraph trip planner, its typed request/response contract, provider configuration, safety limits, and rollout notes are documented in [docs/AGENTIC-TRIP-PLANNER.md](docs/AGENTIC-TRIP-PLANNER.md).
+
 - `lib/domain/` contains shared domain types and Zod validation.
 - `lib/data/` adapts the canonical destination catalog in `data/catalogs/`; see [travel data model, source policy and commands](docs/TRAVEL_DATA.md) and [generated destination coverage](docs/TRAVEL_DATA_COVERAGE.md).
 - `lib/algorithms/` contains provider-independent ranking, route approximation, scheduling, and cache primitives.

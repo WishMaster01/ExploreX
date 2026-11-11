@@ -49,6 +49,7 @@ async function requestEmbeddingsOnce(
     timeoutMs?: number;
     costPerMillionUsd?: number;
     inputType?: "search_document" | "search_query";
+    signal?: AbortSignal;
   },
 ): Promise<EmbeddingBatchResult> {
   if (texts.length === 0) {
@@ -75,9 +76,18 @@ async function requestEmbeddingsOnce(
         dimensions: options.dimensions,
         input_type: options.inputType ?? "search_document",
       }),
-      signal: AbortSignal.timeout(options.timeoutMs ?? 20_000),
+      signal: AbortSignal.any([
+        AbortSignal.timeout(options.timeoutMs ?? 20_000),
+        ...(options.signal ? [options.signal] : []),
+      ]),
     });
   } catch (error) {
+    if (options.signal?.aborted)
+      throw new EmbeddingProviderError(
+        "Embedding provider request cancelled",
+        "REQUEST_CANCELLED",
+        false,
+      );
     const timeout =
       error instanceof DOMException && error.name === "TimeoutError";
     throw new EmbeddingProviderError(
@@ -160,6 +170,7 @@ export async function requestEmbeddings(
     try {
       return await requestEmbeddingsOnce(texts, options);
     } catch (error) {
+      if (options.signal?.aborted) throw error;
       if (
         !(error instanceof EmbeddingProviderError) ||
         !error.retryable ||

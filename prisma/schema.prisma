@@ -76,6 +76,7 @@ model User {
   analyticsEvents AnalyticsEvent[]
   savedCities     SavedCity[]
   privateKnowledgeDocuments KnowledgeDocument[]
+  agentRuns AgentRun[]
 
   @@map("users")
 }
@@ -156,6 +157,55 @@ model AnalyticsEvent {
   @@index([destination, createdAt])
   @@index([userId, createdAt])
   @@map("analytics_events")
+}
+
+// Agent traces retain operational metadata only; conversation and prompt text are never stored.
+model AgentRun {
+  id                 String      @id @default(cuid())
+  requestId          String      @unique
+  schemaVersion      String
+  workflowVersion    String
+  promptVersion      String
+  status             String
+  provider           String?
+  model              String?
+  startedAt          DateTime    @default(now()) @db.Timestamptz(3)
+  finishedAt         DateTime?   @db.Timestamptz(3)
+  latencyMs          Int?
+  retryCount         Int         @default(0)
+  inputTokens        Int?
+  outputTokens       Int?
+  estimatedCostUsd   Float?
+  failureCode        String?
+  trace              String[]    @default([])
+  userId             String?
+  user               User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+  tasks              AgentTask[]
+
+  @@index([userId, startedAt(sort: Desc)])
+  @@index([status, startedAt(sort: Desc)])
+  @@map("agent_runs")
+}
+
+model AgentTask {
+  id               String    @id @default(cuid())
+  runId            String
+  taskName         String
+  attempt          Int       @default(1)
+  status           String
+  startedAt        DateTime  @default(now()) @db.Timestamptz(3)
+  finishedAt       DateTime? @db.Timestamptz(3)
+  latencyMs        Int?
+  retryCount       Int       @default(0)
+  inputTokens      Int?
+  outputTokens     Int?
+  estimatedCostUsd Float?
+  failureCode      String?
+  run              AgentRun  @relation(fields: [runId], references: [id], onDelete: Cascade)
+
+  @@unique([runId, taskName, attempt])
+  @@index([runId, startedAt])
+  @@map("agent_tasks")
 }
 
 model CityGuide {

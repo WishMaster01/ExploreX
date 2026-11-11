@@ -22,6 +22,7 @@ function getPool() {
     connectionString: environment.DATABASE_URL,
     max: 3,
     connectionTimeoutMillis: 2_000,
+    statement_timeout: 4_000,
   });
   return pool;
 }
@@ -124,6 +125,7 @@ function oneChunkPerDocument(rows: ReturnType<typeof mapRows>) {
 export async function retrieveKnowledge(
   input: unknown,
   ownerId: string | null = null,
+  signal?: AbortSignal,
 ) {
   const started = performance.now();
   const query = knowledgeSearchSchema.parse(input);
@@ -135,6 +137,7 @@ export async function retrieveKnowledge(
   let embeddingLatencyMs: number | null = null;
   if (environment.OPENROUTER_API_KEY && environment.DATABASE_URL) {
     try {
+      if (signal?.aborted) throw new Error("Request cancelled");
       const embedding = await requestEmbeddings([query.query], {
         apiKey: environment.OPENROUTER_API_KEY,
         model: environment.RAG_EMBEDDING_MODEL,
@@ -143,6 +146,7 @@ export async function retrieveKnowledge(
         timeoutMs: 5_000,
         costPerMillionUsd:
           environment.OPENROUTER_EMBEDDING_COST_PER_MILLION_USD,
+        signal,
       });
       semantic = await queryRows(
         query,
@@ -163,6 +167,7 @@ export async function retrieveKnowledge(
       });
     }
   }
+  if (signal?.aborted) throw new Error("Request cancelled");
   const keyword = await queryRows(query, ownerId, "keyword");
   const evidence = reciprocalRankFusion([
     oneChunkPerDocument(semantic),
