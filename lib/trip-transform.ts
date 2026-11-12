@@ -562,8 +562,14 @@ export function transformTripToDisplay(trip: TripInfo): DisplayTrip {
       tripWithImages.optimization?.budget_activity_names ??
       allActivities.map((activity) => activity.place_name),
     budgetActivityCost: tripWithImages.optimization?.budget_activity_cost ?? 0,
+    knownActivityCost: tripWithImages.optimization?.known_activity_cost ?? 0,
+    knownTotalCost: tripWithImages.optimization?.known_total_cost ?? 0,
+    budgetCurrencyCode: tripWithImages.optimization?.budget_currency_code,
     qualityScore: tripWithImages.optimization?.quality_score,
     decisionReasons: tripWithImages.optimization?.decision_reasons ?? [],
+    constraintViolations:
+      tripWithImages.optimization?.constraint_violations ?? [],
+    warnings: tripWithImages.optimization?.warnings ?? [],
     distanceSource: tripWithImages.optimization?.distance_source,
   };
 }

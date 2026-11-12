@@ -161,6 +161,8 @@ DIRECT_URL="postgresql://.../ai_trip_planner?sslmode=require"
 
 For other hosted PostgreSQL providers, use a runtime-safe pooled connection for `DATABASE_URL` when available and a direct connection for Prisma migrations.
 
+The Phase 5 RAG and Phase 6 agent planner migrations are applied to the configured Neon database. Run `npm run rag:db-check` to inspect schema readiness and live public knowledge-document counts. The current corpus contains five Jaipur documents and does not yet support evidence-complete itinerary generation; the planner reports insufficient evidence until verified, reusable place and accommodation records are ingested.
+
 ## AI and travel data
 
 Trip generation separates user preferences, an AI-generated candidate, optional travel-data checks, deterministic itinerary optimization, and final Zod validation. Prompt versions are recorded with generation metadata. Provider/model latency, token usage, retry count, success, request ID, cache hits, and cost estimates are recorded without conversation text; cost remains unavailable unless the two optional account pricing variables are configured. Google Places exact-name checks cover hotels, activities, and dedicated restaurant candidates when configured.
@@ -369,6 +371,8 @@ Results are ordered by due time and limited to 100 reminders per call. Polling d
 ## Architecture boundaries
 
 The controlled LangGraph trip planner, its typed request/response contract, provider configuration, safety limits, and rollout notes are documented in [docs/AGENTIC-TRIP-PLANNER.md](docs/AGENTIC-TRIP-PLANNER.md).
+
+Deterministic route, schedule, budget, and geographic grouping behavior is documented in [docs/ROUTING-OPTIMIZATION.md](docs/ROUTING-OPTIMIZATION.md).
 
 - `lib/domain/` contains shared domain types and Zod validation.
 - `lib/data/` adapts the canonical destination catalog in `data/catalogs/`; see [travel data model, source policy and commands](docs/TRAVEL_DATA.md) and [generated destination coverage](docs/TRAVEL_DATA_COVERAGE.md).

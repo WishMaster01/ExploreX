@@ -30,6 +30,8 @@ if (!connectionString) {
         to_regclass('public.users')::text AS "usersTable",
         to_regclass('public.trips')::text AS "tripsTable",
         to_regclass('public._prisma_migrations')::text AS "migrationHistoryTable",
+        to_regclass('public.agent_runs')::text AS "agentRunsTable",
+        to_regclass('public.agent_tasks')::text AS "agentTasksTable",
         (SELECT data_type FROM information_schema.columns WHERE table_schema='public' AND table_name='users' AND column_name='id') AS "usersIdType"
     `);
     const row = result.rows[0];
@@ -42,6 +44,7 @@ if (!connectionString) {
             [
               ...requiredBaselineMigrations,
               "20261108000000_travel_knowledge_rag",
+              "20261110000000_agentic_trip_planner",
             ],
           ],
         )
@@ -64,6 +67,21 @@ if (!connectionString) {
       migrationHistoryPresent && missingBaselineMigrations.length === 0;
     const migrationApplied =
       appliedMigrations.get("20261108000000_travel_knowledge_rag") === true;
+    const plannerMigrationApplied =
+      appliedMigrations.get("20261110000000_agentic_trip_planner") === true;
+    const knowledgeCounts = await pool.query(`
+      SELECT "destinationId" AS destination, count(*)::int AS documents
+      FROM public.knowledge_documents
+      WHERE "isCurrent" = true AND "isActive" = true AND "visibility" = 'PUBLIC'
+      GROUP BY "destinationId" ORDER BY "destinationId"
+    `);
+    const plannerSchemaReady = Boolean(
+      plannerMigrationApplied && row.agentRunsTable && row.agentTasksTable,
+    );
+    const publicKnowledgeDocumentCount = knowledgeCounts.rows.reduce(
+      (total, destination) => total + destination.documents,
+      0,
+    );
     process.stdout.write(
       `${JSON.stringify(
         {
@@ -85,6 +103,17 @@ if (!connectionString) {
             extensionAvailable && applicationTablesPresent && baselineComplete,
           ),
           migrationApplied: migrationHistoryPresent ? migrationApplied : null,
+          plannerMigrationApplied: migrationHistoryPresent
+            ? plannerMigrationApplied
+            : null,
+          agentRunsTable: row.agentRunsTable,
+          agentTasksTable: row.agentTasksTable,
+          agentPlannerReady: plannerSchemaReady,
+          plannerEvidenceReady: false,
+          plannerEvidenceNote:
+            "Document presence is not evidence sufficiency; the planner requires verified place details and accommodation evidence. Review docs/AGENTIC-TRIP-PLANNER.md and docs/AI-AND-RAG-EVALUATION.md.",
+          publicKnowledgeDocumentCount,
+          currentPublicKnowledgeDocuments: knowledgeCounts.rows,
           nextStep: !migrationHistoryPresent
             ? "Reconcile existing application schema with the six pre-RAG migrations; do not run migrate deploy until a verified baseline exists."
             : missingBaselineMigrations.length

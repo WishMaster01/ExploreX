@@ -87,6 +87,47 @@ export function parseMoney(value: string | undefined): number {
   return values.reduce((sum, number) => sum + number, 0) / values.length;
 }
 
+const currencyMarkers: Array<{ currency: string; pattern: RegExp }> = [
+  { currency: "INR", pattern: /\bINR\b|₹/i },
+  { currency: "USD", pattern: /\bUSD\b|\$/i },
+  { currency: "EUR", pattern: /\bEUR\b|€/i },
+  { currency: "GBP", pattern: /\bGBP\b|£/i },
+  { currency: "JPY", pattern: /\bJPY\b|¥/i },
+  { currency: "CAD", pattern: /\bCAD\b/i },
+  { currency: "AUD", pattern: /\bAUD\b/i },
+];
+
+/** Parses a price only when its stated or inherited currency matches the plan currency. */
+export function parseMoneyForCurrency(
+  value: string | undefined,
+  expectedCurrency: string | undefined,
+): {
+  amount: number;
+  currencyCode: string | null;
+  mismatch: boolean;
+  known: boolean;
+} {
+  const hasAmount = Boolean(value?.replace(/,/g, "").match(/\d+(?:\.\d+)?/));
+  const amount = parseMoney(value);
+  if (!value || !hasAmount || !Number.isFinite(amount) || amount < 0)
+    return {
+      amount: 0,
+      currencyCode: expectedCurrency ?? null,
+      mismatch: false,
+      known: false,
+    };
+  const marker = currencyMarkers.find(({ pattern }) => pattern.test(value));
+  const currencyCode = marker?.currency ?? expectedCurrency ?? null;
+  return {
+    amount,
+    currencyCode,
+    mismatch: Boolean(
+      marker && expectedCurrency && marker.currency !== expectedCurrency,
+    ),
+    known: true,
+  };
+}
+
 export function rankHotels<T extends HotelCandidate>(
   hotels: T[],
   nightlyBudget: number,
@@ -95,6 +136,7 @@ export function rankHotels<T extends HotelCandidate>(
     amenities?: string[];
     weights?: Partial<HotelRankingWeights>;
     clusterLabel?: string;
+    currencyCode?: string;
   } = {},
 ): Array<
   T & { recommendation_score: number; recommendation_reasons: string[] }
@@ -105,7 +147,12 @@ export function rankHotels<T extends HotelCandidate>(
   });
   return hotels
     .map((hotel) => {
-      const price = parseMoney(hotel.price_per_night);
+      const parsedPrice = parseMoneyForCurrency(
+        hotel.price_per_night,
+        preferences.currencyCode,
+      );
+      const price =
+        parsedPrice.known && !parsedPrice.mismatch ? parsedPrice.amount : 0;
       const budgetMatch =
         nightlyBudget > 0 && price > 0
           ? Math.max(0, 1 - Math.abs(price - nightlyBudget) / nightlyBudget)
@@ -168,6 +215,7 @@ export function rankRestaurants<T extends RestaurantCandidate>(
   restaurants: T[],
   options: {
     budget?: number;
+    currencyCode?: string;
     cuisine?: string[];
     dietary?: string[];
     mealType?: string;
@@ -197,8 +245,16 @@ export function rankRestaurants<T extends RestaurantCandidate>(
         0,
         Math.min(1, (restaurant.rating ?? 0) / 5),
       );
+      const parsedPrice = parseMoneyForCurrency(
+        restaurant.price === undefined ? undefined : String(restaurant.price),
+        options.currencyCode,
+      );
+      const priceMatches = parsedPrice.known && !parsedPrice.mismatch;
       const budgetScore =
-        options.budget && options.budget > 0 && restaurant.price !== undefined
+        options.budget &&
+        options.budget > 0 &&
+        restaurant.price !== undefined &&
+        priceMatches
           ? restaurant.price <= options.budget
             ? 0.5 + 0.5 * (1 - restaurant.price / options.budget)
             : 0
@@ -231,6 +287,7 @@ export function rankRestaurants<T extends RestaurantCandidate>(
       if (
         options.budget &&
         restaurant.price !== undefined &&
+        priceMatches &&
         restaurant.price <= options.budget
       )
         reasons.push("within your meal budget");

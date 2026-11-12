@@ -43,6 +43,6 @@ Retrieved content and conversation messages are passed as untrusted data, never 
 
 ## Verification and corpus coverage
 
-Node and graph tests use mocked providers and retrieval, including invalid output, transient/provider failure, insufficient evidence, deterministic optimization, constraint rejection, and end-to-end ready responses. The live Phase 5 corpus currently has Jaipur evidence only. Other destinations safely return `insufficient_evidence` until verified records are ingested and the RAG evidence threshold is met.
+Node and graph tests use mocked providers and retrieval, including invalid output, transient/provider failure, insufficient evidence, deterministic optimization, constraint rejection, and end-to-end ready responses. The Phase 5 and Phase 6 migrations are deployed to the configured Neon database. Its live public corpus contains five Jaipur documents (destination identity and four attraction names), which is not sufficient for a complete itinerary; other destinations also return `insufficient_evidence` until verified, reusable records are ingested and the RAG evidence threshold is met. `npm run rag:db-check` reports database schema readiness separately from corpus counts.
 
-Apply the migration with `npm run db:deploy` after reviewing the target database, then configure a provider key and run the application. Never put credentials in client code or logs.
+Configure a server-only provider key and run the application. Never put credentials in client code or logs. Provider credentials do not bypass the evidence gate.

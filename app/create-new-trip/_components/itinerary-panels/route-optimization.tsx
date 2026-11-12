@@ -189,6 +189,30 @@ export function RouteOptimizationPanel({ trip }: { trip: DisplayTrip }) {
                 ? "Distance is unavailable because the itinerary has no usable route coordinates."
                 : "Straight-line estimates only; these are not driving, walking, or transit directions."}
         </p>
+        {(trip.constraintViolations.length > 0 || trip.warnings.length > 0) && (
+          <div className="mt-3 space-y-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-950">
+            {trip.constraintViolations.length > 0 && (
+              <section aria-label="Itinerary constraint violations">
+                <strong>Unresolved itinerary constraints</strong>
+                <ul className="mt-1 list-disc space-y-1 pl-4">
+                  {trip.constraintViolations.map((issue) => (
+                    <li key={issue}>{issue}</li>
+                  ))}
+                </ul>
+              </section>
+            )}
+            {trip.warnings.length > 0 && (
+              <section aria-label="Itinerary uncertainties">
+                <strong>Planning uncertainty</strong>
+                <ul className="mt-1 list-disc space-y-1 pl-4">
+                  {trip.warnings.slice(0, 8).map((warning) => (
+                    <li key={warning}>{warning}</li>
+                  ))}
+                </ul>
+              </section>
+            )}
+          </div>
+        )}
         {trip.qualityScore !== undefined && (
           <div className="mt-3 rounded-lg bg-teal-50 p-3 text-xs text-slate-700">
             <strong>Itinerary quality: {trip.qualityScore}/100</strong>

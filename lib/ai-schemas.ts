@@ -122,6 +122,10 @@ export const tripActivitySchema = z
       )
       .max(20)
       .optional(),
+    accessibility_tags: z
+      .array(z.string().trim().min(1).max(80))
+      .max(20)
+      .optional(),
     max_travel_time_minutes: z.number().int().min(0).max(720).optional(),
     estimated_travel_time_minutes: z.number().int().min(0).max(720).optional(),
     travel_time_minutes: z.number().int().min(0).max(720).optional(),
@@ -267,6 +271,12 @@ export const tripInfoSchema = z
         distance_saved_km: z.number().min(0),
         budget_activity_cost: z.number().min(0),
         budget_activity_names: z.array(z.string()),
+        known_activity_cost: z.number().min(0).optional(),
+        known_total_cost: z.number().min(0).optional(),
+        budget_currency_code: z
+          .string()
+          .regex(/^[A-Z]{3}$/)
+          .optional(),
         budget_allocation: z
           .object({
             accommodation: z.number().min(0),
@@ -290,6 +300,8 @@ export const tripInfoSchema = z
           .strict()
           .optional(),
         decision_reasons: z.array(z.string().max(300)).max(100).optional(),
+        constraint_violations: z.array(z.string().max(300)).max(50).optional(),
+        warnings: z.array(z.string().max(300)).max(50).optional(),
         distance_source: z
           .enum([
             "STRAIGHT_LINE_ESTIMATE",

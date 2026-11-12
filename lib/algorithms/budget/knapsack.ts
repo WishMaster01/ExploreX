@@ -74,7 +74,7 @@ export function selectWithinBudget<T>(
     : 10;
   // Cap the DP table so very large budgets cannot allocate unbounded memory.
   const capacity = Math.min(
-    100_000,
+    20_000,
     Math.max(0, Math.floor(budget / safeResolution)),
   );
   const normalized = items

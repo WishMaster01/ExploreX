@@ -4,7 +4,11 @@ import { allocateTripBudget, selectWithinBudget } from "./budget/knapsack";
 import { LruTtlCache } from "./cache/lru-ttl-cache";
 import { optimizeRoute } from "./graph/route-optimizer";
 import { SlidingWindowRateLimiter } from "./rate-limit/sliding-window";
-import { rankHotels, rankRestaurants } from "./recommendation/weighted-scoring";
+import {
+  parseMoneyForCurrency,
+  rankHotels,
+  rankRestaurants,
+} from "./recommendation/weighted-scoring";
 import {
   scheduleActivities,
   scheduleFeasibleActivities,
@@ -27,6 +31,7 @@ import {
 } from "../domain/ownership";
 import { tripInfoSchema } from "../ai-schemas";
 import { optimizeTripPlan } from "../trip-optimizer";
+import { groupNearbyPlaces } from "./geography/group-nearby";
 
 function activity(
   name: string,
@@ -137,6 +142,26 @@ describe("route optimization", () => {
   });
 });
 
+describe("geographic grouping", () => {
+  it("groups nearby stops, excludes duplicate coordinates, and returns unlocated stops separately", () => {
+    const result = groupNearbyPlaces([
+      { place_name: "A", geo_coordinates: { latitude: 0, longitude: 0 } },
+      { place_name: "B", geo_coordinates: { latitude: 0, longitude: 0.01 } },
+      { place_name: "A", geo_coordinates: { latitude: 0, longitude: 0 } },
+      { place_name: "No coordinates", geo_coordinates: null },
+      { place_name: "Far", geo_coordinates: { latitude: 0, longitude: 1 } },
+    ]);
+    expect(result.groups.map((group) => group.length)).toEqual([2, 1]);
+    expect(result.duplicateCount).toBe(1);
+    expect(result.unlocated).toHaveLength(1);
+    expect(groupNearbyPlaces([], 3)).toMatchObject({
+      groups: [],
+      unlocated: [],
+      duplicateCount: 0,
+    });
+  });
+});
+
 describe("budget optimization", () => {
   it("maximizes value without exceeding the budget", () => {
     const result = selectWithinBudget(
@@ -172,6 +197,14 @@ describe("budget optimization", () => {
     expect(
       allocateTripBudget(100_000, 5, 1, "budget").accommodation,
     ).toBeLessThan(allocation.accommodation);
+  });
+
+  it("parses only matching explicit currencies", () => {
+    expect(parseMoneyForCurrency("₹1,250", "INR")).toMatchObject({
+      amount: 1250,
+      mismatch: false,
+    });
+    expect(parseMoneyForCurrency("$30", "INR").mismatch).toBe(true);
   });
 });
 
@@ -412,6 +445,129 @@ describe("trip optimization edge cases", () => {
     );
     expect(overLimit.itinerary[0].activities).toHaveLength(1);
     expect(overLimit.optimization?.distance_source).toBe("PROVIDER_ROUTE");
+  });
+
+  it("discards model-proposed route distance and duration when no provider metric is available", () => {
+    const input = plan("1 day", [
+      {
+        day: 1,
+        day_plan: "Tokyo",
+        best_time_to_visit_day: "flexible",
+        activities: [
+          activity("A", 35.6, 139.7, {
+            travel_time_minutes: 2,
+            distance_from_previous_km: 1,
+          }),
+          activity("B", 35.61, 139.71, {
+            travel_time_minutes: 3,
+            estimated_travel_time_minutes: 4,
+            distance_from_previous_km: 2,
+          }),
+        ],
+      },
+    ]);
+    const result = optimizeTripPlan(input);
+    expect(
+      result.itinerary[0]?.activities.every(
+        (item) => item.travel_time_minutes === undefined,
+      ),
+    ).toBe(true);
+    expect(
+      result.itinerary[0]?.activities[0]?.estimated_travel_time_minutes,
+    ).toBeUndefined();
+    expect(result.itinerary[0]?.activities[0]?.time_travel_each_location).toBe(
+      "Unavailable",
+    );
+    expect(
+      result.itinerary[0]?.activities[1]?.estimated_travel_time_minutes,
+    ).toBeDefined();
+    expect(
+      result.itinerary[0]?.activities[1]?.time_travel_each_location,
+    ).toContain("estimated");
+  });
+
+  it("reports budget, missing-data, date, and required-activity constraints", () => {
+    const input = tripInfoSchema.parse({
+      destination: "Tokyo",
+      origin: "Delhi",
+      duration: "1 day",
+      budget: "JPY 100",
+      currency_code: "JPY",
+      group_size: "solo",
+      hotels: [],
+      itinerary: [
+        {
+          day: 1,
+          day_plan: "Tokyo",
+          best_time_to_visit_day: "flexible",
+          activities: [
+            activity("Paid museum", 35.6, 139.7, {
+              estimated_cost: 200,
+              ticket_pricing: "JPY 200",
+              source_metadata: {
+                source: "AI_GENERATED",
+                provider: null,
+                retrievedAt: null,
+              },
+            }),
+            activity("Unknown price", 35.61, 139.71, {
+              estimated_cost: undefined,
+              ticket_pricing: "unknown",
+              source_metadata: {
+                source: "STALE",
+                provider: null,
+                retrievedAt: "2020-01-01T00:00:00.000Z",
+              },
+              opening_time: "09:00",
+              closing_time: "10:00",
+            }),
+          ],
+        },
+      ],
+    });
+    const result = optimizeTripPlan(input, undefined, {
+      requiredActivityNames: ["Missing required place"],
+    });
+    expect(
+      result.optimization?.constraint_violations?.some((item) =>
+        item.includes("budget ceiling"),
+      ),
+    ).toBe(true);
+    expect(
+      result.optimization?.constraint_violations?.some((item) =>
+        item.includes("Required activity"),
+      ),
+    ).toBe(true);
+    expect(
+      result.optimization?.warnings?.some((item) =>
+        item.includes("unknown or incompatible price"),
+      ),
+    ).toBe(true);
+    expect(
+      result.optimization?.warnings?.some((item) =>
+        item.includes("unverified opening hours"),
+      ),
+    ).toBe(true);
+    expect(result.itinerary[0]?.activities[1]?.scheduled_start).toBeDefined();
+  });
+
+  it("deduplicates repeated places and still returns a clear warning", () => {
+    const result = optimizeTripPlan(
+      plan("1 day", [
+        {
+          day: 1,
+          day_plan: "Tokyo",
+          best_time_to_visit_day: "flexible",
+          activities: [activity("Same"), activity("Same")],
+        },
+      ]),
+    );
+    expect(result.itinerary[0]?.activities).toHaveLength(1);
+    expect(
+      result.optimization?.warnings?.some((warning) =>
+        warning.includes("duplicate itinerary stop"),
+      ),
+    ).toBe(true);
   });
 });
 

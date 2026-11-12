@@ -31,7 +31,7 @@ export function BudgetPanel({ trip }: { trip: DisplayTrip }) {
 
           {trip.budgetActivityNames.length > 0 && (
             <p className="mt-2 text-xs text-slate-300">
-              Knapsack selection: {trip.budgetActivityNames.length} activities
+              Affordable activity options: {trip.budgetActivityNames.length}
               {trip.budgetActivityCost > 0
                 ? ` · estimated ${trip.budgetActivityCost.toLocaleString()}`
                 : ""}
