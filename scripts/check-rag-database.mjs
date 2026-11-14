@@ -32,6 +32,11 @@ if (!connectionString) {
         to_regclass('public._prisma_migrations')::text AS "migrationHistoryTable",
         to_regclass('public.agent_runs')::text AS "agentRunsTable",
         to_regclass('public.agent_tasks')::text AS "agentTasksTable",
+        to_regclass('public.community_discoveries')::text AS "communityDiscoveriesTable",
+        to_regclass('public.saved_discoveries')::text AS "savedDiscoveriesTable",
+        to_regclass('public.discovery_signals')::text AS "discoverySignalsTable",
+        to_regclass('public.discovery_feedback')::text AS "discoveryFeedbackTable",
+        to_regclass('public.community_trip_feedback')::text AS "communityTripFeedbackTable",
         (SELECT data_type FROM information_schema.columns WHERE table_schema='public' AND table_name='users' AND column_name='id') AS "usersIdType"
     `);
     const row = result.rows[0];
@@ -45,6 +50,7 @@ if (!connectionString) {
               ...requiredBaselineMigrations,
               "20261108000000_travel_knowledge_rag",
               "20261110000000_agentic_trip_planner",
+              "20261112000000_community_discoveries",
             ],
           ],
         )
@@ -69,6 +75,8 @@ if (!connectionString) {
       appliedMigrations.get("20261108000000_travel_knowledge_rag") === true;
     const plannerMigrationApplied =
       appliedMigrations.get("20261110000000_agentic_trip_planner") === true;
+    const communityMigrationApplied =
+      appliedMigrations.get("20261112000000_community_discoveries") === true;
     const knowledgeCounts = await pool.query(`
       SELECT "destinationId" AS destination, count(*)::int AS documents
       FROM public.knowledge_documents
@@ -109,6 +117,22 @@ if (!connectionString) {
           agentRunsTable: row.agentRunsTable,
           agentTasksTable: row.agentTasksTable,
           agentPlannerReady: plannerSchemaReady,
+          communityMigrationApplied: migrationHistoryPresent
+            ? communityMigrationApplied
+            : null,
+          communityDiscoveriesTable: row.communityDiscoveriesTable,
+          savedDiscoveriesTable: row.savedDiscoveriesTable,
+          discoverySignalsTable: row.discoverySignalsTable,
+          discoveryFeedbackTable: row.discoveryFeedbackTable,
+          communityTripFeedbackTable: row.communityTripFeedbackTable,
+          communitySystemReady: Boolean(
+            communityMigrationApplied &&
+            row.communityDiscoveriesTable &&
+            row.savedDiscoveriesTable &&
+            row.discoverySignalsTable &&
+            row.discoveryFeedbackTable &&
+            row.communityTripFeedbackTable,
+          ),
           plannerEvidenceReady: false,
           plannerEvidenceNote:
             "Document presence is not evidence sufficiency; the planner requires verified place details and accommodation evidence. Review docs/AGENTIC-TRIP-PLANNER.md and docs/AI-AND-RAG-EVALUATION.md.",

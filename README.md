@@ -161,7 +161,7 @@ DIRECT_URL="postgresql://.../ai_trip_planner?sslmode=require"
 
 For other hosted PostgreSQL providers, use a runtime-safe pooled connection for `DATABASE_URL` when available and a direct connection for Prisma migrations.
 
-The Phase 5 RAG and Phase 6 agent planner migrations are applied to the configured Neon database. Run `npm run rag:db-check` to inspect schema readiness and live public knowledge-document counts. The current corpus contains five Jaipur documents and does not yet support evidence-complete itinerary generation; the planner reports insufficient evidence until verified, reusable place and accommodation records are ingested.
+The Phase 5 RAG and Phase 6 agent planner migrations are applied to the configured Neon database. Phase 8 adds the reviewed `20261112000000_community_discoveries` migration; deploy it with `npm run db:deploy` against the intended database before enabling ExploreX Uncovered. Run `npm run rag:db-check` to inspect database and community-schema readiness. Community discoveries are moderated and browsable at `/uncovered`; they remain distinct from verified RAG evidence and do not satisfy itinerary evidence requirements by themselves.
 
 ## AI and travel data
 

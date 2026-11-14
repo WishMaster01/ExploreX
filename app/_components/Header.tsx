@@ -143,6 +143,10 @@ const Header = () => {
               Saved Cities
             </Link>
 
+            <Link href="/uncovered" className={navLinkClass("/uncovered")}>
+              Uncovered
+            </Link>
+
             <Link href="/ai-features" className={navLinkClass("/ai-features")}>
               AI Studio
             </Link>

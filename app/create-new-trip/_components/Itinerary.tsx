@@ -9,6 +9,7 @@ import { CheckCircle2, Save } from "lucide-react";
 import Link from "next/link";
 import React, { useState } from "react";
 import { ExportPlanDialog } from "./itinerary-export";
+import { CommunitySuggestionsPanel } from "./CommunitySuggestionsPanel";
 import {
   BudgetPanel,
   BookingChecklistPanel,
@@ -99,6 +100,7 @@ function ItineraryDashboard({
       <div className="mx-auto max-w-7xl space-y-8">
         <HeroPanel trip={trip} onExport={openExport} destCity={destCity} />
         <DashboardMetrics trip={trip} />
+        <CommunitySuggestionsPanel destination={trip.destination} />
 
         <div className="grid gap-6 xl:grid-cols-[minmax(0,1.35fr)_minmax(320px,0.65fr)]">
           <div className="space-y-6">

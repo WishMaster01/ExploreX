@@ -59,6 +59,21 @@ enum KnowledgeVisibility {
   PRIVATE
 }
 
+enum DiscoveryModerationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CORRECTION_REQUESTED
+  REMOVED
+}
+
+enum DiscoverySignalType {
+  REPORT
+  CORRECTION_REQUEST
+  RECOMMENDATION
+  VISIT_REPORTED
+}
+
 model User {
   id           String   @id @default(cuid())
   clerkUserId  String?  @unique
@@ -77,8 +92,114 @@ model User {
   savedCities     SavedCity[]
   privateKnowledgeDocuments KnowledgeDocument[]
   agentRuns AgentRun[]
+  discoveries CommunityDiscovery[] @relation("DiscoveryContributor")
+  moderatedDiscoveries CommunityDiscovery[] @relation("DiscoveryModerator")
+  savedDiscoveries SavedDiscovery[]
+  discoverySignals DiscoverySignal[]
+  discoveryFeedback DiscoveryFeedback[]
+  communityTripFeedback CommunityTripFeedback[]
 
   @@map("users")
+}
+
+model CommunityDiscovery {
+  id                    String @id @default(cuid())
+  title                 String @db.VarChar(120)
+  description           String @db.VarChar(2000)
+  destinationId         String @db.VarChar(100)
+  category              String @db.VarChar(50)
+  latitude              Float?
+  longitude             Float?
+  locationLabel         String? @db.VarChar(180)
+  estimatedCostMinor    Int?
+  currencyCode          String? @db.VarChar(3)
+  durationMinutes       Int?
+  sourceUrl             String? @db.VarChar(500)
+  accessRestrictions    String? @db.VarChar(1000)
+  sensitiveLocation     Boolean @default(false)
+  sourceCorroborated    Boolean @default(false)
+  commercialRelationship String? @db.VarChar(200)
+  consentToPublish      Boolean @default(false)
+  moderationStatus      DiscoveryModerationStatus @default(PENDING)
+  moderatorNote         String? @db.VarChar(1000)
+  submittedAt           DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt             DateTime @updatedAt @db.Timestamptz(3)
+  moderatedAt           DateTime? @db.Timestamptz(3)
+  contributorId         String
+  moderatorId           String?
+  contributor           User @relation("DiscoveryContributor", fields: [contributorId], references: [id], onDelete: Cascade)
+  moderator             User? @relation("DiscoveryModerator", fields: [moderatorId], references: [id], onDelete: SetNull)
+  signals               DiscoverySignal[]
+  feedback              DiscoveryFeedback[]
+  savedBy               SavedDiscovery[]
+
+  @@index([moderationStatus, destinationId, category])
+  @@index([contributorId, submittedAt(sort: Desc)])
+  @@map("community_discoveries")
+}
+
+model DiscoverySignal {
+  id          String @id @default(cuid())
+  type        DiscoverySignalType
+  reason      String? @db.VarChar(500)
+  createdAt   DateTime @default(now()) @db.Timestamptz(3)
+  discoveryId String
+  userId      String
+  discovery   CommunityDiscovery @relation(fields: [discoveryId], references: [id], onDelete: Cascade)
+  user        User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([discoveryId, userId, type])
+  @@index([discoveryId, type, createdAt])
+  @@map("discovery_signals")
+}
+
+model SavedDiscovery {
+  id          String @id @default(cuid())
+  createdAt   DateTime @default(now()) @db.Timestamptz(3)
+  discoveryId String
+  userId      String
+  discovery   CommunityDiscovery @relation(fields: [discoveryId], references: [id], onDelete: Cascade)
+  user        User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, discoveryId])
+  @@index([userId, createdAt(sort: Desc)])
+  @@map("saved_discoveries")
+}
+
+model DiscoveryFeedback {
+  id                String @id @default(cuid())
+  satisfaction      Int?
+  preferenceMatch   Int?
+  writtenFeedback   String? @db.VarChar(1000)
+  visitReported     Boolean @default(false)
+  consentToPublish  Boolean @default(false)
+  createdAt         DateTime @default(now()) @db.Timestamptz(3)
+  discoveryId       String
+  userId            String
+  tripId            String
+  discovery         CommunityDiscovery @relation(fields: [discoveryId], references: [id], onDelete: Cascade)
+  user              User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  trip              Trip @relation(fields: [tripId], references: [id], onDelete: Cascade)
+
+  @@unique([discoveryId, userId, tripId])
+  @@index([discoveryId, createdAt])
+  @@map("discovery_feedback")
+}
+
+model CommunityTripFeedback {
+  id                   String @id @default(cuid())
+  overallSatisfaction Int
+  writtenFeedback     String? @db.VarChar(1000)
+  consentToPublish    Boolean @default(false)
+  createdAt           DateTime @default(now()) @db.Timestamptz(3)
+  tripId              String
+  userId              String
+  trip                Trip @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  user                User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([tripId, userId])
+  @@index([createdAt])
+  @@map("community_trip_feedback")
 }
 
 model Trip {
@@ -106,6 +227,8 @@ model Trip {
   days           TripDay[]
   itineraryItems ItineraryItem[]
   reminders      Reminder[]
+  discoveryFeedback DiscoveryFeedback[]
+  communityTripFeedback CommunityTripFeedback[]
 
   @@unique([userId, planHash])
   // Supports the composite reminder FK that enforces matching trip ownership.
