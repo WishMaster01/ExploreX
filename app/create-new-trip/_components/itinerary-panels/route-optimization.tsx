@@ -44,8 +44,11 @@ export function RouteOptimizationPanel({ trip }: { trip: DisplayTrip }) {
     (marker) => marker.type !== "hotel" && marker.day === routeDay,
   );
   const directionsUrl = googleMapsDirectionsUrl(
-    dayStops.map((stop) => stop.label),
+    dayStops.map(
+      (stop) => `${stop.coordinates.latitude},${stop.coordinates.longitude}`,
+    ),
   );
+  const selectedLocation = `${activeMarker?.coordinates.latitude},${activeMarker?.coordinates.longitude}`;
 
   const iconFor = (type: MapMarker["type"]) => {
     if (type === "hotel") return <Hotel className="size-4" />;
@@ -121,7 +124,7 @@ export function RouteOptimizationPanel({ trip }: { trip: DisplayTrip }) {
                 loading="lazy"
                 referrerPolicy="no-referrer-when-downgrade"
                 className="mt-4 h-64 w-full rounded-xl border border-slate-200 sm:h-80"
-                src={`${googleMapsPlaceSearchUrl(activeMarker.label)}&output=embed`}
+                src={`${googleMapsPlaceSearchUrl(selectedLocation)}&output=embed`}
               />
             ) : (
               <button
@@ -146,9 +149,9 @@ export function RouteOptimizationPanel({ trip }: { trip: DisplayTrip }) {
               </a>
             )}
             <p className="mt-2 text-xs text-slate-500">
-              Map searches use place names, not generated coordinates. A
-              provider name match does not verify an address or exact location;
-              confirm the selected result before navigating. Turn-by-turn
+              Pins and route stops use coordinates supplied with this itinerary.
+              Planner supplied coordinates are estimates, not verified
+              addresses; confirm the location before navigating. Turn-by-turn
               routing opens in Google Maps.
             </p>
           </>

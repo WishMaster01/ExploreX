@@ -6,7 +6,13 @@ export default function robots(): MetadataRoute.Robots {
   return {
     rules: {
       userAgent: "*",
-      allow: ["/", "/explore-cities", "/ai-features", "/travel-signals/"],
+      allow: [
+        "/",
+        "/explore-india",
+        "/ai-features",
+        "/travel-signals/",
+        "/uncovered",
+      ],
       disallow: [
         "/admin",
         "/create-new-trip",

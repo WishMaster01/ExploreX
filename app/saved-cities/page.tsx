@@ -1,11 +1,11 @@
-import { SavedCities } from "@/app/_components/SavedCities";
+import { SavedPlaces } from "@/app/_components/SavedPlaces";
 
 export const metadata = {
-  title: "Saved Cities | ExploreX Travel Intelligence",
-  description: "Your bookmarked city guides and destination inspiration.",
+  title: "Saved Places | ExploreX Travel Intelligence",
+  description: "Your saved, approved community discoveries.",
   robots: { index: false, follow: false },
 };
 
-export default function SavedCitiesPage() {
-  return <SavedCities />;
+export default function SavedPlacesPage() {
+  return <SavedPlaces />;
 }

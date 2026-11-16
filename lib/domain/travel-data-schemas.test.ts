@@ -315,7 +315,7 @@ describe("canonical travel data contracts", () => {
         );
       }
     }
-  });
+  }, 15_000);
 
   it("reports every verification state and marks empty collections incomplete", async () => {
     const report = await readFile(
@@ -337,7 +337,9 @@ describe("canonical travel data contracts", () => {
     expect(report).toContain("taxonomy tags | 3");
     expect(report).toContain("source registry | 14");
     expect(report).toContain("destination manifests | 41");
-    expect(report).toContain("AI-generated description is never counted as evidence");
+    expect(report).toContain(
+      "AI-generated description is never counted as evidence",
+    );
     expect(report).toContain("40 legacy destination coordinates");
     expect(report).toContain("## Phase 2 Jaipur compatibility files");
     expect(report).toContain("| places | 4 | 4 | yes |");

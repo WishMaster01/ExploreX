@@ -86,9 +86,15 @@ function validateDataset(
   );
   validateSourceRefs(destination.sourceRefs, "Destination");
   validateCategories(destination.categoryIds, "Destination");
-  const records: Record<string, Array<{ sourceRefs: string[] }>> = {};
-  for (const [name, schema] of Object.entries(datasetSchemas)) {
-    const parsed = schema.array().parse(values[name]);
+  const records = {
+    places: travelPlaceSchema.array().parse(values.places),
+    restaurants: travelRestaurantSchema.array().parse(values.restaurants),
+    hotels: travelHotelSchema.array().parse(values.hotels),
+    experiences: travelExperienceSchema.array().parse(values.experiences),
+    events: travelEventSchema.array().parse(values.events),
+    routes: travelRouteSchema.array().parse(values.routes),
+  };
+  for (const [name, parsed] of Object.entries(records)) {
     for (const record of parsed) {
       if ("destinationId" in record && record.destinationId !== destinationId)
         throw new Error(`${name} record destination mismatch`);
@@ -106,7 +112,6 @@ function validateDataset(
       )
         throw new Error(`${name} record has an unknown route destination`);
     }
-    records[name] = parsed;
   }
   const guide = travelGuideSchema.parse(values.travelGuide);
   if (guide.destinationId !== destinationId)

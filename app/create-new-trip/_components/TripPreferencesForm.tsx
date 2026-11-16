@@ -1,7 +1,11 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { tripPreferenceSchema } from "@/lib/domain/schemas";
+import {
+  TRAVEL_PREFERENCES_KEY,
+  travelPreferencesSchema,
+} from "@/lib/domain/travel-preferences";
 import { CalendarDays, SlidersHorizontal } from "lucide-react";
 
 type Values = {
@@ -48,6 +52,34 @@ export function TripPreferencesForm({
 }) {
   const [values, setValues] = useState(initialValues);
   const [error, setError] = useState("");
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    try {
+      const raw = localStorage.getItem(TRAVEL_PREFERENCES_KEY);
+      if (!raw) return;
+      const parsed = travelPreferencesSchema.safeParse(JSON.parse(raw));
+      if (!parsed.success) return;
+      timer = setTimeout(
+        () =>
+          setValues((current) => ({
+            ...current,
+            currency: parsed.data.currency,
+            style: parsed.data.style,
+            interests: parsed.data.interests,
+            accommodation: parsed.data.accommodation,
+            food: parsed.data.food,
+            transport: parsed.data.transport,
+            walking: parsed.data.walking,
+          })),
+        0,
+      );
+    } catch {
+      // Browser preference storage is optional; keep the form defaults.
+    }
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, []);
   const update = (field: keyof Values, value: string) =>
     setValues((current) => ({ ...current, [field]: value }));
 

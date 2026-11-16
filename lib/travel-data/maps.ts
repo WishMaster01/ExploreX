@@ -1,17 +1,17 @@
 const googleMapsUrl = "https://www.google.com/maps";
 
-/** Search Maps by place name. AI coordinates must never be treated as a confirmed pin. */
-export function googleMapsPlaceSearchUrl(placeName: string): string {
-  return `${googleMapsUrl}/search/?api=1&query=${encodeURIComponent(placeName)}`;
+/** Center a map on coordinates supplied by itinerary data; this does not verify the location. */
+export function googleMapsPlaceSearchUrl(location: string): string {
+  return `${googleMapsUrl}/search/?api=1&query=${encodeURIComponent(location)}`;
 }
 
-/** Build a directions link from names only; the map provider resolves locations. */
-export function googleMapsDirectionsUrl(placeNames: string[]): string | null {
-  const names = placeNames.map((name) => name.trim()).filter(Boolean);
-  if (names.length < 2) return null;
-  const origin = encodeURIComponent(names[0]);
-  const destination = encodeURIComponent(names[names.length - 1]);
-  const waypoints = names.slice(1, -1);
+/** Build a directions link from itinerary coordinates. */
+export function googleMapsDirectionsUrl(locations: string[]): string | null {
+  const points = locations.map((location) => location.trim()).filter(Boolean);
+  if (points.length < 2) return null;
+  const origin = encodeURIComponent(points[0]);
+  const destination = encodeURIComponent(points[points.length - 1]);
+  const waypoints = points.slice(1, -1);
   return `${googleMapsUrl}/dir/?api=1&origin=${origin}&destination=${destination}${
     waypoints.length
       ? `&waypoints=${waypoints.map(encodeURIComponent).join("%7C")}`

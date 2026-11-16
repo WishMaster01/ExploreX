@@ -28,6 +28,7 @@ import { logger } from "@/lib/observability/logger";
 import { useUser } from "@clerk/nextjs";
 import { savedTripSchema } from "@/lib/domain/schemas";
 import { exportTripAsJson } from "@/lib/trip-transform";
+import { PostTripFeedback } from "@/app/create-new-trip/_components/PostTripFeedback";
 import { z } from "zod";
 
 type SavedTrip = {
@@ -67,6 +68,8 @@ const UserTrips = () => {
   const [notice, setNotice] = useState("");
   const [fetchError, setFetchError] = useState(false);
   const [duplicatingId, setDuplicatingId] = useState<string | null>(null);
+  const [shareLinks, setShareLinks] = useState<Record<string, string>>({});
+  const [shareBusyId, setShareBusyId] = useState<string | null>(null);
 
   const fetchTrips = useCallback(
     async (cursor?: string) => {
@@ -185,6 +188,72 @@ const UserTrips = () => {
     } catch (error) {
       if (error instanceof Error && error.name !== "AbortError")
         setNotice("Trip summary could not be shared.");
+    }
+  };
+
+  const createSecureShare = async (trip: SavedTrip) => {
+    setShareBusyId(trip.id);
+    setNotice("");
+    try {
+      const response = await fetch("/api/trips/share", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tripId: trip.id }),
+      });
+      const result = await response.json();
+      if (!response.ok || typeof result.sharePath !== "string")
+        throw new Error(
+          result.error?.message ?? "Could not create a share link.",
+        );
+      const shareUrl = new URL(
+        result.sharePath,
+        window.location.origin,
+      ).toString();
+      setShareLinks((current) => ({ ...current, [trip.id]: shareUrl }));
+      try {
+        await navigator.clipboard.writeText(shareUrl);
+        setNotice(
+          "Private share link copied. Anyone with the link can view the selected itinerary fields.",
+        );
+      } catch {
+        setNotice(
+          "Share link created. Copy it from the field below; anyone with it can view the selected itinerary fields.",
+        );
+      }
+    } catch (error) {
+      setNotice(
+        error instanceof Error
+          ? error.message
+          : "Could not create a share link.",
+      );
+    } finally {
+      setShareBusyId(null);
+    }
+  };
+
+  const revokeSecureShare = async (trip: SavedTrip) => {
+    setShareBusyId(trip.id);
+    try {
+      const response = await fetch("/api/trips/share", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tripId: trip.id }),
+      });
+      if (!response.ok) throw new Error("Share link could not be revoked.");
+      setShareLinks((current) => {
+        const next = { ...current };
+        delete next[trip.id];
+        return next;
+      });
+      setNotice("Share link revoked.");
+    } catch (error) {
+      setNotice(
+        error instanceof Error
+          ? error.message
+          : "Share link could not be revoked.",
+      );
+    } finally {
+      setShareBusyId(null);
     }
   };
 
@@ -327,7 +396,7 @@ const UserTrips = () => {
                 <Plane className="size-4" /> Create a trip
               </Link>
               <Link
-                href="/explore-cities"
+                href="/explore-india"
                 className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-5 py-3 text-xs font-bold uppercase tracking-wider text-slate-200 backdrop-blur-xl hover:bg-white/10 hover:text-white"
               >
                 Explore cities
@@ -545,6 +614,47 @@ const UserTrips = () => {
                     Export
                   </button>
                 </div>
+                <div className="mt-3">
+                  {shareLinks[trip.id] ? (
+                    <div className="space-y-2">
+                      <label
+                        className="block text-[11px] font-semibold text-slate-300"
+                        htmlFor={`share-link-${trip.id}`}
+                      >
+                        Anyone with this link can view the itinerary activities
+                      </label>
+                      <input
+                        id={`share-link-${trip.id}`}
+                        readOnly
+                        value={shareLinks[trip.id]}
+                        onFocus={(event) => event.currentTarget.select()}
+                        className="min-h-10 w-full rounded-lg border border-white/15 bg-slate-950 px-3 text-xs text-white"
+                      />
+                      <button
+                        type="button"
+                        disabled={shareBusyId === trip.id}
+                        onClick={() => void revokeSecureShare(trip)}
+                        className="min-h-9 rounded-lg border border-rose-300/30 px-3 text-xs font-semibold text-rose-200 disabled:opacity-50"
+                      >
+                        {shareBusyId === trip.id
+                          ? "Working…"
+                          : "Revoke share link"}
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      disabled={shareBusyId === trip.id}
+                      onClick={() => void createSecureShare(trip)}
+                      className="min-h-10 rounded-xl border border-orange-200/25 bg-orange-200/5 px-3 text-xs font-semibold text-orange-100 hover:bg-orange-200/10 disabled:opacity-50"
+                    >
+                      {shareBusyId === trip.id
+                        ? "Creating link…"
+                        : "Create secure share link"}
+                    </button>
+                  )}
+                </div>
+                <PostTripFeedback tripId={trip.id} />
                 {reminderTripId === trip.id && (
                   <div className="mt-3 rounded-2xl border border-teal-500/30 bg-teal-950/40 p-3">
                     <label className="text-xs font-bold text-teal-300">

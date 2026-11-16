@@ -372,6 +372,8 @@ Results are ordered by due time and limited to 100 reminders per call. Polling d
 
 The controlled LangGraph trip planner, its typed request/response contract, provider configuration, safety limits, and rollout notes are documented in [docs/AGENTIC-TRIP-PLANNER.md](docs/AGENTIC-TRIP-PLANNER.md).
 
+The India discovery routes, account preferences, source-data limits, and revocable trip-sharing behavior are documented in [docs/FRONTEND-PRODUCT-UX.md](docs/FRONTEND-PRODUCT-UX.md).
+
 Deterministic route, schedule, budget, and geographic grouping behavior is documented in [docs/ROUTING-OPTIMIZATION.md](docs/ROUTING-OPTIMIZATION.md).
 
 - `lib/domain/` contains shared domain types and Zod validation.
@@ -382,7 +384,7 @@ Deterministic route, schedule, budget, and geographic grouping behavior is docum
 - `lib/auth-user.ts`, `lib/admin.ts`, `lib/rate-limit.ts`, and `lib/db.ts` isolate identity, authorization, abuse controls, and persistence.
 - React client components are limited to interactive workflows; static city showcase content is rendered by the server around its interactive carousel.
 
-AI-generated venue facts, prices, hours, ratings, and coordinates are unverified. The app does not provide bookings, collaboration, public trip sharing, live traffic, or live weather.
+AI-generated venue facts, prices, hours, ratings, and coordinates are unverified. The app does not provide bookings, collaboration, live traffic, or live weather. Saved trips can be shared through owner-controlled, revocable links that expose only the itinerary activity projection; see [frontend product UX](docs/FRONTEND-PRODUCT-UX.md).
 
 ## Deployment Notes
 

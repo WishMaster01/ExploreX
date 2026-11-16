@@ -33,9 +33,7 @@ const Header = () => {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      router.push(
-        `/explore-cities?q=${encodeURIComponent(searchQuery.trim())}`,
-      );
+      router.push(`/explore-india?q=${encodeURIComponent(searchQuery.trim())}`);
       setSearchOpen(false);
     }
   };
@@ -74,9 +72,9 @@ const Header = () => {
           <nav className="hidden items-center gap-8 lg:flex">
             <div className="relative group">
               <Link
-                href="/explore-cities"
+                href="/explore-india"
                 className={cn(
-                  navLinkClass("/explore-cities"),
+                  navLinkClass("/explore-india"),
                   "flex items-center gap-1.5 py-4",
                 )}
               >
@@ -85,11 +83,11 @@ const Header = () => {
               </Link>
               <div className="invisible absolute left-0 top-full z-50 w-56 translate-y-2 rounded-2xl border border-white/10 bg-slate-950/95 p-2 opacity-0 shadow-2xl backdrop-blur-xl transition group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100">
                 {[
-                  ["All city guides", "/explore-cities"],
-                  ["Jaipur, India", "/explore-cities/jaipur"],
-                  ["Kyoto, Japan", "/explore-cities/kyoto"],
-                  ["Bangkok, Thailand", "/explore-cities/bangkok"],
-                  ["Hanoi, Vietnam", "/explore-cities/hanoi"],
+                  ["Explore India", "/explore-india"],
+                  [
+                    "Jaipur, Rajasthan",
+                    "/explore-india/destinations/jaipur-in",
+                  ],
                 ].map(([label, href]) => (
                   <Link
                     key={href}
@@ -140,11 +138,15 @@ const Header = () => {
               href="/saved-cities"
               className={navLinkClass("/saved-cities")}
             >
-              Saved Cities
+              Saved Places
             </Link>
 
             <Link href="/uncovered" className={navLinkClass("/uncovered")}>
               Uncovered
+            </Link>
+
+            <Link href="/settings" className={navLinkClass("/settings")}>
+              Account
             </Link>
 
             <Link href="/ai-features" className={navLinkClass("/ai-features")}>
@@ -236,11 +238,11 @@ const Header = () => {
                   Search destinations
                 </button>
                 <Link
-                  href="/explore-cities"
+                  href="/explore-india"
                   onClick={closeMenu}
                   className="rounded-xl px-4 py-3 font-semibold text-slate-200 hover:bg-white/5"
                 >
-                  Destinations
+                  Explore India
                 </Link>
                 <Link
                   href="/saved-trips"
@@ -254,7 +256,21 @@ const Header = () => {
                   onClick={closeMenu}
                   className="rounded-xl px-4 py-3 font-semibold text-slate-200 hover:bg-white/5"
                 >
-                  Saved Cities
+                  Saved Places
+                </Link>
+                <Link
+                  href="/uncovered"
+                  onClick={closeMenu}
+                  className="rounded-xl px-4 py-3 font-semibold text-slate-200 hover:bg-white/5"
+                >
+                  ExploreX Uncovered
+                </Link>
+                <Link
+                  href="/settings"
+                  onClick={closeMenu}
+                  className="rounded-xl px-4 py-3 font-semibold text-slate-200 hover:bg-white/5"
+                >
+                  Profile and settings
                 </Link>
                 <Link
                   href="/ai-features"
@@ -304,7 +320,7 @@ const Header = () => {
             >
               <div className="flex items-center justify-between pb-3 border-b border-white/10">
                 <span className="text-xs font-bold uppercase tracking-wider text-teal-300">
-                  Search ExploreX Destinations
+                  Search India destinations
                 </span>
                 <button
                   onClick={() => setSearchOpen(false)}
@@ -319,8 +335,8 @@ const Header = () => {
                   autoFocus
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Where would you like to explore? (e.g. Bali, Rome, Paris)..."
-                  aria-label="Search cities and countries"
+                  placeholder="Search India destinations..."
+                  aria-label="Search India destinations"
                   className="w-full rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3 text-sm text-white outline-none focus:border-teal-400"
                 />
                 <button
