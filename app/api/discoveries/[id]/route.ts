@@ -1,10 +1,11 @@
+import { withRequestMetrics } from "@/lib/observability/request-metrics";
 import { apiError, apiOk, serverError } from "@/lib/api";
 import { prisma } from "@/lib/db";
 import { DiscoveryModerationStatus } from "@/lib/generated/prisma/client";
 import { publicDiscoveryLocation } from "@/lib/community/policy";
 import "server-only";
 
-export async function GET(
+async function __route_GET(
   _request: Request,
   context: { params: Promise<{ id: string }> },
 ) {
@@ -72,4 +73,15 @@ export async function GET(
   } catch (error) {
     return serverError(error, "Unable to load discovery detail");
   }
+}
+
+export function GET(...args: Parameters<typeof __route_GET>) {
+  const firstArgument = (args as unknown[])[0];
+  const request =
+    firstArgument instanceof Request
+      ? firstArgument
+      : new Request("http://localhost/api/discoveries/[id]", { method: "GET" });
+  return withRequestMetrics(request, "GET /api/discoveries/[id]", () =>
+    __route_GET(...args),
+  );
 }

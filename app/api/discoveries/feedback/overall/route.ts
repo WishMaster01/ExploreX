@@ -1,3 +1,4 @@
+import { withRequestMetrics } from "@/lib/observability/request-metrics";
 import { apiError, apiOk, readJsonObject, serverError } from "@/lib/api";
 import { getOrCreateCurrentUser } from "@/lib/auth-user";
 import { prisma } from "@/lib/db";
@@ -14,7 +15,7 @@ const schema = z
     consentToPublish: z.boolean().default(false),
   })
   .strict();
-export async function POST(request: Request) {
+async function __route_POST(request: Request) {
   try {
     const user = await getOrCreateCurrentUser();
     if (!user)
@@ -49,4 +50,19 @@ export async function POST(request: Request) {
   } catch (error) {
     return serverError(error, "Unable to save trip feedback");
   }
+}
+
+export function POST(...args: Parameters<typeof __route_POST>) {
+  const firstArgument = (args as unknown[])[0];
+  const request =
+    firstArgument instanceof Request
+      ? firstArgument
+      : new Request("http://localhost/api/discoveries/feedback/overall", {
+          method: "POST",
+        });
+  return withRequestMetrics(
+    request,
+    "POST /api/discoveries/feedback/overall",
+    () => __route_POST(...args),
+  );
 }

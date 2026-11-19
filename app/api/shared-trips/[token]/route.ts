@@ -1,3 +1,4 @@
+import { withRequestMetrics } from "@/lib/observability/request-metrics";
 import { createHash } from "node:crypto";
 import { apiError, apiOk, serverError } from "@/lib/api";
 import { prisma } from "@/lib/db";
@@ -5,7 +6,7 @@ import { enforceRateLimit } from "@/lib/rate-limit";
 import { tripInfoSchema } from "@/lib/ai-schemas";
 import "server-only";
 
-export async function GET(
+async function __route_GET(
   request: Request,
   context: { params: Promise<{ token: string }> },
 ) {
@@ -50,4 +51,17 @@ export async function GET(
   } catch (error) {
     return serverError(error, "Unable to load shared itinerary");
   }
+}
+
+export function GET(...args: Parameters<typeof __route_GET>) {
+  const firstArgument = (args as unknown[])[0];
+  const request =
+    firstArgument instanceof Request
+      ? firstArgument
+      : new Request("http://localhost/api/shared-trips/[token]", {
+          method: "GET",
+        });
+  return withRequestMetrics(request, "GET /api/shared-trips/[token]", () =>
+    __route_GET(...args),
+  );
 }

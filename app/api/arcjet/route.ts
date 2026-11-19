@@ -1,9 +1,10 @@
+import { withRequestMetrics } from "@/lib/observability/request-metrics";
 import { auth } from "@clerk/nextjs/server";
 import { apiError, apiOk, serverError } from "@/lib/api";
 import { enforceRateLimit } from "@/lib/rate-limit";
 import "server-only";
 
-export async function GET(req: Request) {
+async function __route_GET(req: Request) {
   try {
     const { userId } = await auth();
 
@@ -27,4 +28,15 @@ export async function GET(req: Request) {
   } catch (error) {
     return serverError(error, "Error checking Arcjet rate limit");
   }
+}
+
+export function GET(...args: Parameters<typeof __route_GET>) {
+  const firstArgument = (args as unknown[])[0];
+  const request =
+    firstArgument instanceof Request
+      ? firstArgument
+      : new Request("http://localhost/api/arcjet", { method: "GET" });
+  return withRequestMetrics(request, "GET /api/arcjet", () =>
+    __route_GET(...args),
+  );
 }

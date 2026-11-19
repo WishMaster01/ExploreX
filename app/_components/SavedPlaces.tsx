@@ -118,7 +118,7 @@ export function SavedPlaces() {
               <h2 className="mt-2 text-xl font-semibold">
                 <Link
                   href={`/uncovered/${item.id}`}
-                  className="underline decoration-transparent underline-offset-4 hover:decoration-current focus-visible:outline focus-visible:outline-2 focus-visible:outline-orange-200"
+                  className="underline decoration-transparent underline-offset-4 hover:decoration-current focus-visible:outline-2 focus-visible:outline-orange-200"
                 >
                   {item.title}
                 </Link>
@@ -145,7 +145,7 @@ export function SavedPlaces() {
               <button
                 type="button"
                 onClick={() => void remove(item.id)}
-                className="mt-4 min-h-10 rounded-lg border border-white/15 px-3 text-xs focus-visible:outline focus-visible:outline-2 focus-visible:outline-orange-200"
+                className="mt-4 min-h-10 rounded-lg border border-white/15 px-3 text-xs focus-visible:outline-2 focus-visible:outline-orange-200"
               >
                 Remove saved place
               </button>

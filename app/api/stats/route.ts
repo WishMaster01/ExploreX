@@ -1,3 +1,4 @@
+import { withRequestMetrics } from "@/lib/observability/request-metrics";
 import { NextResponse } from "next/server";
 import { DESTINATIONS } from "@/lib/data/destinations";
 import { exploreCities } from "@/lib/data/cities";
@@ -5,7 +6,7 @@ import { travelSignals } from "@/lib/data/travel-signals";
 import { loadSiteDataset } from "@/lib/data/site-datasets";
 import "server-only";
 
-export async function GET() {
+async function __route_GET() {
   try {
     const [destinations, signals] = await Promise.all([
       loadSiteDataset("destinations", DESTINATIONS),
@@ -28,4 +29,15 @@ export async function GET() {
       { status: 500 },
     );
   }
+}
+
+export function GET(...args: Parameters<typeof __route_GET>) {
+  const firstArgument = (args as unknown[])[0];
+  const request =
+    firstArgument instanceof Request
+      ? firstArgument
+      : new Request("http://localhost/api/stats", { method: "GET" });
+  return withRequestMetrics(request, "GET /api/stats", () =>
+    __route_GET(...args),
+  );
 }

@@ -1,3 +1,4 @@
+import { withRequestMetrics } from "@/lib/observability/request-metrics";
 import { apiError, apiOk, readJson, serverError } from "@/lib/api";
 import { ReminderStatus, ReminderType } from "@/lib/generated/prisma/client";
 import { Prisma } from "@/lib/generated/prisma/client";
@@ -28,7 +29,7 @@ function reminderDto<T extends { type: ReminderType; status?: ReminderStatus }>(
   };
 }
 
-export async function GET(request: Request) {
+async function __route_GET(request: Request) {
   try {
     const user = await getOrCreateCurrentUser();
     if (!user)
@@ -60,7 +61,7 @@ export async function GET(request: Request) {
   }
 }
 
-export async function POST(request: Request) {
+async function __route_POST(request: Request) {
   try {
     const user = await getOrCreateCurrentUser();
     if (!user)
@@ -82,8 +83,15 @@ export async function POST(request: Request) {
       );
     const { tripId, type, message, timeZone } = parsed.data;
     const idempotencyKey = request.headers.get("idempotency-key")?.trim();
-    if (idempotencyKey && (idempotencyKey.length < 1 || idempotencyKey.length > 128))
-      return apiError("Idempotency-Key must be at most 128 characters", 400, "VALIDATION_ERROR");
+    if (
+      idempotencyKey &&
+      (idempotencyKey.length < 1 || idempotencyKey.length > 128)
+    )
+      return apiError(
+        "Idempotency-Key must be at most 128 characters",
+        400,
+        "VALIDATION_ERROR",
+      );
     const remindAt = new Date(parsed.data.remindAt);
     const now = Date.now();
     if (
@@ -140,7 +148,11 @@ export async function POST(request: Request) {
             existing.remindAt.getTime() === remindAt.getTime() &&
             existing.timeZone === timeZone;
           if (!sameRequest)
-            return apiError("Idempotency-Key was already used for another request", 409, "CONFLICT");
+            return apiError(
+              "Idempotency-Key was already used for another request",
+              409,
+              "CONFLICT",
+            );
           return apiOk(reminderDto(existing));
         }
       }
@@ -151,7 +163,7 @@ export async function POST(request: Request) {
   }
 }
 
-export async function PATCH(request: Request) {
+async function __route_PATCH(request: Request) {
   try {
     const user = await getOrCreateCurrentUser();
     if (!user)
@@ -186,4 +198,37 @@ export async function PATCH(request: Request) {
   } catch (error) {
     return serverError(error, "Error updating reminder");
   }
+}
+
+export function PATCH(...args: Parameters<typeof __route_PATCH>) {
+  const firstArgument = (args as unknown[])[0];
+  const request =
+    firstArgument instanceof Request
+      ? firstArgument
+      : new Request("http://localhost/api/reminders", { method: "PATCH" });
+  return withRequestMetrics(request, "PATCH /api/reminders", () =>
+    __route_PATCH(...args),
+  );
+}
+
+export function POST(...args: Parameters<typeof __route_POST>) {
+  const firstArgument = (args as unknown[])[0];
+  const request =
+    firstArgument instanceof Request
+      ? firstArgument
+      : new Request("http://localhost/api/reminders", { method: "POST" });
+  return withRequestMetrics(request, "POST /api/reminders", () =>
+    __route_POST(...args),
+  );
+}
+
+export function GET(...args: Parameters<typeof __route_GET>) {
+  const firstArgument = (args as unknown[])[0];
+  const request =
+    firstArgument instanceof Request
+      ? firstArgument
+      : new Request("http://localhost/api/reminders", { method: "GET" });
+  return withRequestMetrics(request, "GET /api/reminders", () =>
+    __route_GET(...args),
+  );
 }

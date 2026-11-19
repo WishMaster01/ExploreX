@@ -1,4 +1,5 @@
 import "server-only";
+import { currentRequestLogContext } from "./request-context";
 
 type LogContext = Record<string, string | number | boolean | null | undefined>;
 
@@ -11,6 +12,7 @@ function write(
     level,
     event,
     timestamp: new Date().toISOString(),
+    ...currentRequestLogContext(),
     ...context,
   });
   if (level === "error") console.error(entry);

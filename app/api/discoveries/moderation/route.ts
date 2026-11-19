@@ -1,3 +1,4 @@
+import { withRequestMetrics } from "@/lib/observability/request-metrics";
 import { apiError, apiOk, readJsonObject, serverError } from "@/lib/api";
 import { getOrCreateCurrentUser } from "@/lib/auth-user";
 import { isAdmin } from "@/lib/admin";
@@ -16,7 +17,7 @@ const actionSchema = z
     sourceCorroborated: z.boolean().default(false),
   })
   .strict();
-export async function GET() {
+async function __route_GET() {
   try {
     const user = await getOrCreateCurrentUser();
     if (!user)
@@ -55,7 +56,7 @@ export async function GET() {
     return serverError(error, "Unable to load moderation queue");
   }
 }
-export async function POST(request: Request) {
+async function __route_POST(request: Request) {
   try {
     const user = await getOrCreateCurrentUser();
     if (!user)
@@ -102,4 +103,30 @@ export async function POST(request: Request) {
   } catch (error) {
     return serverError(error, "Unable to moderate discovery");
   }
+}
+
+export function POST(...args: Parameters<typeof __route_POST>) {
+  const firstArgument = (args as unknown[])[0];
+  const request =
+    firstArgument instanceof Request
+      ? firstArgument
+      : new Request("http://localhost/api/discoveries/moderation", {
+          method: "POST",
+        });
+  return withRequestMetrics(request, "POST /api/discoveries/moderation", () =>
+    __route_POST(...args),
+  );
+}
+
+export function GET(...args: Parameters<typeof __route_GET>) {
+  const firstArgument = (args as unknown[])[0];
+  const request =
+    firstArgument instanceof Request
+      ? firstArgument
+      : new Request("http://localhost/api/discoveries/moderation", {
+          method: "GET",
+        });
+  return withRequestMetrics(request, "GET /api/discoveries/moderation", () =>
+    __route_GET(...args),
+  );
 }

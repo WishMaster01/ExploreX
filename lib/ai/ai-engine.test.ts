@@ -40,6 +40,23 @@ describe("AI generation hardening", () => {
     await active;
   });
 
+  it("reports active and pending queue depth as work enters and leaves", async () => {
+    const observed: Array<{ active: number; pending: number }> = [];
+    const queue = new AsyncRequestQueue(1, 1, "test", (depth) =>
+      observed.push(depth),
+    );
+    let release!: () => void;
+    const active = queue.run(
+      () => new Promise<void>((resolve) => (release = resolve)),
+    );
+    const waiting = queue.run(async () => undefined);
+    expect(queue.depth).toEqual({ active: 1, pending: 1 });
+    release();
+    await Promise.all([active, waiting]);
+    expect(queue.depth).toEqual({ active: 0, pending: 0 });
+    expect(observed).toContainEqual({ active: 1, pending: 1 });
+  });
+
   it("rejects malformed or schema-invalid AI JSON", () => {
     expect(() => parseAiOutput("not json", chatResponseSchema, true)).toThrow(
       MalformedAiOutputError,

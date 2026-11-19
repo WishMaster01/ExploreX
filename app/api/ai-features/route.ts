@@ -1,3 +1,4 @@
+import { withRequestMetrics } from "@/lib/observability/request-metrics";
 import {
   aiFeatureRequestSchema,
   aiFeatureAnswerSchema,
@@ -19,7 +20,6 @@ import { getOrCreateCurrentUser } from "@/lib/auth-user";
 import { APP_CONFIG } from "@/lib/config";
 import { recordAiFeatureGeneration } from "@/lib/observability/ai-analytics";
 import { serverLogger } from "@/lib/observability/server-logger";
-import { withRequestMetrics } from "@/lib/observability/request-metrics";
 import { enforceRateLimit } from "@/lib/rate-limit";
 import "server-only";
 
@@ -31,7 +31,7 @@ function sanitize(value: string) {
     .slice(0, APP_CONFIG.ai.maxMessageChars);
 }
 
-export async function GET() {
+async function __route_GET() {
   const features = await loadSiteDataset<AiFeatureDefinition[]>(
     "ai-features",
     aiFeatures,
@@ -137,5 +137,16 @@ async function handlePost(request: Request) {
 export function POST(request: Request) {
   return withRequestMetrics(request, "POST /api/ai-features", () =>
     handlePost(request),
+  );
+}
+
+export function GET(...args: Parameters<typeof __route_GET>) {
+  const firstArgument = (args as unknown[])[0];
+  const request =
+    firstArgument instanceof Request
+      ? firstArgument
+      : new Request("http://localhost/api/ai-features", { method: "GET" });
+  return withRequestMetrics(request, "GET /api/ai-features", () =>
+    __route_GET(...args),
   );
 }

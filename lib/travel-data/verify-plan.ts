@@ -1,6 +1,7 @@
 import type { ValidTripInfo } from "@/lib/domain/schemas";
 import { APP_CONFIG } from "@/lib/config";
 import { AsyncRequestQueue } from "@/lib/async-request-queue";
+import { serverLogger } from "@/lib/observability/server-logger";
 import { getTravelDataProvider } from "./provider";
 import {
   markCandidateSources,
@@ -14,6 +15,12 @@ const providerQueue = new AsyncRequestQueue(
   APP_CONFIG.queue.travelDataConcurrency,
   APP_CONFIG.queue.travelDataMaxPending,
   "Travel data",
+  ({ active, pending }) =>
+    serverLogger.info("queue.depth", {
+      queue: "travel_data",
+      active,
+      pending,
+    }),
 );
 
 export async function attachTravelSources(

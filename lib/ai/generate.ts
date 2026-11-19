@@ -16,6 +16,9 @@ import "server-only";
 const aiQueue = new AsyncRequestQueue(
   APP_CONFIG.queue.aiConcurrency,
   APP_CONFIG.queue.aiMaxPending,
+  "AI",
+  ({ active, pending }) =>
+    serverLogger.info("queue.depth", { queue: "ai", active, pending }),
 );
 
 export type AiGenerationMetrics = {

@@ -1,3 +1,4 @@
+import { withRequestMetrics } from "@/lib/observability/request-metrics";
 import { apiError, apiOk, serverError } from "@/lib/api";
 import { getOrCreateCurrentUser } from "@/lib/auth-user";
 import { enforceRateLimit } from "@/lib/rate-limit";
@@ -17,7 +18,7 @@ function toUserDto(
   });
 }
 
-export async function POST(request: Request) {
+async function __route_POST(request: Request) {
   try {
     const user = await getOrCreateCurrentUser();
 
@@ -39,7 +40,7 @@ export async function POST(request: Request) {
   }
 }
 
-export async function GET(request: Request) {
+async function __route_GET(request: Request) {
   try {
     const user = await getOrCreateCurrentUser();
 
@@ -59,4 +60,26 @@ export async function GET(request: Request) {
   } catch (error) {
     return serverError(error, "Error fetching user");
   }
+}
+
+export function GET(...args: Parameters<typeof __route_GET>) {
+  const firstArgument = (args as unknown[])[0];
+  const request =
+    firstArgument instanceof Request
+      ? firstArgument
+      : new Request("http://localhost/api/users", { method: "GET" });
+  return withRequestMetrics(request, "GET /api/users", () =>
+    __route_GET(...args),
+  );
+}
+
+export function POST(...args: Parameters<typeof __route_POST>) {
+  const firstArgument = (args as unknown[])[0];
+  const request =
+    firstArgument instanceof Request
+      ? firstArgument
+      : new Request("http://localhost/api/users", { method: "POST" });
+  return withRequestMetrics(request, "POST /api/users", () =>
+    __route_POST(...args),
+  );
 }

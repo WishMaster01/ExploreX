@@ -1,3 +1,4 @@
+import { withRequestMetrics } from "@/lib/observability/request-metrics";
 import { apiError, apiOk, readJsonObject, serverError } from "@/lib/api";
 import { getOrCreateCurrentUser } from "@/lib/auth-user";
 import { prisma } from "@/lib/db";
@@ -23,7 +24,7 @@ const schema = z
     reason: z.string().trim().min(5).max(500).optional(),
   })
   .strict();
-export async function POST(
+async function __route_POST(
   request: Request,
   context: { params: Promise<{ id: string }> },
 ) {
@@ -86,4 +87,17 @@ export async function POST(
   } catch (error) {
     return serverError(error, "Unable to record discovery action");
   }
+}
+
+export function POST(...args: Parameters<typeof __route_POST>) {
+  const firstArgument = (args as unknown[])[0];
+  const request =
+    firstArgument instanceof Request
+      ? firstArgument
+      : new Request("http://localhost/api/discoveries/[id]/signals", {
+          method: "POST",
+        });
+  return withRequestMetrics(request, "POST /api/discoveries/[id]/signals", () =>
+    __route_POST(...args),
+  );
 }

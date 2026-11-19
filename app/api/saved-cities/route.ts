@@ -1,3 +1,4 @@
+import { withRequestMetrics } from "@/lib/observability/request-metrics";
 import { apiError, apiOk, readJsonObject, serverError } from "@/lib/api";
 import { getOrCreateCurrentUser } from "@/lib/auth-user";
 import { exploreCities } from "@/lib/data/cities";
@@ -15,7 +16,7 @@ async function writeLimit(request: Request, userId: string) {
   return enforceRateLimit(request, { ...policy, userId });
 }
 
-export async function GET() {
+async function __route_GET() {
   try {
     const user = await getOrCreateCurrentUser();
     if (!user)
@@ -42,7 +43,7 @@ export async function GET() {
   }
 }
 
-export async function POST(request: Request) {
+async function __route_POST(request: Request) {
   try {
     const user = await getOrCreateCurrentUser();
     if (!user)
@@ -88,7 +89,7 @@ export async function POST(request: Request) {
   }
 }
 
-export async function DELETE(request: Request) {
+async function __route_DELETE(request: Request) {
   try {
     const user = await getOrCreateCurrentUser();
     if (!user)
@@ -109,4 +110,37 @@ export async function DELETE(request: Request) {
   } catch (error) {
     return serverError(error, "Unable to remove saved city");
   }
+}
+
+export function DELETE(...args: Parameters<typeof __route_DELETE>) {
+  const firstArgument = (args as unknown[])[0];
+  const request =
+    firstArgument instanceof Request
+      ? firstArgument
+      : new Request("http://localhost/api/saved-cities", { method: "DELETE" });
+  return withRequestMetrics(request, "DELETE /api/saved-cities", () =>
+    __route_DELETE(...args),
+  );
+}
+
+export function POST(...args: Parameters<typeof __route_POST>) {
+  const firstArgument = (args as unknown[])[0];
+  const request =
+    firstArgument instanceof Request
+      ? firstArgument
+      : new Request("http://localhost/api/saved-cities", { method: "POST" });
+  return withRequestMetrics(request, "POST /api/saved-cities", () =>
+    __route_POST(...args),
+  );
+}
+
+export function GET(...args: Parameters<typeof __route_GET>) {
+  const firstArgument = (args as unknown[])[0];
+  const request =
+    firstArgument instanceof Request
+      ? firstArgument
+      : new Request("http://localhost/api/saved-cities", { method: "GET" });
+  return withRequestMetrics(request, "GET /api/saved-cities", () =>
+    __route_GET(...args),
+  );
 }

@@ -1,3 +1,4 @@
+import { withRequestMetrics } from "@/lib/observability/request-metrics";
 import { apiError, apiOk, readJsonObject, serverError } from "@/lib/api";
 import { getOrCreateCurrentUser } from "@/lib/auth-user";
 import { prisma } from "@/lib/db";
@@ -16,7 +17,7 @@ import {
 } from "@/lib/generated/prisma/client";
 import "server-only";
 
-export async function GET(request: Request) {
+async function __route_GET(request: Request) {
   try {
     const params = new URL(request.url).searchParams;
     if (
@@ -135,7 +136,7 @@ export async function GET(request: Request) {
   }
 }
 
-export async function POST(request: Request) {
+async function __route_POST(request: Request) {
   try {
     const user = await getOrCreateCurrentUser();
     if (!user)
@@ -193,7 +194,7 @@ export async function POST(request: Request) {
   }
 }
 
-export async function PATCH(request: Request) {
+async function __route_PATCH(request: Request) {
   try {
     const user = await getOrCreateCurrentUser();
     if (!user)
@@ -244,7 +245,7 @@ export async function PATCH(request: Request) {
   }
 }
 
-export async function DELETE(request: Request) {
+async function __route_DELETE(request: Request) {
   try {
     const user = await getOrCreateCurrentUser();
     if (!user)
@@ -261,4 +262,48 @@ export async function DELETE(request: Request) {
   } catch (error) {
     return serverError(error, "Unable to delete discovery");
   }
+}
+
+export function DELETE(...args: Parameters<typeof __route_DELETE>) {
+  const firstArgument = (args as unknown[])[0];
+  const request =
+    firstArgument instanceof Request
+      ? firstArgument
+      : new Request("http://localhost/api/discoveries", { method: "DELETE" });
+  return withRequestMetrics(request, "DELETE /api/discoveries", () =>
+    __route_DELETE(...args),
+  );
+}
+
+export function PATCH(...args: Parameters<typeof __route_PATCH>) {
+  const firstArgument = (args as unknown[])[0];
+  const request =
+    firstArgument instanceof Request
+      ? firstArgument
+      : new Request("http://localhost/api/discoveries", { method: "PATCH" });
+  return withRequestMetrics(request, "PATCH /api/discoveries", () =>
+    __route_PATCH(...args),
+  );
+}
+
+export function POST(...args: Parameters<typeof __route_POST>) {
+  const firstArgument = (args as unknown[])[0];
+  const request =
+    firstArgument instanceof Request
+      ? firstArgument
+      : new Request("http://localhost/api/discoveries", { method: "POST" });
+  return withRequestMetrics(request, "POST /api/discoveries", () =>
+    __route_POST(...args),
+  );
+}
+
+export function GET(...args: Parameters<typeof __route_GET>) {
+  const firstArgument = (args as unknown[])[0];
+  const request =
+    firstArgument instanceof Request
+      ? firstArgument
+      : new Request("http://localhost/api/discoveries", { method: "GET" });
+  return withRequestMetrics(request, "GET /api/discoveries", () =>
+    __route_GET(...args),
+  );
 }

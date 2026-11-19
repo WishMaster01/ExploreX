@@ -3,6 +3,8 @@ import { apiError } from "@/lib/api";
 import { SlidingWindowRateLimiter } from "@/lib/algorithms/rate-limit/sliding-window";
 import "server-only";
 
+/** Arcjet is the cross-instance production limit store. Never fall back locally there. */
+
 const localLimiter = new SlidingWindowRateLimiter();
 
 type RateLimitOptions = {

@@ -74,6 +74,8 @@ const serverEnvironmentSchema = z.object({
     .enum(["auto", "disabled", "fixture", "google_places"])
     .default("auto"),
   ARCJET_KEY: z.string().min(1).optional(),
+  OTEL_EXPORTER_OTLP_ENDPOINT: z.string().url().optional(),
+  OTEL_EXPORTER_OTLP_TOKEN: z.string().min(1).optional(),
   CRON_SECRET: z.string().min(1).optional(),
   ADMIN_USERS: z.string().optional(),
   OPENROUTER_INPUT_COST_PER_MILLION: z.coerce

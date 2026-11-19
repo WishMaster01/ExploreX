@@ -6,20 +6,33 @@ export class AsyncRequestQueue {
     private readonly concurrency = 3,
     private readonly maxWaiting = 100,
     private readonly queueName = "AI",
+    private readonly onDepthChange?: (depth: {
+      active: number;
+      pending: number;
+    }) => void,
   ) {}
+
+  get depth() {
+    return { active: this.active, pending: this.waiting.length };
+  }
 
   async run<T>(operation: () => Promise<T>): Promise<T> {
     if (this.active >= this.concurrency) {
       if (this.waiting.length >= this.maxWaiting)
         throw new Error(`${this.queueName} request queue is full`);
-      await new Promise<void>((resolve) => this.waiting.push(resolve));
+      await new Promise<void>((resolve) => {
+        this.waiting.push(resolve);
+        this.onDepthChange?.(this.depth);
+      });
     }
     this.active += 1;
+    this.onDepthChange?.(this.depth);
     try {
       return await operation();
     } finally {
       this.active -= 1;
       this.waiting.shift()?.();
+      this.onDepthChange?.(this.depth);
     }
   }
 }

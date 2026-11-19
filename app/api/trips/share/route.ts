@@ -1,3 +1,4 @@
+import { withRequestMetrics } from "@/lib/observability/request-metrics";
 import { createHash, randomBytes } from "node:crypto";
 import { apiError, apiOk, readJsonObject, serverError } from "@/lib/api";
 import { getOrCreateCurrentUser } from "@/lib/auth-user";
@@ -11,7 +12,7 @@ const schema = z.object({ tripId: z.string().min(1) }).strict();
 const hashToken = (token: string) =>
   createHash("sha256").update(token).digest("hex");
 
-export async function POST(request: Request) {
+async function __route_POST(request: Request) {
   try {
     const user = await getOrCreateCurrentUser();
     if (!user)
@@ -36,7 +37,7 @@ export async function POST(request: Request) {
   }
 }
 
-export async function DELETE(request: Request) {
+async function __route_DELETE(request: Request) {
   try {
     const user = await getOrCreateCurrentUser();
     if (!user)
@@ -58,4 +59,26 @@ export async function DELETE(request: Request) {
   } catch (error) {
     return serverError(error, "Unable to revoke trip share link");
   }
+}
+
+export function DELETE(...args: Parameters<typeof __route_DELETE>) {
+  const firstArgument = (args as unknown[])[0];
+  const request =
+    firstArgument instanceof Request
+      ? firstArgument
+      : new Request("http://localhost/api/trips/share", { method: "DELETE" });
+  return withRequestMetrics(request, "DELETE /api/trips/share", () =>
+    __route_DELETE(...args),
+  );
+}
+
+export function POST(...args: Parameters<typeof __route_POST>) {
+  const firstArgument = (args as unknown[])[0];
+  const request =
+    firstArgument instanceof Request
+      ? firstArgument
+      : new Request("http://localhost/api/trips/share", { method: "POST" });
+  return withRequestMetrics(request, "POST /api/trips/share", () =>
+    __route_POST(...args),
+  );
 }
