@@ -11,4 +11,7 @@ export default defineConfig({
       "server-only": path.resolve(root, "lib/test/server-only.ts"),
     },
   },
+  test: {
+    exclude: ["e2e/**", "integration/**", "node_modules/**", "dist/**"],
+  },
 });

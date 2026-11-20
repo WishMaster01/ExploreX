@@ -36,16 +36,30 @@ export function CommunityDiscoveries() {
     "loading",
   );
   const [actionBusy, setActionBusy] = useState<string | null>(null);
+  const [savedIds, setSavedIds] = useState<string[]>([]);
   const load = useCallback(async () => {
     setLoadState("loading");
     try {
-      const response = await fetch(
-        `/api/discoveries?${new URLSearchParams({ ...(destination ? { destination } : {}), ...(categoryFilter ? { category: categoryFilter } : {}) })}`,
-      );
+      const [response, savedResponse] = await Promise.all([
+        fetch(
+          `/api/discoveries?${new URLSearchParams({ ...(destination ? { destination } : {}), ...(categoryFilter ? { category: categoryFilter } : {}) })}`,
+        ),
+        fetch("/api/discoveries/saved").catch(() => null),
+      ]);
       const body = await response.json();
       if (!response.ok || !Array.isArray(body.discoveries))
         throw new Error(body.error?.message ?? "Discoveries are unavailable.");
       setItems(body.discoveries);
+      if (savedResponse?.ok) {
+        const savedBody = await savedResponse.json();
+        setSavedIds(
+          Array.isArray(savedBody.savedDiscoveries)
+            ? savedBody.savedDiscoveries.map(
+                (item: { id: string }) => item.id,
+              )
+            : [],
+        );
+      }
       setLoadState("ready");
       setNotice("");
     } catch (error) {
@@ -131,6 +145,15 @@ export function CommunityDiscoveries() {
         body: JSON.stringify({ action, ...(reason ? { reason } : {}) }),
       });
       const body = await response.json();
+      if (response.ok && (action === "save" || action === "unsave")) {
+        setSavedIds((current) =>
+          action === "save"
+            ? current.includes(id)
+              ? current
+              : [...current, id]
+            : current.filter((savedId) => savedId !== id),
+        );
+      }
       setNotice(
         response.ok
           ? "Your action was recorded."
@@ -424,7 +447,21 @@ export function CommunityDiscoveries() {
                     : ""}
                 </p>
                 <div className="mt-4 flex flex-wrap gap-2">
-                  {["save", "recommend", "visit"].map((action) => (
+                  <button
+                    type="button"
+                    disabled={actionBusy === item.id}
+                    aria-pressed={savedIds.includes(item.id)}
+                    onClick={() =>
+                      void act(
+                        item.id,
+                        savedIds.includes(item.id) ? "unsave" : "save",
+                      )
+                    }
+                    className="min-h-10 rounded border px-3 py-2 capitalize focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700 disabled:opacity-50"
+                  >
+                    {savedIds.includes(item.id) ? "Remove saved" : "Save"}
+                  </button>
+                  {["recommend", "visit"].map((action) => (
                     <button
                       key={action}
                       type="button"
